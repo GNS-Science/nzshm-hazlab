@@ -42,7 +42,7 @@ def find_site_names(sites,dtol=0.001):
     
     ## this should be coming from the repo but I can't get the ssh set up yet
     with open('locations.json','r') as f:
-        location_codes = json.load(f)
+        location_codes_list = json.load(f)
         location_codes = {}
         for loc in location_codes_list:
             location_codes[loc['name']] = {'id':loc['id'],'latitude':loc['latitude'],'longitude':loc['longitude']}
