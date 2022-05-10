@@ -178,6 +178,7 @@ css_file = '''
 .markdown-body td,
 .markdown-body th {
   padding: 0;
+  font-weight: normal
 }
 
 .markdown-body details summary {
@@ -758,13 +759,14 @@ css_file = '''
 }
 
 .markdown-body table th {
-  font-weight: 600;
+  font-weight: normal;
 }
 
 .markdown-body table td,
 .markdown-body table th {
   padding: 6px 13px;
   border: 1px solid #dfe2e5;
+  font-weight: normal;
 }
 
 .markdown-body table tr {

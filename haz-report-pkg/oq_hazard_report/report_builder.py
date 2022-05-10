@@ -54,10 +54,11 @@ class ReportBuilder:
     #TODO in addition to a zip archive accept a directory or hdf5 
     #TODO currently assume only 1 hdf5 file in the zip, what happens if there are multiple?
 
-    def __init__(self,name='', hazard_archive=None, output_path=None):
+    def __init__(self,name='', plot_types=['hcurve'], hazard_archive=None, output_path=None):
         self._name = name
         self._hazard_archive = hazard_archive
         self._output_path = output_path
+        self._plot_types = plot_types
 
     def setName(self,name):
         self._name = name
@@ -68,7 +69,12 @@ class ReportBuilder:
     def setOutputPath(self,output_path):
         self._output_path = output_path
 
+    def setPlotTypes(self,plot_types):
+        self._plot_types = plot_types
+
     def run(self):
+
+        #TODO optional args to specify which plots to generate
 
         self._plot_dir = Path(self._output_path,'figures')
         if not self._plot_dir.is_dir():
@@ -97,17 +103,30 @@ class ReportBuilder:
         def make_hazard_plots(args):
             # loop over sites and imts
             print('generating plots . . .')
+            total_sites = 0
             for site in data['metadata']['sites']['custom_site_id'].keys():
 
-                plots.append( dict(
-                        level=2,
-                        text=site,
-                        figs=[])
-                    )
+                total_sites += 1
+                # if total_sites>1:
+                #     break
 
                 print('site:',site)
 
+                figs = [[]]
+                titles = [[]]
+                col = 0
+                row = 0
+                total_imt = 0
                 for imt in data['metadata']['acc_imtls'].keys():
+                    total_imt += 1
+                    # if total_imt > 7:
+                    #     break
+
+                    if col >= MAX_ROW_WIDTH:
+                        col = 0
+                        row += 1
+                        figs.append([])
+                        titles.append([])
 
                     print('imt:',imt)
 
@@ -116,16 +135,23 @@ class ReportBuilder:
                     print('writing',plot_rel_path)
 
                     fig, ax = plt.subplots(1,1)
+                    fig.set_size_inches(12,8.625)
                     
                     oq_hazard_report.plotting_functions.plot_hazard_curve(ax=ax, site_list=[site,], imt=imt, **args)
                     plt.savefig(str(plot_path), bbox_inches="tight")
+                    figs[row].append(plot_rel_path)
+                    titles[row].append(imt)
+                    col += 1
 
-                    plots.append( dict(
-                                level=3,
-                                text=imt,
-                                fig=PurePath(plot_rel_path))
-                    )
                     plt.close(fig)
+
+                plots.append( dict(
+                            level=2,
+                            text=site,
+                            fig_table = {'figs':figs, 'titles':titles})
+                )
+                
+
 
         def make_spectra_plots(rps,args):
             # loop over sites and imts
@@ -164,45 +190,51 @@ class ReportBuilder:
 
 
         plots = []
-        # ============ Hazard Curves ============ #
-        ref_rps = [50,500] # where it will plot PoE lines #TODO what should this be?
-        xlim = [0,5]
-        ylim = [1e-6,1]
 
-        args = dict(
-            ref_rps=ref_rps,
-            xlim=xlim,
-            ylim=ylim,
-            results=data
-        )
+        if 'hcurve' in self._plot_types:
 
-        plots.append( dict(
-                level=1,
-                text='Hazard Curve',
-                figs=[])
+            ref_rps = [50,500] # where it will plot PoE lines #TODO what should this be?
+            xlim = [0,5]
+            ylim = [1e-6,1]
+
+            args = dict(
+                ref_rps=ref_rps,
+                xlim=xlim,
+                ylim=ylim,
+                results=data,
+                legend_type='quant'
             )
 
-        print('hazard curves . . .')
-        make_hazard_plots(args)
-        print('done with hazard curves')
+            plots.append( dict(
+                    level=1,
+                    text='Hazard Curves',
+                    figs=[])
+                )
 
-        # # ============ Spectra ============ #
-        # args = dict(
-        #     color = 'b',
-        #     results = data
-        # )
+            print('hazard curves . . .')
+            make_hazard_plots(args)
+            print('done with hazard curves')
 
-        # plots.append( dict(
-        #         level=1,
-        #         text='Spectra',
-        #         figs=[])
-        #     )
+        if 'uhs' in self._plot_types:
+            args = dict(
+                color = 'b',
+                results = data
+            )
 
-        # rp = [50,500]
+            plots.append( dict(
+                    level=1,
+                    text='Spectra',
+                    figs=[])
+                )
 
-        # print('spectra . . . ')
-        # make_spectra_plots(rp, args)
-        # print('done with spectra')
+            rp = [50,500]
+
+            print('spectra . . . ')
+            make_spectra_plots(rp, args)
+            print('done with spectra')
+
+        if 'dissags' in self._plot_types:
+            args = dict()
 
 
         return plots
@@ -289,30 +321,49 @@ class ReportBuilder:
 
     def build_fig_table(self,fig_table):
 
+        #TODO error handling for titles and figs not same shape
+
         def end_row(table_md):
             return table_md[:-3] + '\n'
+        
+        def insert_header_break(table_md,ncols):
+            for col in range(ncols):
+                table_md += ': ------------- : | '
+            return table_md
 
         figs = fig_table.get('figs')
         titles = fig_table.get('titles')
 
         nrows = len(figs)
-        ncols = len(figs[0])   
+        ncols = len(figs[0])
+        ncols_header = ncols
 
-        table_md = ''
-        for title in titles:
-            table_md += f'{title} | '
-        table_md = end_row(table_md)
-
-        for col in range(ncols):
-            table_md += '------------- | '
-        table_md = end_row(table_md)
+        table_md = '\n'
 
         for row in range(nrows):
+            ncols = len(figs[row])
+
+            for col in range(ncols):
+                table_md += f'{titles[row][col]} | '
+                if ncols < ncols_header:
+                    for i in range(ncols_header-ncols):
+                        table_md += '. | '
+            table_md = end_row(table_md)
+
+            if row==0:
+                table_md = insert_header_break(table_md,ncols)
+                table_md = end_row(table_md)
+
             for col in range(ncols):
                 table_md += f'![an image]({figs[row][col]}) | '
+                if ncols < ncols_header:
+                    for i in range(ncols_header-ncols):
+                        table_md += '. | '
+
             table_md = end_row(table_md)
 
         table_md += '\n'
+
         return table_md
 
 

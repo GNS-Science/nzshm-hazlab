@@ -3,8 +3,9 @@ from oq_hazard_report.base_functions import *
 from uuid import RESERVED_FUTURE
 from matplotlib.collections import LineCollection
 
+#TODO can we make this any faster? Or is it the saving? Use lower resolution??
 
-def plot_hazard_curve(ax,site_list,imt,ref_rps,xlim,ylim,results,mean=False,median=True,show_rlz=True,intensity_type='acc'):
+def plot_hazard_curve(ax,site_list,imt,ref_rps,xlim,ylim,results,legend_type='site',mean=False,median=True,quant=True,show_rlz=True,intensity_type='acc'):
     
     imtls = results['metadata'][f'{intensity_type}_imtls']
     hcurves_rlzs = np.array(results['hcurves']['hcurves_rlzs'])
@@ -16,24 +17,55 @@ def plot_hazard_curve(ax,site_list,imt,ref_rps,xlim,ylim,results,mean=False,medi
     
     for i_site,site in enumerate(site_list):
         color = 'C%s'%i_site
+        if legend_type == 'quant':
+            color_m = 'r'
+        else:
+            color_m = color
+
         site_idx = sites.loc[site,'sids']
         
         if mean:
+            if legend_type == 'site':
+                label = site
+            elif legend_type == 'quant':
+                label = 'mean'
+
             ls = '-'
-            lw = '5'
+            lw = 5
             _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,0],color='k',lw=lw,ls=ls)
             ls = '--'
             lw = 3
-            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,0],color=color,lw=lw,ls=ls,label=site)
+            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,0],color=color_m,lw=lw,ls=ls,label=label)
         
         if median:
+            if legend_type == 'site':
+                label = site
+            elif legend_type == 'quant':
+                label = 'median'
+
             q_idx = quantiles.index(0.5)+1
             ls = '-'
             lw = 5
             _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color='k',lw=lw,ls=ls)
             ls = '-'
             lw = 3
-            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color=color,lw=lw,ls=ls,label=site)
+            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color=color_m,lw=lw,ls=ls,label=label)
+
+        if quant:
+            if legend_type == 'quant':
+                label10 = 'p10'
+                label90 = 'p90'
+            elif legend_type == 'site':
+                label10 = ''
+                label90 = ''
+
+            ls = '--'
+            lw = 2
+
+            q_idx = quantiles.index(0.1)+1
+            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color=color_m,lw=lw,ls=ls,label=label10)
+            q_idx = quantiles.index(0.9)+1
+            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color=color_m,lw=lw,ls=ls,label=label90)
             
         if show_rlz:
             lw = 1
