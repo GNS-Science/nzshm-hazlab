@@ -46,13 +46,15 @@ TAIL_HTML = '''
 
 '''
 
+MAX_ROW_WIDTH = 3
+
 
 class ReportBuilder:
 
     #TODO in addition to a zip archive accept a directory or hdf5 
     #TODO currently assume only 1 hdf5 file in the zip, what happens if there are multiple?
 
-    def __init__(self,name='', hazard_archive=None, output_path=None, is_arch=None):
+    def __init__(self,name='', hazard_archive=None, output_path=None):
         self._name = name
         self._hazard_archive = hazard_archive
         self._output_path = output_path
@@ -93,14 +95,10 @@ class ReportBuilder:
     def generate_plots(self,hdf_file):
 
         def make_hazard_plots(args):
-            s = 0 #TODO remove after debugging
             # loop over sites and imts
             print('generating plots . . .')
             for site in data['metadata']['sites']['custom_site_id'].keys():
-                if s>1:
-                    break
-                s += 1
-                
+
                 plots.append( dict(
                         level=2,
                         text=site,
@@ -109,12 +107,7 @@ class ReportBuilder:
 
                 print('site:',site)
 
-                i = 0 #TODO remove after debugging
                 for imt in data['metadata']['acc_imtls'].keys():
-
-                    if i>1:
-                        break
-                    i+=1
 
                     print('imt:',imt)
 
@@ -135,14 +128,10 @@ class ReportBuilder:
                     plt.close(fig)
 
         def make_spectra_plots(rps,args):
-            s = 0 #TODO remove after debugging
             # loop over sites and imts
             print('generating plots . . .')
             for site in data['metadata']['sites']['custom_site_id'].keys():
-                if s>1:
-                    break
-                s += 1
-                
+
                 plots.append( dict(
                         level=2,
                         text=site,
@@ -151,12 +140,7 @@ class ReportBuilder:
 
                 print('site:',site)
 
-                i = 0 #TODO remove after debugging
                 for rp in rps:
-
-                    if i>1:
-                        break
-                    i+=1
 
                     plot_path = PurePath(self._plot_dir,f'spectra_{site}_{rp}.png')
                     plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
@@ -282,7 +266,7 @@ class ReportBuilder:
         for plot in plots:
             md_string += f'{"#"*(plot["level"]+1)} {plot["text"]}\n'
             if plot['level'] < 3:
-                md_string += f'[top](#top)\n' #TODO this doesn't work
+                md_string += f'[top](#top)\n'
             if plot.get('fig'):
                 md_string += f'![an image]({plot["fig"]})\n'
             if plot.get('fig_table'):
