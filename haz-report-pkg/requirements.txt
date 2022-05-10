@@ -1,0 +1,3 @@
+matplotlib
+markdown
+git+https://github.com/GNS-Science/nzshm-common-py
