@@ -5,7 +5,7 @@ from matplotlib.collections import LineCollection
 
 #TODO can we make this any faster? Or is it the saving? Use lower resolution??
 
-def plot_hazard_curve(ax,site_list,imt,ref_poes,xlim,ylim,results,inv_time,legend_type='site',mean=False,median=True,quant=True,show_rlz=True,intensity_type='acc'):
+def plot_hazard_curve(ax,site_list,imt,ref_poes,xlim,ylim,results,inv_time,ref_rps=None,legend_type='site',mean=False,median=True,quant=True,show_rlz=True,intensity_type='acc'):
     
     imtls = results['metadata'][f'{intensity_type}_imtls']
     hcurves_rlzs = np.array(results['hcurves']['hcurves_rlzs'])
@@ -81,6 +81,12 @@ def plot_hazard_curve(ax,site_list,imt,ref_poes,xlim,ylim,results,inv_time,legen
         rp = -inv_time/np.log(1-poe)
         _ = ax.plot(xlim,[1/rp]*2,ls='--',color='dimgray',zorder=-1)
         _ = ax.annotate(f'{poe*100:.0f}% in {inv_time:.0f} years', [xlim[1],1/rp], ha='right',va='bottom')
+
+    if ref_rps:
+        for rp in ref_rps:
+            _ = ax.plot(xlim,[1/rp]*2,ls='--',color='dimgray',zorder=-1)
+            _ = ax.annotate(f'1/{rp:.0f}', [xlim[1],1/rp], ha='right',va='bottom')
+
     
     if mean or median:
         _ = ax.legend(handlelength=1)

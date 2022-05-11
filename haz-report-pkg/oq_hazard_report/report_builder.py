@@ -49,12 +49,13 @@ TAIL_HTML = '''
 
 '''
 
-MAX_ROW_WIDTH = 3
+MAX_ROW_WIDTH = 2
 POES = [0.02,0.1]
+RPS = [25,50]
 PLOT_WIDTH = 12
 PLOT_HEIGHT = 8.625
 INVESTIGATION_TIME = 50
-
+IMTS = ['PGA','SA(0.5)','SA(1.0)','SA(1.5)','SA(2.0)']
 
 class ReportBuilder:
 
@@ -119,25 +120,19 @@ class ReportBuilder:
                 if total_sites>2:
                     break
 
-                print('site:',site)
-
                 figs = [[]]
                 titles = [[]]
                 col = 0
                 row = 0
-                total_imt = 0
                 for imt in data['metadata']['acc_imtls'].keys():
-                    total_imt += 1
-                    # if total_imt > 7:
-                    #     break
+
+                    if imt not in IMTS: continue
 
                     if col >= MAX_ROW_WIDTH:
                         col = 0
                         row += 1
                         figs.append([])
                         titles.append([])
-
-                    print('imt:',imt)
 
                     plot_path = PurePath(self._plot_dir,f'hcurve_{site}_{imt}.png')
                     plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
@@ -169,10 +164,8 @@ class ReportBuilder:
             for site in data['metadata']['sites']['custom_site_id'].keys():
 
                 total_sites += 1
-                if total_sites>2:
-                    break
-
-                print('site:',site)
+                # if total_sites>1:
+                #     break
 
                 figs = [[]]
                 titles = [[]]
@@ -188,8 +181,6 @@ class ReportBuilder:
                         row += 1
                         figs.append([])
                         titles.append([])
-
-                    print('PoE',poe)
 
                     plot_path = PurePath(self._plot_dir,f'uhs_{site}_{poe*100:.0f}_in_{INVESTIGATION_TIME:.0f}.png')
                     plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
@@ -220,7 +211,6 @@ class ReportBuilder:
                         figs=[])
                     )
 
-
         data = oq_hazard_report.read_oq_hdf5.retrieve_data(hdf_file)
 
         plots = []
@@ -237,7 +227,8 @@ class ReportBuilder:
                 ylim=ylim,
                 results=data,
                 inv_time=INVESTIGATION_TIME,
-                legend_type='quant'
+                legend_type='quant',
+                ref_rps = RPS
             )
 
             plots.append( dict(
@@ -283,51 +274,6 @@ class ReportBuilder:
         return plots
 
 
-   
-
-    def generate_plots_dummy(self):
-
-        plots = {}
-
-        figures_dir = PurePath('/home/chrisdc/NSHM/DEV/nzshm_hazlab/examples/Figures_chris')
-
-        types = ['hcurves','disaggs']
-        sites = ['Wellington', 'Auckland']
-        periods = ['PGA', 'SA(0.5)', 'SA(1.5)', 'SA(3.0)', 'SA(5.0)']
-
-        plots = []
-
-        for t in types:
-            plots.append( dict(
-                level=1,
-                text=t,
-                figs=[])
-            )
-            for site in sites:
-                plots.append( dict(
-                    level=2,
-                    text=site,
-                    figs=[])
-                )
-                for period in periods:
-                    if t == 'disaggs':
-                        figs = [[PurePath(figures_dir,f'{t}_{site}_{period}_0.002105.png'),
-                                PurePath(figures_dir,f'{t}_{site}_{period}_0.000404.png')]]
-                        titles = ['10% in 50 years', '2% in 50 years']
-                        plots.append( dict(
-                            level=3,
-                            text=period,
-                            fig_table = {'figs':figs, 'titles':titles})
-                        )
-                    else:
-                        plots.append( dict(
-                            level=3,
-                            text=period,
-                            fig=PurePath(figures_dir,f'{t}_{site}_{period}.png'))
-                        )
-        
-        return plots
-
     def generate_report(self,plots):
 
         print('generating report . . .')
@@ -343,7 +289,7 @@ class ReportBuilder:
             if plot['level'] < 3:
                 md_string += f'[top](#top)\n'
             if plot.get('fig'):
-                md_string += f'![an image]({plot["fig"]})\n'
+                md_string += f'<a href={plot["fig"]} target="_blank">![an image]({plot["fig"]})</a>\n'
             if plot.get('fig_table'):
                 md_string += self.build_fig_table(plot.get('fig_table'))
 
@@ -398,7 +344,8 @@ class ReportBuilder:
                 table_md = end_row(table_md)
 
             for col in range(ncols):
-                table_md += f'![an image]({figs[row][col]}) | '
+                fig = figs[row][col]
+                table_md += f'<a href={fig} target="_blank">![an image]({fig})<a href={fig} target="_blank"> | '
                 if ncols < ncols_header:
                     for i in range(ncols_header-ncols):
                         table_md += '. | '
