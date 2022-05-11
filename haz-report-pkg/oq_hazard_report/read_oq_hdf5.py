@@ -46,7 +46,7 @@ def convert_imtls_to_disp(acc_imtls):
         
     return disp_imtls
 
-def find_site_names(sites,dtol=0.1):
+def find_site_names(sites,dtol=0.01):
     '''
     sets site names as the index for the sites dataframe
     '''
@@ -56,6 +56,7 @@ def find_site_names(sites,dtol=0.1):
         location_codes[loc['name']] = {'id':loc['id'],'latitude':loc['latitude'],'longitude':loc['longitude']}
     location_codes = pd.DataFrame(location_codes).transpose()
     
+    sites.loc[0,'name'] = 'dummy'
     for i in sites.index:
         lat_idx = (location_codes['latitude'] >= sites.loc[i,'lat']-dtol) & (location_codes['latitude'] <= sites.loc[i,'lat']+dtol)
         lon_idx = (location_codes['longitude'] >= sites.loc[i,'lon']-dtol) & (location_codes['longitude'] <= sites.loc[i,'lon']+dtol)
