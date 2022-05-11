@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from sre_constants import IN
+import numpy as np
 from pathlib import PurePath, Path
 from unittest import result
 import matplotlib.pyplot as plt
@@ -10,6 +12,7 @@ from zipfile import ZipFile
 
 import oq_hazard_report.read_oq_hdf5
 import oq_hazard_report.plotting_functions
+import oq_hazard_report.prepare_design_intensities
 
 from oq_hazard_report.resources.css_template import css_file
 
@@ -47,12 +50,18 @@ TAIL_HTML = '''
 '''
 
 MAX_ROW_WIDTH = 3
+POES = [0.02,0.1]
+PLOT_WIDTH = 12
+PLOT_HEIGHT = 8.625
+INVESTIGATION_TIME = 50
 
 
 class ReportBuilder:
 
-    #TODO in addition to a zip archive accept a directory or hdf5 
-    #TODO currently assume only 1 hdf5 file in the zip, what happens if there are multiple?
+    #TODO
+        # - in addition to a zip archive accept a directory or hdf5 
+        # - currently assume only 1 hdf5 file in the zip, what happens if there are multiple?
+        # -  some error handling for inputs (do the list of strings match the options?)
 
     def __init__(self,name='', plot_types=['hcurve'], hazard_archive=None, output_path=None):
         self._name = name
@@ -107,8 +116,8 @@ class ReportBuilder:
             for site in data['metadata']['sites']['custom_site_id'].keys():
 
                 total_sites += 1
-                # if total_sites>1:
-                #     break
+                if total_sites>2:
+                    break
 
                 print('site:',site)
 
@@ -135,7 +144,7 @@ class ReportBuilder:
                     print('writing',plot_rel_path)
 
                     fig, ax = plt.subplots(1,1)
-                    fig.set_size_inches(12,8.625)
+                    fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
                     
                     oq_hazard_report.plotting_functions.plot_hazard_curve(ax=ax, site_list=[site,], imt=imt, **args)
                     plt.savefig(str(plot_path), bbox_inches="tight")
@@ -156,52 +165,78 @@ class ReportBuilder:
         def make_spectra_plots(rps,args):
             # loop over sites and imts
             print('generating plots . . .')
+            total_sites = 0
             for site in data['metadata']['sites']['custom_site_id'].keys():
 
+                total_sites += 1
+                if total_sites>2:
+                    break
+
+                print('site:',site)
+
+                figs = [[]]
+                titles = [[]]
+                col = 0
+                row = 0
+
+                for rp in rps:
+
+                    poe = 1-np.exp(-INVESTIGATION_TIME/rp)
+
+                    if col >= MAX_ROW_WIDTH:
+                        col = 0
+                        row += 1
+                        figs.append([])
+                        titles.append([])
+
+                    print('PoE',poe)
+
+                    plot_path = PurePath(self._plot_dir,f'uhs_{site}_{poe*100:.0f}_in_{INVESTIGATION_TIME:.0f}.png')
+                    plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
+                    print('writing',plot_rel_path)
+
+                    fig, ax = plt.subplots(1,1)
+                    fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
+                    
+                    oq_hazard_report.plotting_functions.plot_spectrum(ax=ax, rp=rp, site=site, **args)
+                    plt.savefig(str(plot_path), bbox_inches="tight")
+                    figs[row].append(plot_rel_path)
+                    titles[row].append(f'{poe*100:.0f}% in {INVESTIGATION_TIME:.0f} years')
+                    col += 1
+
+                    plt.close(fig)
+
                 plots.append( dict(
+                            level=2,
+                            text=site,
+                            fig_table = {'figs':figs, 'titles':titles})
+                )
+
+                    
+
+            plots.append( dict(
                         level=2,
                         text=site,
                         figs=[])
                     )
 
-                print('site:',site)
-
-                for rp in rps:
-
-                    plot_path = PurePath(self._plot_dir,f'spectra_{site}_{rp}.png')
-                    plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
-                    print('writing',plot_rel_path)
-
-                    fig, ax = plt.subplots(1,1)
-                    
-                    oq_hazard_report.plotting_functions.plot_spectrum(ax=ax, rp=rp, site=site, **args)
-                    plt.savefig(str(plot_path), bbox_inches="tight")
-
-                    plots.append( dict(
-                                level=3,
-                                text=rp,
-                                fig=PurePath(plot_rel_path))
-                    )
-
-                    plt.close(fig)
-
 
         data = oq_hazard_report.read_oq_hdf5.retrieve_data(hdf_file)
-
 
         plots = []
 
         if 'hcurve' in self._plot_types:
 
-            ref_rps = [50,500] # where it will plot PoE lines #TODO what should this be?
+            ref_poes = POES # where it will plot PoE lines #TODO what should this be?
             xlim = [0,5]
             ylim = [1e-6,1]
 
             args = dict(
-                ref_rps=ref_rps,
+                ref_poes=ref_poes,
                 xlim=xlim,
                 ylim=ylim,
                 results=data,
+                inv_time=INVESTIGATION_TIME,
                 legend_type='quant'
             )
 
@@ -216,9 +251,19 @@ class ReportBuilder:
             print('done with hazard curves')
 
         if 'uhs' in self._plot_types:
+
+            rps = -INVESTIGATION_TIME/np.log(1 - np.array(POES))
+            im_hazard, stats_im_hazard = oq_hazard_report.prepare_design_intensities.calculate_hazard_design_intensities(data,rps)
+            data['hazard_design'] = dict(acc=dict())
+
+            data['hazard_design']['acc']['im_hazard'] = im_hazard
+            data['hazard_design']['acc']['stats_im_hazard'] = stats_im_hazard
+            data['hazard_design']['hazard_rps'] = rps
+
             args = dict(
-                color = 'b',
-                results = data
+                results = data,
+                inv_time=INVESTIGATION_TIME,
+                legend_type='quant'
             )
 
             plots.append( dict(
@@ -227,10 +272,8 @@ class ReportBuilder:
                     figs=[])
                 )
 
-            rp = [50,500]
-
             print('spectra . . . ')
-            make_spectra_plots(rp, args)
+            make_spectra_plots(rps, args)
             print('done with spectra')
 
         if 'dissags' in self._plot_types:

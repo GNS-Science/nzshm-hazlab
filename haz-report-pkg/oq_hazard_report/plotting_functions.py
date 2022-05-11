@@ -5,7 +5,7 @@ from matplotlib.collections import LineCollection
 
 #TODO can we make this any faster? Or is it the saving? Use lower resolution??
 
-def plot_hazard_curve(ax,site_list,imt,ref_rps,xlim,ylim,results,legend_type='site',mean=False,median=True,quant=True,show_rlz=True,intensity_type='acc'):
+def plot_hazard_curve(ax,site_list,imt,ref_poes,xlim,ylim,results,inv_time,legend_type='site',mean=False,median=True,quant=True,show_rlz=True,intensity_type='acc'):
     
     imtls = results['metadata'][f'{intensity_type}_imtls']
     hcurves_rlzs = np.array(results['hcurves']['hcurves_rlzs'])
@@ -77,9 +77,10 @@ def plot_hazard_curve(ax,site_list,imt,ref_rps,xlim,ylim,results,legend_type='si
             line_segments = LineCollection(segs, color=color, alpha=alpha, lw=lw)
             _ = ax.add_collection(line_segments)
             
-    for rp in ref_rps: 
+    for poe in ref_poes: 
+        rp = -inv_time/np.log(1-poe)
         _ = ax.plot(xlim,[1/rp]*2,ls='--',color='dimgray',zorder=-1)
-        _ = ax.annotate('1 / %s '%rp, [xlim[1],1/rp], ha='right',va='bottom')
+        _ = ax.annotate(f'{poe*100:.0f}% in {inv_time:.0f} years', [xlim[1],1/rp], ha='right',va='bottom')
     
     if mean or median:
         _ = ax.legend(handlelength=1)
@@ -163,7 +164,7 @@ def plot_rfactor_curve(ax,site_list,imt,ref_rps,xlim,ylim,results,mean=False,med
     _ = ax.set_ylabel('Probability of Exceedance')
 
 
-def plot_spectrum(ax,site,rp,results,color,label='site',mean=False,median=True,show_rlz=True,intensity_type='acc'):
+def plot_spectrum(ax,site,rp,results,inv_time,legend_type='site',mean=False,median=True,quant=True,show_rlz=True,intensity_type='acc'):
     
     sites = pd.DataFrame(results['metadata']['sites'])
     imtls = results['metadata'][f'{intensity_type}_imtls']
@@ -176,29 +177,57 @@ def plot_spectrum(ax,site,rp,results,color,label='site',mean=False,median=True,s
     site_idx = sites.loc[site,'sids']
     rp_idx = np.where(hazard_rps==rp)[0]
 
-    if label=='site':
+    poe = 1-np.exp(-inv_time/rp)
+    tmp = f'{poe*100:.0f}_in_{inv_time:.0f}'
+
+    color = 'C0'
+
+    if legend_type=='site':
         label = site
-    elif label=='rp':
-        label = '1 / %s'%rp
+        color_m = color
+    elif legend_type=='quant':
+        color_m = 'r'
     
     periods = [period_from_imt(imt) for imt in imtls.keys()]
     
     if mean:
+        if legend_type == 'quant':
+            label = 'mean'
+
         ls = '-'
         lw = '5'
         _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,0]),color='k',lw=lw,ls=ls)
         ls = '--'
         lw = 3
-        _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,0]),color=color,lw=lw,ls=ls,label=label)
+        _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,0]),color=color_m,lw=lw,ls=ls,label=label)
 
     if median:
+        if legend_type == 'quant':
+            label = 'median'
+
         q_idx = quantiles.index(0.5)+1
         ls = '-'
         lw = 5
         _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color='k',lw=lw,ls=ls)
         ls = '-'
         lw = 3
-        _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color=color,lw=lw,ls=ls,label=label)
+        _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color=color_m,lw=lw,ls=ls,label=label)
+
+    if quant:
+            if legend_type == 'quant':
+                label10 = 'p10'
+                label90 = 'p90'
+            elif legend_type == 'site':
+                label10 = ''
+                label90 = ''
+
+            ls = '--'
+            lw = 2
+
+            q_idx = quantiles.index(0.1)+1
+            _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color=color_m,lw=lw,ls=ls,label=label10)
+            q_idx = quantiles.index(0.9)+1
+            _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color=color_m,lw=lw,ls=ls,label=label90)
 
     if show_rlz:
         lw = 1
@@ -209,6 +238,14 @@ def plot_spectrum(ax,site,rp,results,color,label='site',mean=False,median=True,s
         segs[:, :, 1] = np.transpose(np.squeeze(im_hazard[site_idx,:,rp_idx,:,0]))
         line_segments = LineCollection(segs, color=color, alpha=alpha, lw=lw)
         _ = ax.add_collection(line_segments)
+
+    if mean or median:
+        _ = ax.legend(handlelength=1)
+    
+        _ = ax.grid(color='lightgray')
+        
+        _ = ax.set_xlabel('Period [s]')
+        _ = ax.set_ylabel('Shaking Intensity [g]')
 
 
 def retrieve_design_intensities(results,intensity_type,design_type,imt,rp=500):
