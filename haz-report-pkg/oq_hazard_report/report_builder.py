@@ -113,12 +113,7 @@ class ReportBuilder:
         def make_hazard_plots(args):
             # loop over sites and imts
             print('generating plots . . .')
-            total_sites = 0
             for site in data['metadata']['sites']['custom_site_id'].keys():
-
-                total_sites += 1
-                if total_sites>2:
-                    break
 
                 figs = [[]]
                 titles = [[]]
@@ -160,12 +155,7 @@ class ReportBuilder:
         def make_spectra_plots(rps,args):
             # loop over sites and imts
             print('generating plots . . .')
-            total_sites = 0
             for site in data['metadata']['sites']['custom_site_id'].keys():
-
-                total_sites += 1
-                # if total_sites>1:
-                #     break
 
                 figs = [[]]
                 titles = [[]]
