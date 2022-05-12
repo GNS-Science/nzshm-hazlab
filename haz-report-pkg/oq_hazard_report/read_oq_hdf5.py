@@ -15,7 +15,7 @@ def retrieve_data(file_id,named_sites=True):
     
     acc_imtls = oqparam['hazard_imtls']
     data['metadata']['acc_imtls'] = acc_imtls
-    # data['metadata']['disp_imtls'] = convert_imtls_to_disp(acc_imtls)
+    # data['metadata']['disp_imtls'] = convert_imtls_to_disp(acc_imtls) #TODO put me back in
     
     if named_sites:
         data['metadata']['sites'] = find_site_names(dstore.read_df('sitecol')).to_dict()
@@ -28,8 +28,8 @@ def retrieve_data(file_id,named_sites=True):
         data['metadata']['rlz_weights'] = hf['weights'][:].tolist()
         
         data['hcurves'] = {}
-        data['hcurves']['hcurves_rlzs'] = np.moveaxis(hf['hcurves-rlzs'][:], 1, 3).tolist()
-        data['hcurves']['hcurves_stats'] = np.moveaxis(hf['hcurves-stats'][:], 1, 3).tolist()
+        data['hcurves']['hcurves_rlzs'] = np.moveaxis(hf['hcurves-rlzs'][:], 1, 3).tolist() #[site,imt,imtl,realizations (source*gmpe) ] (order after moveaxis)
+        data['hcurves']['hcurves_stats'] = np.moveaxis(hf['hcurves-stats'][:], 1, 3).tolist() #[site,imt,imtl,mean+quantiles] (order after moveaxis)
 
     return data
 
