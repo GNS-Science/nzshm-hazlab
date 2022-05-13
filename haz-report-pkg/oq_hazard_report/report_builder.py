@@ -129,7 +129,8 @@ class ReportBuilder:
                         figs.append([])
                         titles.append([])
 
-                    plot_path = PurePath(self._plot_dir,f'hcurve_{site}_{imt}.png')
+                    site_ = site.replace(' ','_')
+                    plot_path = PurePath(self._plot_dir,f'hcurve_{site_}_{imt}.png')
                     plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
                     print('writing',plot_rel_path)
 
@@ -172,7 +173,8 @@ class ReportBuilder:
                         figs.append([])
                         titles.append([])
 
-                    plot_path = PurePath(self._plot_dir,f'uhs_{site}_{poe*100:.0f}_in_{INVESTIGATION_TIME:.0f}.png')
+                    site_ = site.replace(' ','_')
+                    plot_path = PurePath(self._plot_dir,f'uhs_{site_}_{poe*100:.0f}_in_{INVESTIGATION_TIME:.0f}.png')
                     plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
                     print('writing',plot_rel_path)
 
