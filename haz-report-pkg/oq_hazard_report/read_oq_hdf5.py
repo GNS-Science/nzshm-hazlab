@@ -50,16 +50,34 @@ def find_site_names(sites,dtol=0.01):
     '''
     sets site names as the index for the sites dataframe
     '''
-    
+
+    def name_from_latlon(lat, lon, location_codes, dtol):
+        lat_idx = (location_codes['latitude'] >= lat-dtol) & (location_codes['latitude'] <= lat+dtol)
+        lon_idx = (location_codes['longitude'] >= lon-dtol) & (location_codes['longitude'] <= lon+dtol)
+        idx = lat_idx & lon_idx
+        if not True in idx.values:
+            return f'Lat: {lat:.2f}, Lon: {lon:.2f}'
+        return location_codes[lat_idx & lon_idx].index
+
     location_codes = {}
     for loc in location.LOCATIONS:
         location_codes[loc['name']] = {'id':loc['id'],'latitude':loc['latitude'],'longitude':loc['longitude']}
     location_codes = pd.DataFrame(location_codes).transpose()
-    
+
     sites.loc[0,'name'] = 'dummy'
-    for i in sites.index:
-        lat_idx = (location_codes['latitude'] >= sites.loc[i,'lat']-dtol) & (location_codes['latitude'] <= sites.loc[i,'lat']+dtol)
-        lon_idx = (location_codes['longitude'] >= sites.loc[i,'lon']-dtol) & (location_codes['longitude'] <= sites.loc[i,'lon']+dtol)
-        sites.loc[i,'name'] = location_codes[lat_idx & lon_idx].index
+    if 'custom_site_id' in sites:
+        for i in sites.index:
+            id_idx = location_codes['id'] == sites.loc[i,'custom_site_id']
+            if True in id_idx.values:
+                try:
+                    sites.loc[i,'name'] = location_codes[id_idx].index
+                except: #handle duplicate custom_site_ids by looking up by lat lon
+                    sites.loc[i,'name'] = name_from_latlon(sites.loc[i,'lat'], sites.loc[i,'lon'], location_codes, dtol)
+            else: #if it's not on the list just use the custom_site_id
+                sites.loc[i,'name'] = sites.loc[i,'custom_site_id']
+    else:
+        for i in sites.index:
+            sites.loc[i,'name'] = name_from_latlon(sites.loc[i,'lat'], sites.loc[i,'lon'], location_codes, dtol)
         
     return sites.set_index('name')
+
