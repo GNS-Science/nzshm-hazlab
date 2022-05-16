@@ -15,7 +15,7 @@ def retrieve_data(file_id,named_sites=True):
     
     acc_imtls = oqparam['hazard_imtls']
     data['metadata']['acc_imtls'] = acc_imtls
-    # data['metadata']['disp_imtls'] = convert_imtls_to_disp(acc_imtls) #TODO put me back in
+    data['metadata']['disp_imtls'] = convert_imtls_to_disp(acc_imtls) #TODO put me back in
     
     if named_sites:
         data['metadata']['sites'] = find_site_names(dstore.read_df('sitecol')).to_dict()
