@@ -209,7 +209,9 @@ class ReportBuilder:
 
         if 'hcurve' in self._plot_types:
 
-            ref_poes = POES # where it will plot PoE lines #TODO what should this be?
+            ref_poes = []
+            for poe in POES:
+                ref_poes = [{'poe':poe,'inv_time':INVESTIGATION_TIME}]
             xlim = [0,5]
             ylim = [1e-6,1]
 
@@ -218,7 +220,6 @@ class ReportBuilder:
                 xlim=xlim,
                 ylim=ylim,
                 results=data,
-                inv_time=INVESTIGATION_TIME,
                 legend_type='quant',
                 ref_rps = RPS
             )

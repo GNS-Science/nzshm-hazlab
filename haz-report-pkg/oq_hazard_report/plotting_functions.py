@@ -1,11 +1,44 @@
+from operator import inv
 from oq_hazard_report.base_functions import *
 
 from uuid import RESERVED_FUTURE
 from matplotlib.collections import LineCollection
 
-#TODO can we make this any faster? Or is it the saving? Use lower resolution??
+#TODO runs slowly; any performance imporvements to be had?
 
-def plot_hazard_curve(ax,site_list,imt,ref_poes,xlim,ylim,results,inv_time,ref_rps=None,legend_type='site',mean=False,median=True,quant=True,show_rlz=True,intensity_type='acc'):
+def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
+                        ref_poes=None,
+                        ref_rps=None,
+                        legend_type='site',
+                        mean=False,
+                        median=True,
+                        quant=True,
+                        show_rlz=True,
+                        intensity_type='acc'):
+    '''
+    plot_hazard_curve
+
+    required arguments:
+    ax:             pyplot axis handle to plot to
+    site_list:      list of sites (strings) to plot from the results dictionary
+    imt:            intensity masure types to plot (list of strings)
+    xlim:           list or tuple of x-limits for plot
+    ylim:           list or tuple of y-limits for plot
+    results:        dictionary containing hazard data
+
+    optional arguments:
+    ref_poes:       draw lines at PoE.
+                        list of dicts. each dict contains two entries to specify PoE and investigation time.
+                        e.g. for 2% in 50 years {'poe':0.02,'inv_time':50}
+    ref_rps:        draw lines at reference return periods
+                        list of return periods e.g. [25,50] will draw 1/25 and 1/50 year lines
+    legend_type:    specify how curves are colored and noted in legend 'site' or 'quant'
+    mean:           boolian turn on mean plotting
+    median:         boolian turn on median plotting
+    quant:          boolian turn on quantile plotting
+    show_rlz:       boolian show realizations
+    intensity_type: 'acc' or 'disp'
+    '''
     
     imtls = results['metadata'][f'{intensity_type}_imtls']
     hcurves_rlzs = np.array(results['hcurves']['hcurves_rlzs'])
@@ -77,7 +110,9 @@ def plot_hazard_curve(ax,site_list,imt,ref_poes,xlim,ylim,results,inv_time,ref_r
             line_segments = LineCollection(segs, color=color, alpha=alpha, lw=lw)
             _ = ax.add_collection(line_segments)
             
-    for poe in ref_poes: 
+    for kv in ref_poes: 
+        poe = kv['poe']
+        inv_time = kv['inv_time']
         rp = -inv_time/np.log(1-poe)
         _ = ax.plot(xlim,[1/rp]*2,ls='--',color='dimgray',zorder=-1)
         _ = ax.annotate(f'{poe*100:.0f}% in {inv_time:.0f} years', [xlim[1],1/rp], ha='right',va='bottom')
