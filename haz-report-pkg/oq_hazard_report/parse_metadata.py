@@ -77,7 +77,7 @@ def create_metadata_sheet(f,export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict):
     summary = pd.DataFrame()
     summary.loc['analysis version','col'] = export_name
     summary.loc['vs30','col'] = vs30
-    summary.loc['link for plots','col'] = f'http://nzshm22-static-reports.s3-wbsite-ap-southeast-2.amazonaws.com/openquake/DATA/{hazard_id}/hazard_report/index.html'
+    summary.loc['link for plots','col'] = f'http://nzshm22-static-reports.s3-website-ap-southeast-2.amazonaws.com/openquake/DATA/{hazard_id}/hazard_report/index.html'
     summary.to_excel(f,sheet_name=sheet_name,startrow=startrow,startcol=1,header=False)
     startrow += len(summary) + 4
     
@@ -177,6 +177,8 @@ def create_metadata_file(export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict):
         
     # read data and recreate sheet with autoset columns widths
     metadata = pd.read_excel(filename,sheet_name='metadata')
+    # remove the link so it doesn't affect the column widths
+    metadata.iloc[2, 2]=''
     
     with pd.ExcelWriter(filename) as f:
         # recreating the metadata sheet will keep the bold formatting
@@ -184,13 +186,15 @@ def create_metadata_file(export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict):
         _ = [f.sheets['metadata'].set_column(i,i,max([len(str(s)) for s in metadata[col].values]+[len(col)])+2) for i,col in enumerate(metadata.columns)]
 
 
-def create_hcurves_single_vs30(export_name,vs30,hazard_id,parameters_for_exporting,data):
+def create_hcurves_single_vs30(export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict,parameters_for_exporting,data):
     
     sites_for_exporting = parameters_for_exporting['sites']
     imts_for_exporting = parameters_for_exporting['imts']
     
     metadata_file = f'{export_name}_metadata_vs30-{vs30}.xlsx'
     metadata = pd.read_excel(metadata_file,sheet_name='metadata')
+    # remove the link so it doesn't affect the column widths
+    metadata.iloc[2, 2]=''
     
     filename = f'{export_name}_hcurves_vs30-{vs30}.xlsx'
     with pd.ExcelWriter(filename) as f:
@@ -221,13 +225,15 @@ def create_hcurves_single_vs30(export_name,vs30,hazard_id,parameters_for_exporti
                 pd.DataFrame(np.transpose(hcurves_rlzs[site_idx,imt_idx,:,:]),columns=imtls[imt]).to_excel(f,sheet_name=f'{site}_{imt}',startrow=n_stats+2,header=False)
 
 
-def create_uhs_single_vs30(export_name,vs30,parameters_for_exporting,data):
+def create_uhs_single_vs30(export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict,parameters_for_exporting,data):
     
     sites_for_exporting = parameters_for_exporting['sites']
     rps_for_exporting = parameters_for_exporting['rps']
     
     metadata_file = f'{export_name}_metadata_vs30-{vs30}.xlsx'
     metadata = pd.read_excel(metadata_file,sheet_name='metadata')
+    # remove the link so it doesn't affect the column widths
+    metadata.iloc[2, 2]=''
 
     filename = f'{export_name}_uhs_vs30-{vs30}.xlsx'
     with pd.ExcelWriter(filename) as f:
