@@ -13,7 +13,8 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
                         median=True,
                         quant=False,
                         show_rlz=True,
-                        intensity_type='acc'):
+                        intensity_type='acc',
+                        xscale='linear'):
     """
     plot hazard curves
 
@@ -48,6 +49,8 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
                     show realizations
     intensity_type: str, optional
                     'acc' or 'disp'
+    xscale:         str, optional
+                    'linear' or 'log'
     """
     
     imtls = results['metadata'][f'{intensity_type}_imtls']
@@ -124,6 +127,7 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
             inv_time = ref_line['inv_time']
             rp = -inv_time/np.log(1-poe)
         elif ref_line['type'] == 'rp':
+            inv_time = ref_line['inv_time']
             rp = ref_line['rp']
             poe = 1 - np.exp(-inv_time/rp)
 
@@ -136,6 +140,8 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
         _ = ax.legend(handlelength=2)
     
     _ = ax.set_yscale('log')
+    if xscale == 'log':
+        _ = ax.set_xscale('log')
     _ = ax.set_ylim(ylim)
     _ = ax.set_xlim(xlim)
     
