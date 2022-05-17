@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from socket import inet_aton
 from sre_constants import IN
 import numpy as np
 from pathlib import PurePath, Path
@@ -55,7 +56,10 @@ RPS = [25,50]
 PLOT_WIDTH = 12
 PLOT_HEIGHT = 8.625
 INVESTIGATION_TIME = 50
-IMTS = ['PGA','SA(0.5)','SA(1.0)','SA(1.5)','SA(2.0)']
+IMTS = ['PGA','SA(0.5)','SA(1.0)','SA(1.5)','SA(2.0)',
+        'SD(0.5)','SD(1.0)','SD(1.5)','SD(2.0)']
+
+SITES = ['Auckland', 'Blenheim']
 
 class ReportBuilder:
 
@@ -102,24 +106,43 @@ class ReportBuilder:
         
         print('done extracting archive')
 
-        plots = self.generate_plots(hdf_file)
+        plots = []
+        intensity_type = 'acc'
+        plots += self.generate_plots(hdf_file,intensity_type)
+
+        intensity_type = 'disp'
+        plots += self.generate_plots(hdf_file,intensity_type)
+
         self.generate_report(plots)
 
         os.remove(hdf_file)
 
     
-    def generate_plots(self,hdf_file):
+    def generate_plots(self,hdf_file,intensity_type):
 
         def make_hazard_plots(args):
+
+            xlim_log = args.pop('xlim_log',None)
+            xlim = args.pop('xlim',None)
+
             # loop over sites and imts
             print('generating plots . . .')
             for site in data['metadata']['sites']['custom_site_id'].keys():
 
+                if site not in SITES: continue
+
+                plots.append( dict(
+                            level=3,
+                            text=site,
+                            fig_table = {}))
+
+                args['xlim'] = xlim
+                args['xscale'] = 'linear'
                 figs = [[]]
                 titles = [[]]
                 col = 0
                 row = 0
-                for imt in data['metadata']['acc_imtls'].keys():
+                for imt in data['metadata'][f'{intensity_type}_imtls'].keys():
 
                     if imt not in IMTS: continue
 
@@ -146,17 +169,56 @@ class ReportBuilder:
                     plt.close(fig)
 
                 plots.append( dict(
-                            level=2,
-                            text=site,
-                            fig_table = {'figs':figs, 'titles':titles})
-                )
+                            level=4,
+                            text='',
+                            fig_table = {'figs':figs, 'titles':titles}))
+
+
+                args['xlim'] = xlim_log
+                args['xscale'] = 'log'
+                figs = [[]]
+                titles = [[]]
+                col = 0
+                row = 0
+                for imt in data['metadata'][f'{intensity_type}_imtls'].keys():
+
+                    if imt not in IMTS: continue
+
+                    if col >= MAX_ROW_WIDTH:
+                        col = 0
+                        row += 1
+                        figs.append([])
+                        titles.append([])
+
+                    site_ = site.replace(' ','_')
+                    plot_path = PurePath(self._plot_dir,f'hcurve_{site_}_{imt}_log.png')
+                    plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
+                    print('writing',plot_rel_path)
+
+                    fig, ax = plt.subplots(1,1)
+                    fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
+                    
+                    oq_hazard_report.plotting_functions.plot_hazard_curve(ax=ax, site_list=[site,], imt=imt, **args)
+                    plt.savefig(str(plot_path), bbox_inches="tight")
+                    figs[row].append(plot_rel_path)
+                    titles[row].append(imt)
+                    col += 1
+
+                    plt.close(fig)
+
+                plots.append( dict(
+                            level=4,
+                            text='',
+                            fig_table = {'figs':figs, 'titles':titles}))
                 
 
 
-        def make_spectra_plots(rps,args):
+        def make_spectra_plots(rps,args,intensity_type):
             # loop over sites and imts
             print('generating plots . . .')
             for site in data['metadata']['sites']['custom_site_id'].keys():
+
+                if site not in SITES: continue
 
                 figs = [[]]
                 titles = [[]]
@@ -174,7 +236,7 @@ class ReportBuilder:
                         titles.append([])
 
                     site_ = site.replace(' ','_')
-                    plot_path = PurePath(self._plot_dir,f'uhs_{site_}_{poe*100:.0f}_in_{INVESTIGATION_TIME:.0f}.png')
+                    plot_path = PurePath(self._plot_dir,f'uhs_{site_}_{poe*100:.0f}_in_{INVESTIGATION_TIME:.0f}_{intensity_type}.png')
                     plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
                     print('writing',plot_rel_path)
 
@@ -184,48 +246,70 @@ class ReportBuilder:
                     oq_hazard_report.plotting_functions.plot_spectrum(ax=ax, rp=rp, site=site, **args)
                     plt.savefig(str(plot_path), bbox_inches="tight")
                     figs[row].append(plot_rel_path)
-                    titles[row].append(f'{poe*100:.0f}% in {INVESTIGATION_TIME:.0f} years')
+                    titles[row].append(f'{poe*100:.0f}% in {INVESTIGATION_TIME:.0f} years (1/{rp:.0f})')
                     col += 1
 
                     plt.close(fig)
 
                 plots.append( dict(
-                            level=2,
+                            level=3,
                             text=site,
                             fig_table = {'figs':figs, 'titles':titles})
                 )
 
-                    
-
-            plots.append( dict(
-                        level=2,
-                        text=site,
-                        figs=[])
-                    )
 
         data = oq_hazard_report.read_oq_hdf5.retrieve_data(hdf_file)
 
         plots = []
+        if intensity_type=='acc':
+            text = 'Acceleration'
+        elif intensity_type=='disp':
+            text = 'Displacement'
+
+
+        plots.append( dict(
+                    level=1,
+                    text=text,
+                    figs=[])
+                )
 
         if 'hcurve' in self._plot_types:
 
-            ref_poes = []
+            ref_lines = []
             for poe in POES:
-                ref_poes = [{'poe':poe,'inv_time':INVESTIGATION_TIME}]
-            xlim = [0,5]
+                ref_line = dict(type = 'poe',
+                                poe = poe,
+                                inv_time = INVESTIGATION_TIME)
+                ref_lines.append(ref_line)
+            for rp in RPS:
+                ref_line = dict(type='rp',
+                                rp=rp,
+                                inv_time=INVESTIGATION_TIME)
+                ref_lines.append(ref_line)
+
+            if intensity_type=='acc':
+                xlim = [0,5]
+                xlim_log = [1e-2,1e1]
+            elif intensity_type=='disp':
+                xlim = [0,3]
+                xlim_log = [1e-3,1e2]
+
             ylim = [1e-6,1]
 
             args = dict(
-                ref_poes=ref_poes,
+                ref_lines=ref_lines,
                 xlim=xlim,
+                xlim_log=xlim_log,
                 ylim=ylim,
                 results=data,
+                quant=True,
+                mean=True,
                 legend_type='quant',
-                ref_rps = RPS
+                intensity_type=intensity_type
             )
 
             plots.append( dict(
-                    level=1,
+                    level=2,
                     text='Hazard Curves',
                     figs=[])
                 )
@@ -236,28 +320,32 @@ class ReportBuilder:
 
         if 'uhs' in self._plot_types:
 
-            rps = -INVESTIGATION_TIME/np.log(1 - np.array(POES))
-            im_hazard, stats_im_hazard = oq_hazard_report.prepare_design_intensities.calculate_hazard_design_intensities(data,rps)
-            data['hazard_design'] = dict(acc=dict())
+            rps = np.concatenate( (RPS, -INVESTIGATION_TIME/np.log(1 - np.array(POES))) )
+            im_hazard, stats_im_hazard = oq_hazard_report.prepare_design_intensities.calculate_hazard_design_intensities(data,rps,intensity_type)
+            data['hazard_design'] = {intensity_type:dict()}
 
-            data['hazard_design']['acc']['im_hazard'] = im_hazard
-            data['hazard_design']['acc']['stats_im_hazard'] = stats_im_hazard
+            data['hazard_design'][intensity_type]['im_hazard'] = im_hazard
+            data['hazard_design'][intensity_type]['stats_im_hazard'] = stats_im_hazard
             data['hazard_design']['hazard_rps'] = rps
+
 
             args = dict(
                 results = data,
                 inv_time=INVESTIGATION_TIME,
-                legend_type='quant'
+                mean=True,
+                quant=True,
+                legend_type='quant',
+                intensity_type=intensity_type
             )
 
             plots.append( dict(
-                    level=1,
+                    level=2,
                     text='Spectra',
                     figs=[])
                 )
 
             print('spectra . . . ')
-            make_spectra_plots(rps, args)
+            make_spectra_plots(rps, args,intensity_type)
             print('done with spectra')
 
         if 'dissags' in self._plot_types:
@@ -287,7 +375,7 @@ class ReportBuilder:
                 md_string += self.build_fig_table(plot.get('fig_table'))
 
     
-        html = markdown.markdown(md_string, extensions=[TocExtension(toc_depth="2-6"),'tables'])
+        html = markdown.markdown(md_string, extensions=[TocExtension(toc_depth="2-4"),'tables'])
 
         head_html = HEAD_HTML.replace('##TITLE##',self._name)
         html = head_html + html + TAIL_HTML        
