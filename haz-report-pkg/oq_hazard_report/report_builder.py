@@ -51,7 +51,7 @@ TAIL_HTML = '''
 '''
 
 MAX_ROW_WIDTH = 2
-POES = [0.02,0.1]
+POES = [0.1,0.02]
 RPS = [25,50]
 PLOT_WIDTH = 12
 PLOT_HEIGHT = 8.625
@@ -106,17 +106,15 @@ class ReportBuilder:
         print('done extracting archive')
 
         plots = []
-        intensity_type = 'acc'
-        plots += self.generate_plots(hdf_file,intensity_type)
-
-        intensity_type = 'disp'
-        plots += self.generate_plots(hdf_file,intensity_type)
+        plots += self.generate_plots(hdf_file)
 
         self.generate_report(plots)
 
         os.remove(hdf_file)
 
-    def make_hazard_plots(self, intensity_type, args):
+    def make_hazard_plots(self, args):
+
+        intensity_type = args['intensity_type']
 
         xlim_log = args.pop('xlim_log',None)
         xlim = args.pop('xlim',None)
@@ -133,7 +131,7 @@ class ReportBuilder:
         print('generating plots . . .')
         for site in self.data['metadata']['sites']['custom_site_id'].keys():
 
-            if site not in SITES: continue
+            # if site not in SITES: continue
 
             site_ = site.replace(' ','_')
 
@@ -207,13 +205,16 @@ class ReportBuilder:
         return plots
 
 
-    def make_spectra_plots(self, rps, intensity_type, args):
+    def make_spectra_plots(self, rps, args):
+
+        intensity_type = args['intensity_type']
+
         # loop over sites and imts
         print('generating plots . . .')
         plots = []
         for site in self.data['metadata']['sites']['custom_site_id'].keys():
 
-            if site not in SITES: continue
+            # if site not in SITES: continue
 
             figs = [[]]
             titles = [[]]
@@ -254,22 +255,12 @@ class ReportBuilder:
         return plots
 
     
-    def generate_plots(self,hdf_file,intensity_type):
+    def generate_plots(self,hdf_file):
 
         self.data = oq_hazard_report.read_oq_hdf5.retrieve_data(hdf_file)
 
         plots = []
-        if intensity_type=='acc':
-            text = 'Acceleration'
-        elif intensity_type=='disp':
-            text = 'Displacement'
 
-
-        plots.append( dict(
-                    level=1,
-                    text=text,
-                    figs=[])
-                )
 
         if 'hcurve' in self._plot_types:
 
@@ -285,13 +276,8 @@ class ReportBuilder:
                                 inv_time=INVESTIGATION_TIME)
                 ref_lines.append(ref_line)
 
-            if intensity_type=='acc':
-                xlim = [0,5]
-                xlim_log = [1e-2,1e1]
-            elif intensity_type=='disp':
-                xlim = [0,3]
-                xlim_log = [1e-3,1e2]
-
+            xlim = [0,5]
+            xlim_log = [1e-2,1e1]
             ylim = [1e-6,1]
 
             args = dict(
@@ -302,22 +288,54 @@ class ReportBuilder:
                 quant=True,
                 mean=True,
                 legend_type='quant',
-                intensity_type=intensity_type
+                intensity_type='acc'
             )
 
             plots.append( dict(
-                    level=2,
+                    level=1,
                     text='Hazard Curves',
                     figs=[])
                 )
 
             print('hazard curves . . .')
-            plots += self.make_hazard_plots(intensity_type, args)
+            plots += self.make_hazard_plots(args)
             print('done with hazard curves')
 
         if 'uhs' in self._plot_types:
 
+            plots.append( dict(
+                    level=1,
+                    text='Spectra',
+                    figs=[])
+                )
+
             rps = np.concatenate( (RPS, -INVESTIGATION_TIME/np.log(1 - np.array(POES))) )
+
+            intensity_type = 'acc'
+            im_hazard, stats_im_hazard = oq_hazard_report.prepare_design_intensities.calculate_hazard_design_intensities(self.data,rps,intensity_type)
+            self.data['hazard_design'] = {intensity_type:dict()}
+
+            self.data['hazard_design'][intensity_type]['im_hazard'] = im_hazard
+            self.data['hazard_design'][intensity_type]['stats_im_hazard'] = stats_im_hazard
+            self.data['hazard_design']['hazard_rps'] = rps
+
+            args = dict(
+                inv_time=INVESTIGATION_TIME,
+                mean=True,
+                quant=True,
+                legend_type='quant',
+                intensity_type=intensity_type
+            )
+
+            plots.append( dict(
+                    level=2,
+                    text='Acceleration',
+                    figs=[])
+                )
+
+            plots += self.make_spectra_plots(rps,args)
+
+            intensity_type = 'disp'
             im_hazard, stats_im_hazard = oq_hazard_report.prepare_design_intensities.calculate_hazard_design_intensities(self.data,rps,intensity_type)
             self.data['hazard_design'] = {intensity_type:dict()}
 
@@ -336,12 +354,12 @@ class ReportBuilder:
 
             plots.append( dict(
                     level=2,
-                    text='Spectra',
+                    text='Displacement',
                     figs=[])
                 )
 
             print('spectra . . . ')
-            plots += self.make_spectra_plots(rps,intensity_type,args)
+            plots += self.make_spectra_plots(rps,args)
             print('done with spectra')
 
         if 'dissags' in self._plot_types:
@@ -363,7 +381,7 @@ class ReportBuilder:
 
         for plot in plots:
             md_string += f'{"#"*(plot["level"]+1)} {plot["text"]}\n'
-            if plot['level'] < 3:
+            if plot['level'] < 4:
                 md_string += f'[top](#top)\n'
             if plot.get('fig'):
                 md_string += f'<a href={plot["fig"]} target="_blank">![an image]({plot["fig"]})</a>\n'

@@ -147,7 +147,10 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
     
     _ = ax.grid(color='lightgray')
     
-    _ = ax.set_xlabel('Shaking Intensity, %s [g]'%imt)
+    if intensity_type=='acc':
+        _ = ax.set_xlabel('Shaking Intensity, %s [g]'%imt)
+    elif intensity_type=='disp':
+        _ = ax.set_xlabel('Displacement, %s [m]'%imt)
     _ = ax.set_ylabel('Annual Probability of Exceedance')
 
 
@@ -296,10 +299,13 @@ def plot_spectrum(ax,site,rp,results,inv_time,legend_type='site',color='C0',mean
     if mean or median:
         _ = ax.legend(handlelength=2)
     
-        _ = ax.grid(color='lightgray')
+    _ = ax.grid(color='lightgray')
         
-        _ = ax.set_xlabel('Period [s]')
+    _ = ax.set_xlabel('Period [s]')
+    if intensity_type=='acc':
         _ = ax.set_ylabel('Shaking Intensity [g]')
+    elif intensity_type=='disp':
+        _ = ax.set_ylabel('Displacement [m]')
 
     xlim = [0, max(periods)]
     ylim = ax.get_ylim()
