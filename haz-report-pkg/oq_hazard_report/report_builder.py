@@ -59,7 +59,6 @@ INVESTIGATION_TIME = 50
 IMTS = ['PGA','SA(0.5)','SA(1.0)','SA(1.5)','SA(2.0)',
         'SD(0.5)','SD(1.0)','SD(1.5)','SD(2.0)']
 
-SITES = ['Auckland', 'Blenheim']
 
 class ReportBuilder:
 
@@ -128,8 +127,6 @@ class ReportBuilder:
             # loop over sites and imts
             print('generating plots . . .')
             for site in data['metadata']['sites']['custom_site_id'].keys():
-
-                if site not in SITES: continue
 
                 plots.append( dict(
                             level=3,
@@ -217,8 +214,6 @@ class ReportBuilder:
             # loop over sites and imts
             print('generating plots . . .')
             for site in data['metadata']['sites']['custom_site_id'].keys():
-
-                if site not in SITES: continue
 
                 figs = [[]]
                 titles = [[]]
