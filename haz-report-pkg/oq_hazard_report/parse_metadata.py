@@ -3,6 +3,7 @@ from .base_functions import *
 from openquake.baselib.general import BASE183
 
 def check_vs30(data):
+    # confirm that the results are all for the expected vs30 value
     vs30 = np.unique(pd.DataFrame(data['metadata']['sites'])['vs30'])
     
     if len(vs30) == 1:
@@ -18,16 +19,19 @@ def parse_logic_tree_branches(file_id):
     with h5py.File(file_id) as hf:
 
         # read and prepare the source model logic tree for documentation
+        ### it is difficult to extract this as a df using the dstore.
         source_lt = pd.DataFrame(hf['full_lt']['source_model_lt'][:])
         for col in source_lt.columns[:-1]:
             source_lt.loc[:,col] = source_lt[col].str.decode('ascii')
 
+        # identify the source labels used in the realizations table
         source_lt.loc[:,'branch_code'] = [x for x in BASE183[0:len(source_lt)]]
         source_lt.set_index('branch_code',inplace=True)
 
         # find the order of the source type tags in the source labels
         source_tags={'C':'Crustal','H':'Hikurangi','P':'Puysegur','f':'Distributed Seismicity'}
         source_types = [source_tags[x[0]] for x in source_lt['branch'][0].split('|')]
+        # record the source model for each source type associated with a source branch
         for source_id in source_lt.index:
             for i,source in enumerate(source_lt.loc[source_id,'branch'].split('|')):
                 source_lt.loc[source_id,source_types[i]] = source
@@ -36,15 +40,20 @@ def parse_logic_tree_branches(file_id):
         source_types = ['Crustal','Hikurangi','Puysegur','Distributed Seismicity']
 
         # read and prepare the gsim logic tree for documentation
+        ### it is difficult to extract this as a df using the dstore.
         gsim_lt = pd.DataFrame(hf['full_lt']['gsim_lt'][:])
         for col in gsim_lt.columns[:-1]:
             gsim_lt.loc[:,col] = gsim_lt.loc[:,col].str.decode('ascii')
 
+        # break up the gsim df into tectonic regions (one df per column of gsims in realization labels. e.g. A~AAA)
+        # the order of the dictionary is consistent with the order of the columns
         gsim_lt_dict = {}
         for i,trt in enumerate(np.unique(gsim_lt['trt'])):
             df = gsim_lt[gsim_lt['trt']==trt]
             df.loc[:,'branch_code'] = [x[1] for x in df['branch']]
             df.set_index('branch_code',inplace=True)
+            ### the branch code used to be a user specified string from the gsim logic tree .xml
+            ### now the only way to identify which regionalization is used is to extract it manually
             for j,x in zip(df.index,df['uncertainty']):
                 tags = re.split('\[|\]|\nregion = \"|\"',x)
                 if len(tags) > 4:
@@ -54,13 +63,18 @@ def parse_logic_tree_branches(file_id):
             gsim_lt_dict[i] = df
 
     # read and prep the realization record from documentation
+    ### this one can be read directly from the dstore
     dstore = datastore.read(file_id)
     rlz_lt = pd.DataFrame(dstore['full_lt'].rlzs).drop('ordinal',axis=1)
 
+    # add to the rlt_lt to note which source models and which gsims were used for each branch
     for i_rlz in rlz_lt.index:
+        # rlz name is in the form A~AAA, with a single source identifier followed by characters for each trt region
         srm_code,gsim_codes = rlz_lt.loc[i_rlz,'branch_path'].split('~')
+        # copy over the short hand source name for each source type
         rlz_lt.loc[i_rlz,source_types] = source_lt.loc[srm_code,source_types]
 
+        # loop through the characters for the trt region and add the corresponding gsim name
         for i,gsim_code in enumerate(gsim_codes):
             trt,gsim = gsim_lt_dict[i].loc[gsim_code,['trt','model name']]
             rlz_lt.loc[i_rlz,trt] = gsim
@@ -86,15 +100,21 @@ def create_metadata_sheet(f,export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict):
     
     variables = ['Deformation model','N','B','Area->Mag Relation','Total Num Earthquakes']
 
+    # loop over the source types that were combined in each source realization
     for source_type in source_types[:-1]:
         summary = pd.DataFrame()
 
+        # split the short form name into its parts
         temp = pd.DataFrame([tag.split('_') for tag in np.unique(rlz_lt[source_type])],columns=variables,index=np.unique(rlz_lt[source_type]))
         temp['Mag Distribution'] = [(temp.loc[i,'N'],temp.loc[i,'B']) for i in temp.index]
         for col in ['N','B','Area->Mag Relation','Total Num Earthquakes']:
             temp[col] = [float(x[1:]) for x in temp[col]]
+        # keep a record of all the values
         record = temp[['Deformation model','Mag Distribution','Total Num Earthquakes','Area->Mag Relation']]
 
+        # interpret the CR, HTL, HTC, P designations
+        ### all this should be coming from external meta data on the meaning of the short form names
+        ### this is a temporary solution
         deformations = np.unique(temp['Deformation model'].values).tolist()
         if source_type == 'Hikurangi':
             deform_labels = ['trench-creeping','trench-locked']
@@ -105,7 +125,9 @@ def create_metadata_sheet(f,export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict):
             temp.loc[temp['Deformation model']==deform,'Deformation model'] = deform_labels[i]
             summary.loc[i,'Deformation model'] = deform_labels[i]
 
-            
+        # interpret the NB pair designations designations
+        ### all this should be coming from external meta data on the meaning of the short form names
+        ### this is a temporary solution
         angles = np.unique(temp['Mag Distribution'].values)
         if len(angles) == 1:
             mfd_angle_labels = ['central']
@@ -117,7 +139,9 @@ def create_metadata_sheet(f,export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict):
             temp.loc[temp['Mag Distribution']==n_b,'Mag Distribution'] = mfd_angle_labels[i]
             summary.loc[i,'Mag Distribution'] = mfd_angle_labels[i]
 
-            
+        # interpret the scaling designations
+        ### all this should be coming from external meta data on the meaning of the short form names
+        ### this is a temporary solution
         amplitudes = np.unique(temp['Total Num Earthquakes'].values)
         if len(amplitudes) == 1:
             mfd_amplitude_labels = ['central'] 
@@ -128,7 +152,9 @@ def create_metadata_sheet(f,export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict):
             temp.loc[temp['Total Num Earthquakes']==amp,'Total Num Earthquakes'] = mfd_amplitude_labels[i]
             summary.loc[i,'Total Num_Earthquakes'] = mfd_amplitude_labels[i]
 
-            
+        # interpret the area-magnitude relations (the C term)
+        ### all this should be coming from external meta data on the meaning of the short form names
+        ### this is a temporary solution
         mag_scales = np.unique(temp['Area->Mag Relation'].values)
         if len(mag_scales) == 1:
             mag_scale_labels = ['central']
@@ -147,7 +173,8 @@ def create_metadata_sheet(f,export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict):
         [_,width] = summary.shape
         record.to_excel(f,sheet_name=sheet_name,startrow=startrow,startcol=startcol+5)
         startrow += len(record) + 5
-        
+
+    # distributed seismicity. none of this is automated and will need interpretation
     for source_type in source_types[-1:]:
         summary = pd.DataFrame()
         summary.loc[0,'temporal distribution'] = 'no EEPAS clustering'
@@ -155,8 +182,8 @@ def create_metadata_sheet(f,export_name,vs30,hazard_id,rlz_lt,gsim_lt_dict):
         pd.DataFrame(columns=[source_type]).to_excel(f,sheet_name=sheet_name,startrow=startrow-1,startcol=startcol-1,index=False)
         summary.to_excel(f,sheet_name=sheet_name,startrow=startrow,startcol=startcol,index=False)
         startrow += len(record) + 5
-        
 
+    # the gsim options for each trt region
     pd.DataFrame(columns=['Ground motion models']).to_excel(f,sheet_name=sheet_name,startrow=startrow-1,startcol=startcol-1,index=False)
     for i,df in gsim_lt_dict.items():
         trt = np.unique(df['trt'].values)[0]
