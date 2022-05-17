@@ -135,13 +135,17 @@ class ReportBuilder:
 
             if site not in SITES: continue
 
+            site_ = site.replace(' ','_')
+
             plots.append( dict(
                         level=3,
                         text=site,
                         fig_table = {}))
 
-            figs = [[]]
-            titles = [[]]
+            figs_linear = [[]]
+            titles_linear = [[]]
+            figs_log = [[]]
+            titles_log = [[]]
             col = 0
             row = 0
             for imt in self.data['metadata'][f'{intensity_type}_imtls'].keys():
@@ -151,10 +155,12 @@ class ReportBuilder:
                 if col >= MAX_ROW_WIDTH:
                     col = 0
                     row += 1
-                    figs.append([])
-                    titles.append([])
+                    figs_linear.append([])
+                    titles_linear.append([])
+                    figs_log.append([])
+                    titles_log.append([])
 
-                site_ = site.replace(' ','_')
+                #------ linear ------#
                 plot_path = PurePath(self._plot_dir,f'hcurve_{site_}_{imt}.png')
                 plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
                 print('writing',plot_rel_path)
@@ -164,33 +170,12 @@ class ReportBuilder:
                 
                 oq_hazard_report.plotting_functions.plot_hazard_curve(ax=ax, site_list=[site,], imt=imt,results=self.data, **args_linear)
                 plt.savefig(str(plot_path), bbox_inches="tight")
-                figs[row].append(plot_rel_path)
-                titles[row].append(imt)
-                col += 1
-
                 plt.close(fig)
 
-            plots.append( dict(
-                        level=4,
-                        text='',
-                        fig_table = {'figs':figs, 'titles':titles}))
-
-
-            figs = [[]]
-            titles = [[]]
-            col = 0
-            row = 0
-            for imt in self.data['metadata'][f'{intensity_type}_imtls'].keys():
-
-                if imt not in IMTS: continue
-
-                if col >= MAX_ROW_WIDTH:
-                    col = 0
-                    row += 1
-                    figs.append([])
-                    titles.append([])
-
-                site_ = site.replace(' ','_')
+                figs_linear[row].append(plot_rel_path)
+                titles_linear[row].append(imt)
+                
+                #------ log ------#
                 plot_path = PurePath(self._plot_dir,f'hcurve_{site_}_{imt}_log.png')
                 plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
                 print('writing',plot_rel_path)
@@ -200,16 +185,24 @@ class ReportBuilder:
                 
                 oq_hazard_report.plotting_functions.plot_hazard_curve(ax=ax, site_list=[site,], imt=imt,results=self.data,**args_log)
                 plt.savefig(str(plot_path), bbox_inches="tight")
-                figs[row].append(plot_rel_path)
-                titles[row].append(imt)
+                plt.close(fig)
+
+                figs_log[row].append(plot_rel_path)
+                titles_log[row].append(imt)
+
                 col += 1
 
-                plt.close(fig)
+                
 
             plots.append( dict(
                         level=4,
                         text='',
-                        fig_table = {'figs':figs, 'titles':titles}))
+                        fig_table = {'figs':figs_linear, 'titles':titles_linear}))
+
+            plots.append( dict(
+                        level=4,
+                        text='',
+                        fig_table = {'figs':figs_log, 'titles':titles_log}))
 
         return plots
 
