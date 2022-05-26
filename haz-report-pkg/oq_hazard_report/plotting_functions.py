@@ -14,7 +14,7 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
                         quant=False,
                         show_rlz=True,
                         intensity_type='acc',
-                        xscale='linear'):
+                        xscale='linear',custom_label=None, color=None):
     """
     plot hazard curves
 
@@ -62,7 +62,9 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
     imt_idx = list(imtls.keys()).index(imt)  
     
     for i_site,site in enumerate(site_list):
-        color = 'C%s'%i_site
+        if not color:
+            color = 'C%s'%i_site
+                
         if legend_type == 'quant':
             color_m = 'r'
         else:
@@ -71,10 +73,13 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
         site_idx = sites.loc[site,'sids']
         
         if mean:
-            if legend_type == 'site':
-                label = site
-            elif legend_type == 'quant':
-                label = 'mean'
+            if custom_label:
+                label = custom_label
+            else:
+                if legend_type == 'site':
+                    label = site
+                elif legend_type == 'quant':
+                    label = 'mean'
 
             ls = '-'
             lw = 5
@@ -84,10 +89,13 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
             _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,0],color=color_m,lw=lw,ls=ls,label=label)
         
         if median:
-            if legend_type == 'site':
-                label = site
-            elif legend_type == 'quant':
-                label = 'median (p50)'
+            if custom_label:
+                label = custom_label
+            else:
+                if legend_type == 'site':
+                    label = site
+                elif legend_type == 'quant':
+                    label = 'median (p50)'
 
             q_idx = quantiles.index(0.5)+1
             ls = '-'
@@ -328,3 +336,5 @@ def retrieve_design_intensities(results,intensity_type,design_type,imt,rp=500):
         im_values_stats = np.squeeze(np.array(results[design_type][intensity_type]['stats_im_hazard'])[:,imt_idx,im_idx,:])
         
     return im_values_rlzs, im_values_stats
+
+

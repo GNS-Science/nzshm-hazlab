@@ -85,6 +85,17 @@ class ReportBuilder:
     def setPlotTypes(self,plot_types):
         self._plot_types = plot_types
 
+    def load_data(self):
+        print('extracting archive . . .')
+        with ZipFile(self._hazard_archive,'r') as zip:
+            for n in zip.namelist():
+                if 'calc' in n:
+                    self.hdf_file = zip.extract(n,path=self._output_path)
+        print('done extracting archive')
+
+        self.data = oq_hazard_report.read_oq_hdf5.retrieve_data(self.hdf_file)
+        os.remove(self.hdf_file)
+
     def run(self):
 
         #TODO optional args to specify which plots to generate
@@ -96,21 +107,16 @@ class ReportBuilder:
 
         if not(self._output_path):
             raise Exception("output path must be specified")
-        print('extracting archive . . .')
         
-        with ZipFile(self._hazard_archive,'r') as zip:
-            for n in zip.namelist():
-                if 'calc' in n:
-                    hdf_file = zip.extract(n,path=self._output_path)
-        
-        print('done extracting archive')
 
+        self.load_data()
+        
         plots = []
-        plots += self.generate_plots(hdf_file)
+        plots += self.generate_plots(self.hdf_file)
 
         self.generate_report(plots)
 
-        os.remove(hdf_file)
+
 
     def make_hazard_plots(self, args):
 
@@ -256,8 +262,6 @@ class ReportBuilder:
 
     
     def generate_plots(self,hdf_file):
-
-        self.data = oq_hazard_report.read_oq_hdf5.retrieve_data(hdf_file)
 
         plots = []
 
