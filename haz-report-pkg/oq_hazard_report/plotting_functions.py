@@ -1,12 +1,13 @@
-from operator import inv
-from oq_hazard_report.base_functions import *
 
-from uuid import RESERVED_FUTURE
+from oq_hazard_report.base_functions import *
+from oq_hazard_report.data_functions import get_lv
+
+import numpy as np
 from matplotlib.collections import LineCollection
 
 #TODO runs slowly; any performance imporvements to be had?
 
-def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
+def plot_hazard_curve(toshi_id, ax, site_list, imt, xlim, ylim,
                         ref_lines=None,
                         legend_type='site',
                         mean=False,
@@ -15,11 +16,14 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
                         show_rlz=True,
                         intensity_type='acc',
                         xscale='linear',custom_label=None, color=None):
+
     """
     plot hazard curves
 
     Parameters
     ----------
+    toshi_id:       str
+                    id of toshi hazard
     ax:             matplotlib.axes
                     axis handle to plot to
     site_list:      list of str
@@ -30,8 +34,6 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
                     x-limits for plot
     ylim:           list of float
                     y-limits for plot
-    results:        dict
-                    dictionary containing hazard data
     ref_lines:      dict, optional
                     draw lines at PoE or 1/(return period).
                     list of dicts. each dict contains a key called 'type' = ('poe' | 'rp')
@@ -53,13 +55,13 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
                     'linear' or 'log'
     """
     
-    imtls = results['metadata'][f'{intensity_type}_imtls']
-    hcurves_rlzs = np.array(results['hcurves']['hcurves_rlzs'])
-    hcurves_stats = np.array(results['hcurves']['hcurves_stats'])
-    sites = pd.DataFrame(results['metadata']['sites'])
-    quantiles = results['metadata']['quantiles']
-    
-    imt_idx = list(imtls.keys()).index(imt)  
+
+    aggrigations = []
+    aggrigations.append('mean') if mean else None
+    aggrigations.append('quantile-0.5') if median else None
+    aggrigations.extend(['quantile-0.1','quantile-0.9']) if quant else None
+    xy = get_lv(toshi_id,imt,site_list,aggrigations)
+
     
     for i_site,site in enumerate(site_list):
         if not color:
@@ -70,9 +72,8 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
         else:
             color_m = color
 
-        site_idx = sites.loc[site,'sids']
-        
         if mean:
+
             if custom_label:
                 label = custom_label
             else:
@@ -83,10 +84,10 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
 
             ls = '-'
             lw = 5
-            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,0],color='k',lw=lw,ls=ls)
+            _ = ax.plot(xy[site]['mean'][:,0],xy[site]['mean'][:,1],color='k',lw=lw,ls=ls)
             ls = '-.'
             lw = 3
-            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,0],color=color_m,lw=lw,ls=ls,label=label)
+            _ = ax.plot(xy[site]['mean'][:,0],xy[site]['mean'][:,1],color=color_m,lw=lw,ls=ls,label=label)
         
         if median:
             if custom_label:
@@ -97,13 +98,12 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
                 elif legend_type == 'quant':
                     label = 'median (p50)'
 
-            q_idx = quantiles.index(0.5)+1
             ls = '-'
             lw = 5
-            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color='k',lw=lw,ls=ls)
+            _ = ax.plot(xy[site]['quantile-0.5'][:,0],xy[site]['quantile-0.5'][:,1],color='k',lw=lw,ls=ls)
             ls = '-'
             lw = 3
-            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color=color_m,lw=lw,ls=ls,label=label)
+            _ = ax.plot(xy[site]['quantile-0.5'][:,0],xy[site]['quantile-0.5'][:,1],color=color_m,lw=lw,ls=ls,label=label)
 
         if quant:
             if legend_type == 'quant':
@@ -114,12 +114,10 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
             ls = '--'
             lw = 2
 
-            q_idx = quantiles.index(0.1)+1
-            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color=color_m,lw=lw,ls=ls,label=label)
-            q_idx = quantiles.index(0.9)+1
-            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color=color_m,lw=lw,ls=ls)
+            _ = ax.plot(xy[site]['quantile-0.1'][:,0],xy[site]['quantile-0.1'][:,1],color=color_m,lw=lw,ls=ls,label=label)
+            _ = ax.plot(xy[site]['quantile-0.9'][:,0],xy[site]['quantile-0.9'][:,1],color=color_m,lw=lw,ls=ls)
             
-        if show_rlz:
+        if show_rlz: #TODO support realizations
             lw = 1
             alpha = 0.25
             [_,_,n_imtls,n_rlz] = hcurves_rlzs.shape
@@ -128,21 +126,22 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
             segs[:, :, 1] = np.transpose(np.squeeze(hcurves_rlzs[site_idx,imt_idx,:,:]))
             line_segments = LineCollection(segs, color=color, alpha=alpha, lw=lw)
             _ = ax.add_collection(line_segments)
-            
-    for ref_line in ref_lines:
-        if ref_line['type'] == 'poe':
-            poe = ref_line['poe']
-            inv_time = ref_line['inv_time']
-            rp = -inv_time/np.log(1-poe)
-        elif ref_line['type'] == 'rp':
-            inv_time = ref_line['inv_time']
-            rp = ref_line['rp']
-            poe = 1 - np.exp(-inv_time/rp)
+    
+    if ref_lines:
+        for ref_line in ref_lines:
+            if ref_line['type'] == 'poe':
+                poe = ref_line['poe']
+                inv_time = ref_line['inv_time']
+                rp = -inv_time/np.log(1-poe)
+            elif ref_line['type'] == 'rp':
+                inv_time = ref_line['inv_time']
+                rp = ref_line['rp']
+                poe = 1 - np.exp(-inv_time/rp)
 
-        text = f'{poe*100:.0f}% in {inv_time:.0f} years (1/{rp:.0f})'
-        
-        _ = ax.plot(xlim,[1/rp]*2,ls='--',color='dimgray',zorder=-1)
-        _ = ax.annotate(text, [xlim[1],1/rp], ha='right',va='bottom')
+            text = f'{poe*100:.0f}% in {inv_time:.0f} years (1/{rp:.0f})'
+            
+            _ = ax.plot(xlim,[1/rp]*2,ls='--',color='dimgray',zorder=-1)
+            _ = ax.annotate(text, [xlim[1],1/rp], ha='right',va='bottom')
 
     if mean or median:
         _ = ax.legend(handlelength=2)
