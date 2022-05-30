@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from imp import load_dynamic
 from socket import inet_aton
 from sre_constants import IN
 import numpy as np
@@ -14,6 +15,7 @@ from zipfile import ZipFile
 import oq_hazard_report.read_oq_hdf5
 import oq_hazard_report.plotting_functions
 import oq_hazard_report.prepare_design_intensities
+import oq_hazard_report.read_oq_hazstore
 
 from oq_hazard_report.resources.css_template import css_file
 
@@ -78,6 +80,11 @@ class ReportBuilder:
     
     def setHazardArchive(self,archive):
         self._hazard_archive = archive
+        self._use_hdf5 = True
+
+    def setHazardStore(self,hazard_id):
+        self._hazard_id = hazard_id
+        self._use_hdf5 = False
 
     def setOutputPath(self,output_path):
         self._output_path = output_path
@@ -86,6 +93,16 @@ class ReportBuilder:
         self._plot_types = plot_types
 
     def load_data(self):
+        if self._use_hdf5:
+            self.load_data_from_hdf5()
+        else:
+            self.load_data_from_hazstore()
+
+    def load_data_from_hazstore(self):
+        self.data = oq_hazard_report.read_oq_hazstore.retrieve_data(self._hazard_id)
+
+    def load_data_from_hdf5(self):
+        
         print('extracting archive . . .')
         with ZipFile(self._hazard_archive,'r') as zip:
             for n in zip.namelist():
@@ -112,7 +129,7 @@ class ReportBuilder:
         self.load_data()
         
         plots = []
-        plots += self.generate_plots(self.hdf_file)
+        plots += self.generate_plots()
 
         self.generate_report(plots)
 
@@ -261,7 +278,7 @@ class ReportBuilder:
         return plots
 
     
-    def generate_plots(self,hdf_file):
+    def generate_plots(self):
 
         plots = []
 
