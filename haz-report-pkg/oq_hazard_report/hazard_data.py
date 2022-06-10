@@ -36,7 +36,7 @@ class LazyData(UserDict):
         raise Exception("LazyData: cannot set items")
 
     def retrieve_data(self,key):
-        print   ('retrieve_data')
+        print('retrieve_data')
         k = decode_key(key)
         q = query.get_hazard_stats_curves(self._hazard_id,[k.imt],[k.location],[k.realization]) #TODO switch bt stats and rlz
         r = next(q)

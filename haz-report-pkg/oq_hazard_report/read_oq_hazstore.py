@@ -15,11 +15,11 @@ def retrieve_data(hazard_id):
     data['metadata'] = {}
 
     for m in query.get_hazard_metadata([hazard_id]):
-        rlzs_df = pd.read_json(m.rlz_lt)
+        rlzs_df = pd.read_json(m.rlz_lt) 
         aggs = m.aggs
         imts = list(m.imts)
         imts.sort()
-
+    
     data['metadata']['quantiles'] = [float(agg) for agg in aggs if (agg != 'mean')]
     data['metadata']['quantiles'].sort()
     data['metadata']['acc_imtls'] = dict.fromkeys(imts)
@@ -62,6 +62,7 @@ def retrieve_data(hazard_id):
         data['metadata']['acc_imtls'][imt] = [p.lvl for p in r.values]
         stats_array[idx_site, idx_imt,:,idx_quant] = [p.val for p in r.values]
 
+    
     res = query.get_hazard_rlz_curves(hazard_id)
     for r in res:
         imt = r.imt

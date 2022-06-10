@@ -53,7 +53,7 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
     """
     
     imtls = results['metadata'][f'{intensity_type}_imtls']
-    hcurves_rlzs = np.array(results['hcurves']['hcurves_rlzs'])
+    hcurves_rlzs = np.array(results['hcurves']['hcurves_rlzs']) 
     hcurves_stats = np.array(results['hcurves']['hcurves_stats'])
     sites = pd.DataFrame(results['metadata']['sites'])
     quantiles = results['metadata']['quantiles']
@@ -98,8 +98,8 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
 
             q_idx = quantiles.index(0.5)+1
             ls = '-'
-            lw = 5
-            _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color='k',lw=lw,ls=ls)
+            lw = 4
+            # _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color='k',lw=lw,ls=ls)
             ls = '-'
             lw = 3
             _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color=color_m,lw=lw,ls=ls,label=label)
@@ -111,8 +111,7 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
                 label = ''
 
             ls = '--'
-            lw = 2
-
+            lw = 1.5
             q_idx = quantiles.index(0.1)+1
             _ = ax.plot(imtls[imt],hcurves_stats[site_idx,imt_idx,:,q_idx],color=color_m,lw=lw,ls=ls,label=label)
             q_idx = quantiles.index(0.9)+1
