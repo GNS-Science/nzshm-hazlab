@@ -53,10 +53,13 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
     """
     
     imtls = results['metadata'][f'{intensity_type}_imtls']
-    hcurves_rlzs = np.array(results['hcurves']['hcurves_rlzs']) 
+    
     hcurves_stats = np.array(results['hcurves']['hcurves_stats'])
     sites = pd.DataFrame(results['metadata']['sites'])
     quantiles = results['metadata']['quantiles']
+
+    if show_rlz:
+        hcurves_rlzs = np.array(results['hcurves']['hcurves_rlzs']) 
     
     imt_idx = list(imtls.keys()).index(imt)  
     
