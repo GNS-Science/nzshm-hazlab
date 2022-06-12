@@ -6,7 +6,7 @@ from toshi_hazard_store import query
 from nzshm_common.location import location
 
 
-def retrieve_data(hazard_id):
+def retrieve_data(hazard_id, load_rlz=True):
     '''
     Retrieves the data and metadata from toshi-hazard-store and producing legacy data structure (designed by Anne H.).
     '''
@@ -39,45 +39,46 @@ def retrieve_data(hazard_id):
     nimts = len(m.imts)
 
     # TODO is there a better way to tget the number of levels?
-    r = next(query.get_hazard_stats_curves(hazard_id))
-    nimtls = len(r.values)
-
-    nrlzs = len(rlzs_df.index)
-    rlzs_array = np.empty((nsites,nimts,nimtls,nrlzs))
-    rlzs_array[:] = np.nan
+    re = next(query.get_hazard_stats_curves_v2(hazard_id))
+    nimtls = len(re.values[0].lvls)
+    
     stats_array = np.empty((nsites,nimts,nimtls,1+len(data['metadata']['quantiles'])))
     stats_array[:] = np.nan
     
-
     data['hcurves'] = {}
-    res = query.get_hazard_stats_curves(hazard_id) # TODO one arg
-    for r in res:
-        imt = r.imt 
-        site = r.loc
-        idx_imt = list(data['metadata']['acc_imtls'].keys()).index(imt)
-        idx_site = list(data['metadata']['sites']['custom_site_id'].values()).index(site)
-        
-        idx_quant = data['metadata']['quantiles'].index(float(r.agg))+1 if r.agg!='mean' else 0
+    res = query.get_hazard_stats_curves_v2(hazard_id) # TODO one arg
+    for re in res:
+        site = re.loc
+        for r in re.values:
+            imt = r.imt 
+            idx_imt = list(data['metadata']['acc_imtls'].keys()).index(imt)
+            idx_site = list(data['metadata']['sites']['custom_site_id'].values()).index(site)
+            
+            idx_quant = data['metadata']['quantiles'].index(float(re.agg))+1 if re.agg!='mean' else 0
 
-        data['metadata']['acc_imtls'][imt] = [p.lvl for p in r.values]
-        stats_array[idx_site, idx_imt,:,idx_quant] = [p.val for p in r.values]
-
-    
-    res = query.get_hazard_rlz_curves(hazard_id)
-    for r in res:
-        imt = r.imt
-        site = r.loc
-        idx_rlz = int(r.rlz)
-        idx_imt = list(data['metadata']['acc_imtls'].keys()).index(imt)
-        idx_site = list(data['metadata']['sites']['custom_site_id'].values()).index(site)
-        
-        rlzs_array[idx_site, idx_imt,:,idx_rlz] = [p.val for p in r.values]
-
-    
+            data['metadata']['acc_imtls'][imt] = r.lvls
+            stats_array[idx_site, idx_imt,:,idx_quant] = r.vals
     data['hcurves']['hcurves_stats'] = stats_array.tolist()
-    data['hcurves']['hcurves_rlzs'] = rlzs_array.tolist()
 
+    
+    if load_rlz:
+        nrlzs = len(rlzs_df.index)
+        rlzs_array = np.empty((nsites,nimts,nimtls,nrlzs))
+        rlzs_array[:] = np.nan
 
+        res = query.get_hazard_rlz_curves_v2(hazard_id)
+        for re in res:
+            site = re.loc
+            idx_rlz = int(re.rlz)
+            for r in re.values:
+                imt = r.imt
+                idx_imt = list(data['metadata']['acc_imtls'].keys()).index(imt)
+                idx_site = list(data['metadata']['sites']['custom_site_id'].values()).index(site)
+                
+                rlzs_array[idx_site, idx_imt,:,idx_rlz] = r.vals
+        data['hcurves']['hcurves_rlzs'] = rlzs_array.tolist()
+    
+    
     data['metadata']['disp_imtls'] = convert_imtls_to_disp(data['metadata']['acc_imtls'])
         
     return data
