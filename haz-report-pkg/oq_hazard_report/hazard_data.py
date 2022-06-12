@@ -1,15 +1,8 @@
+import ast
 from collections import UserDict, namedtuple
 from functools import lru_cache
 
 from toshi_hazard_store import query
-
-def retrieve_data_mock(key): #mock function
-    return key + 'Data'
-
-def get_hazard_metadata_mock(): #mock function
-    MetaData = namedtuple("MetaData","imts aggs gsim_lt haz_sol_id hazsol_vs30_rk locs rlz_lt src_lt vs30")
-    meta_data = MetaData("imts","aggs", "gsim_lt", "haz_sol_id", "hazsol_vs30_rk", "locs", "rlz_lt", "src_lt", "vs30")
-    return meta_data
 
 
 def encode_key(imt=None,location=None,realization=None):
@@ -32,13 +25,13 @@ class LazyData(UserDict):
             self.data[key] = self.retrieve_data(key)
         return self.data[key]
 
-    def __setitem__(self, key: _KT, item: _VT) -> None:
+    def __setitem__(self, key, item) -> None:
         raise Exception("LazyData: cannot set items")
 
     def retrieve_data(self,key):
         print('retrieve_data')
         k = decode_key(key)
-        q = query.get_hazard_stats_curves(self._hazard_id,[k.imt],[k.location],[k.realization]) #TODO switch bt stats and rlz
+        q = query.get_hazard_stats_curves_v2(self._hazard_id,[k.imt],[k.location],[k.realization]) #TODO switch bt stats and rlz
         r = next(q)
         return r
 
@@ -51,7 +44,7 @@ class HazardData:
     
     @property
     @lru_cache(maxsize=None)
-    def hazard_meta(self):
+    def _hazard_meta(self):
         print('get_hazard_metadata')
         return self.get_hazard_metadata()
 
@@ -59,53 +52,53 @@ class HazardData:
     @lru_cache(maxsize=None)
     def imts(self):
         print('imts')
-        return self.hazard_meta.imts
+        return self._hazard_meta.imts
 
     @property
     @lru_cache(maxsize=None)
     def vs30(self):
-        return self.hazard_meta.vs30
+        return self._hazard_meta.vs30
 
     @property
     @lru_cache(maxsize=None)
     def aggs(self):
-        return self.hazard_meta.aggs
+        return self._hazard_meta.aggs
 
     @property
     @lru_cache(maxsize=None)
     def gsim_lt(self):
-        return self.hazard_meta.gsim_lt
+        return ast.literal_eval(self._hazard_meta.gsim_lt)
 
     @property
     @lru_cache(maxsize=None)
     def haz_sol_id(self):
-        return self.hazard_meta.haz_sol_id
+        return self._hazard_meta.haz_sol_id
 
     @property
     @lru_cache(maxsize=None)
     def hazsol_vs30_rk(self):
-        return self.hazard_meta.hazsol_vs30_rk
+        return self._hazard_meta.hazsol_vs30_rk
 
     @property
     @lru_cache(maxsize=None)
     def locs(self):
-        return self.hazard_meta.locs
+        return self._hazard_meta.locs
 
     @property
     @lru_cache(maxsize=None)
     def rlz_lt(self):
-        return self.hazard_meta.rlz_lt
+        return ast.literal_eval(self._hazard_meta.rlz_lt)
 
     @property
     @lru_cache(maxsize=None)
     def src_lt(self):
-        return self.hazard_meta.src_lt
+        return ast.literal_eval(self._hazard_meta.src_lt)
     
     
-    def values(self, location=None, imt=None, realization=None):
+    def values(self, location, imt, realization):
         key = encode_key(location=location,imt=imt,realization=realization)
-        lvls = [p.lvl for p in self._data[key].values]
-        vals = [p.val for p in self._data[key].values]
+        lvls = self._data[key].values[0].lvls
+        vals = self._data[key].values[0].vals
         Values = namedtuple("Values","lvls vals")
         return Values(lvls=lvls,vals=vals)
 
