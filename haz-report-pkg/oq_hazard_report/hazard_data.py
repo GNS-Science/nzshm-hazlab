@@ -31,7 +31,11 @@ class LazyData(UserDict):
     def retrieve_data(self,key):
         print('retrieve_data')
         k = decode_key(key)
-        q = query.get_hazard_stats_curves_v2(self._hazard_id,[k.imt],[k.location],[k.realization]) #TODO switch bt stats and rlz
+        if k.realization.isdigit():
+            rlzs = f'{int(k.realization):05d}'
+            q = query.get_hazard_rlz_curves_v2(self._hazard_id,[k.imt],[k.location],[rlzs])
+        else:
+            q = query.get_hazard_stats_curves_v2(self._hazard_id,[k.imt],[k.location],[k.realization]) 
         r = next(q)
         return r
 
