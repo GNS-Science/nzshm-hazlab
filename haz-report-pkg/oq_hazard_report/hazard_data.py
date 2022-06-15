@@ -5,7 +5,8 @@ from functools import lru_cache
 from toshi_hazard_store import query
 
 
-def encode_key(imt=None,location=None,realization=None):
+def encode_key(imt,location,realization):
+    realization = f'{int(realization):05d}' if str(realization).isdigit() else realization        
     return ':'.join(map(str,(imt,location,realization)))
 
 def decode_key(key):
@@ -28,12 +29,22 @@ class LazyData(UserDict):
     def __setitem__(self, key, item) -> None:
         raise Exception("LazyData: cannot set items")
 
+    # def _load_all_rlz(self,location):
+    #     q = query.get_hazard_rlz_curves_v2(self._hazard_id,[],[location],[])
+    #     for re in q:
+    #         rlz = re.rlz
+    #         for r in re.values:
+    #             imt = r.imt
+    #             key = encode_key(imt,location,rlz)
+    #             self.data[key] = r
+
+
     def retrieve_data(self,key):
         print('retrieve_data')
         k = decode_key(key)
         if k.realization.isdigit():
-            rlzs = f'{int(k.realization):05d}'
-            q = query.get_hazard_rlz_curves_v2(self._hazard_id,[k.imt],[k.location],[rlzs])
+            # self._load_all_rlz(k.location)
+            q = query.get_hazard_rlz_curves_v2(self._hazard_id,[k.imt],[k.location],[k.realization])
         else:
             q = query.get_hazard_stats_curves_v2(self._hazard_id,[k.imt],[k.location],[k.realization]) 
         r = next(q)
@@ -97,9 +108,24 @@ class HazardData:
     @lru_cache(maxsize=None)
     def src_lt(self):
         return ast.literal_eval(self._hazard_meta.src_lt)
+
+    @property
+    @lru_cache(maxsize=None)
+    def nrlzs(self):
+        return len(self.rlz_lt['weight'])
+
+    
     
     
     def values(self, location, imt, realization):
+
+        #TODO check location and imt agianst avaialable list
+        # if str(realization).isdigit():
+        #     nrlz = len(self.rlz_lt['weight'])
+        #     for rlz in range(nrlz):
+        #         key = encode_key(location=location,imt=imt,realization=rlz)
+        #         _ = self._data[key].values[0]
+                
         key = encode_key(location=location,imt=imt,realization=realization)
         lvls = self._data[key].values[0].lvls
         vals = self._data[key].values[0].vals
