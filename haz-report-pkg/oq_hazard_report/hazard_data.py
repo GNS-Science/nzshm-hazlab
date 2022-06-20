@@ -29,21 +29,22 @@ class LazyData(UserDict):
     def __setitem__(self, key, item) -> None:
         raise Exception("LazyData: cannot set items")
 
-    # def _load_all_rlz(self,location):
-    #     q = query.get_hazard_rlz_curves_v2(self._hazard_id,[],[location],[])
-    #     for re in q:
-    #         rlz = re.rlz
-    #         for r in re.values:
-    #             imt = r.imt
-    #             key = encode_key(imt,location,rlz)
-    #             self.data[key] = r
+    def _load_all_rlz(self,location):
+        q = query.get_hazard_rlz_curves_v2(self._hazard_id,[],[location],[])
+        breakpoint()
+        for re in q:
+            rlz = re.rlz
+            for r in re.values:
+                imt = r.imt
+                key = encode_key(imt,location,rlz)
+                self.data[key] = r
 
 
     def retrieve_data(self,key):
         print('retrieve_data')
         k = decode_key(key)
         if k.realization.isdigit():
-            # self._load_all_rlz(k.location)
+            self._load_all_rlz(k.location)
             q = query.get_hazard_rlz_curves_v2(self._hazard_id,[k.imt],[k.location],[k.realization])
         else:
             q = query.get_hazard_stats_curves_v2(self._hazard_id,[k.imt],[k.location],[k.realization]) 
