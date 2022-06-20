@@ -4,7 +4,6 @@ from functools import lru_cache
 
 from toshi_hazard_store import query
 
-
 def encode_key(imt,location,realization):
     realization = f'{int(realization):05d}' if str(realization).isdigit() else realization        
     return ':'.join(map(str,(imt,location,realization)))
@@ -17,39 +16,47 @@ def decode_key(key):
 
 class LazyData(UserDict):
 
+    Values = namedtuple("Values","lvls vals")
+
     def __init__(self,hazard_id):
         self._hazard_id = hazard_id 
         super().__init__()
 
     def __getitem__(self, key):
         if not self.data.get(key):
-            self.data[key] = self.retrieve_data(key)
+            q = self._run_query(key)
+            k = decode_key(key)
+
+            if k.realization.isdigit():
+                self._load_all_rlz(q,k)
+            else:
+                self._load_all_agg(q,k)
+
         return self.data[key]
 
     def __setitem__(self, key, item) -> None:
         raise Exception("LazyData: cannot set items")
 
-    def _load_all_rlz(self,location):
-        q = query.get_hazard_rlz_curves_v2(self._hazard_id,[],[location],[])
-        breakpoint()
+    def _load_all_rlz(self,q,k):
         for re in q:
-            rlz = re.rlz
-            for r in re.values:
-                imt = r.imt
-                key = encode_key(imt,location,rlz)
-                self.data[key] = r
+            for val_imt in re.values:
+                new_key = encode_key(val_imt.imt, k.location, re.rlz)
+                self.data[new_key] = self.Values(lvls=val_imt.lvls,vals=val_imt.vals)
 
+    def _load_all_agg(self,q,k):
+        for re in q:
+            for val_imt in re.values:
+                new_key = encode_key(val_imt.imt, k.location, re.agg)
+                self.data[new_key] = self.Values(lvls=val_imt.lvls,vals=val_imt.vals)
 
-    def retrieve_data(self,key):
+    def _run_query(self,key):
         print('retrieve_data')
         k = decode_key(key)
         if k.realization.isdigit():
-            self._load_all_rlz(k.location)
-            q = query.get_hazard_rlz_curves_v2(self._hazard_id,[k.imt],[k.location],[k.realization])
+            q = query.get_hazard_rlz_curves_v2(self._hazard_id,None,[k.location],None)
         else:
-            q = query.get_hazard_stats_curves_v2(self._hazard_id,[k.imt],[k.location],[k.realization]) 
-        r = next(q)
-        return r
+            q = query.get_hazard_stats_curves_v2(self._hazard_id,None,[k.location],None)
+        return q
 
             
 class HazardData:
@@ -128,10 +135,10 @@ class HazardData:
         #         _ = self._data[key].values[0]
                 
         key = encode_key(location=location,imt=imt,realization=realization)
-        lvls = self._data[key].values[0].lvls
-        vals = self._data[key].values[0].vals
-        Values = namedtuple("Values","lvls vals")
-        return Values(lvls=lvls,vals=vals)
+        #lvls = self._data[key].values[0].lvls
+        #vals = self._data[key].values[0].vals
+        
+        return self._data[key]
 
 
     def get_hazard_metadata(self):
