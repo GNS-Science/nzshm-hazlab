@@ -32,11 +32,18 @@ def weightedQuantile(values, quantiles, sample_weight=None,
         with numpy.percentile.
     :return: numpy.array with computed quantiles.
     """
+
     values = np.array(values)
-    quantiles = np.array(quantiles)
     if sample_weight is None:
         sample_weight = np.ones(len(values))
     sample_weight = np.array(sample_weight)
+
+    if quantiles == 'mean':
+        return np.sum(sample_weight * values)
+
+
+    quantiles = np.array(quantiles)
+
     assert np.all(quantiles >= 0) and np.all(quantiles <= 1), \
         'quantiles should be in [0, 1]'
 
@@ -70,7 +77,8 @@ def aggrigate_realizations_1ID(hazard_id):
     weights = np.array(list(hd.rlz_lt['weight'].values()))
     median = np.array([])
     for i,level in enumerate(levels):
-        quantiles = weightedQuantile(values[:,i],[0.5],sample_weight=weights)
+        # quantiles = weightedQuantile(values[:,i],[0.5],sample_weight=weights)
+        quantiles = weightedQuantile(values[:,i],'mean',sample_weight=weights)
         median = np.append(median,np.array(quantiles))
 
     return median
@@ -97,7 +105,8 @@ def aggrigate_realizations_multID(gt_id):
     tic = time.perf_counter()
     median = np.array([])
     for i,level in enumerate(levels):
-        quantiles = weightedQuantile(values[:,i],[0.5],sample_weight=weights)
+        # quantiles = weightedQuantile(values[:,i],[0.5],sample_weight=weights)
+        quantiles = weightedQuantile(values[:,i],'mean',sample_weight=weights)
         median = np.append(median,np.array(quantiles))
     toc = time.perf_counter()
     print(f'seconds to calculate median {toc-tic}')
@@ -111,11 +120,11 @@ if __name__ == "__main__":
 
     hazard_id = 'T3BlbnF1YWtlSGF6YXJkU29sdXRpb246MTAzOTU3' #get correct ID
     gt_id = 'R2VuZXJhbFRhc2s6MTA0MzQ2'
-    # median_calc = aggrigate_realizations_1ID(hazard_id)
+    median_calc = aggrigate_realizations_1ID(hazard_id)
     median_indv = aggrigate_realizations_multID(gt_id)
 
     hd = HazardData(hazard_id)
-    median_oq = np.array(hd.values(location=location,imt=imt,realization='0.5').vals)
+    median_oq = np.array(hd.values(location=location,imt=imt,realization='mean').vals)
 
     print('=========== median from oq-engine: ==============')
     print(median_oq)
