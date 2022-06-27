@@ -58,3 +58,20 @@ def weighted_quantile(values, quantiles, sample_weight=None,
         weighted_quantiles /= np.sum(sample_weight)
     return np.interp(quantiles, weighted_quantiles, values)
 
+    
+
+def calculate_agg(hazard_data, location, imt, agg):
+    for irlz in range(hazard_data.nrlzs):
+        if irlz == 0:
+            levels = np.array(hazard_data.values(location=location,imt=imt,realization=irlz).lvls)
+            values = np.array(hazard_data.values(location=location,imt=imt,realization=irlz).vals)
+        else:
+            values = np.vstack((values,np.array(hazard_data.values(location=location,imt=imt,realization=irlz).vals)))
+
+    weights = np.array(list(hazard_data.rlz_lt['weight'].values()))
+    agg_values = np.array([]) #TODO pre-allocate memory
+    for i,level in enumerate(levels):
+        quantiles = weighted_quantile(values[:,i],[agg],sample_weight=weights)
+        agg_values = np.append(agg_values,np.array(quantiles))
+
+    return agg_values
