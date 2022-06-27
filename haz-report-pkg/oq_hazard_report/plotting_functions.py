@@ -1,9 +1,38 @@
 from oq_hazard_report.base_functions import *
+from oq_hazard_report.data_functions import calculate_agg
 
 from uuid import RESERVED_FUTURE
 from matplotlib.collections import LineCollection
 
-#TODO runs slowly; any performance imporvements to be had?
+
+
+def plot_hazard_curve_wunc(hazard_data,ax, xlim, ylim):
+
+    location = 'WLG'
+    imt = 'PGA'
+    lvls = hazard_data.values(location=location,imt=imt,realization=0).lvls
+
+    da = 0.01
+    aggs = np.arange(0,1.0+da,da)
+    for i,agg in enumerate(aggs):
+        # alpha = min(1.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)+0.25)
+        # alpha = min(1.0,-(2.0/len(aggs))**2 * (i-len(aggs)/2.0)**2  + 1.2)
+        # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)-0.1)
+        alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0))
+        print(alpha)
+        vals = calculate_agg(hazard_data,location,imt,agg)
+        ax.plot(lvls,vals,color=str(alpha),alpha=0.6,lw=1)
+                
+    vals = calculate_agg(hazard_data,location,imt,0.5)
+    ax.plot(lvls,vals,'b',alpha=.8,lw=2)
+
+    _ = ax.set_xscale('log')
+    _ = ax.set_yscale('log')
+    _ = ax.set_ylim(ylim)
+    _ = ax.set_xlim(xlim)
+    _ = ax.grid(color='lightgray')
+
+
 
 def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
                         ref_lines=None,
@@ -51,6 +80,8 @@ def plot_hazard_curve(ax, site_list, imt, xlim, ylim, results,
     xscale:         str, optional
                     'linear' or 'log'
     """
+
+    #TODO runs slowly; any performance imporvements to be had?
     
     imtls = results['metadata'][f'{intensity_type}_imtls']
     
