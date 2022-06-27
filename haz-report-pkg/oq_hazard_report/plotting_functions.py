@@ -19,7 +19,6 @@ def plot_hazard_curve_wunc(hazard_data,ax, xlim, ylim):
         # alpha = min(1.0,-(2.0/len(aggs))**2 * (i-len(aggs)/2.0)**2  + 1.2)
         # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)-0.1)
         alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0))
-        print(alpha)
         vals = calculate_agg(hazard_data,location,imt,agg)
         ax.plot(lvls,vals,color=str(alpha),alpha=0.6,lw=1)
                 

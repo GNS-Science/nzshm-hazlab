@@ -1,20 +1,13 @@
 import numpy as np
 from toshi_hazard_store import model, query
 
-def get_lv(toshi_id,imt,site_list,aggrigations):
-    
-    xy = {}
-    vs30 = 250 #TODO Vs30 arg
-    
-    res = query.get_hazard_curves_stats(toshi_id, vs30, imt, site_list, aggrigations)
 
-    for site in site_list:
-        xy[site] = {}
+def compute_hazard_at_poe(levels,values,poe,inv_time):
+
+    rp = -inv_time/np.log(1-poe)
+    haz = np.exp( np.interp( np.log(1/rp), np.flip(np.log(values)), np.flip(np.log(levels)) ) )
+    return haz
         
-    for r in res:
-        xy[r.location_code][r.aggregation] = np.array([[p.level,p.value] for p in r.lvl_val_pairs])
-
-    return xy
     
 def weighted_quantile(values, quantiles, sample_weight=None, 
                       values_sorted=False, old_style=False):
