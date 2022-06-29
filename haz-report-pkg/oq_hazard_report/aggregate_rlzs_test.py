@@ -58,7 +58,7 @@ def aggrigate_realizations_multID(gt_id):
                 values = np.array(hd.values(location=location,imt=imt,realization=irlz).vals)
             else:
                 values = np.vstack((values,np.array(hd.values(location=location,imt=imt,realization=irlz).vals)))
-        breakpoint()
+
         weights = np.append(weights,np.array(list(hd.rlz_lt['weight'].values())))
         
     weights = weights/np.sum(weights)

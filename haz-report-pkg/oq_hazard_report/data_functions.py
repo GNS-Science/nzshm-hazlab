@@ -18,7 +18,8 @@ def weighted_quantile(values, quantiles, sample_weight=None,
     if sample_weight is None:
         sample_weight = np.ones(len(values))
     sample_weight = np.array(sample_weight)
-
+    sample_weight = sample_weight/sum(sample_weight)
+    
     if quantiles == 'mean':
         return np.sum(sample_weight * values)
 
