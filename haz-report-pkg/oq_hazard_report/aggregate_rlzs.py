@@ -1,5 +1,6 @@
 import itertools
 import ast
+import time
 
 import numpy as np
 
@@ -12,15 +13,21 @@ from toshi_hazard_store.query_v3 import get_rlz_curves_v3, get_hazard_metadata_v
 inv_time = 1.0
 
 def cache_realization_values(source_branches, loc, imt, vs30):
+    tic = time.perf_counter()
     values = {}
     for branch in source_branches:
         for res in get_rlz_curves_v3([loc], [vs30], None, branch['ids'], [imt]):
             key = ':'.join((res.hazard_solution_id,str(res.rlz))) #could use sort_key, but this simplifies
             values[key] = np.array(res.values[0].vals) #only one entry in res.values since query was for single imt
+    toc = time.perf_counter()
+
+    print(f'time to load realizations: {toc-tic:.1f} seconds')
 
     return values
 
 def build_rlz_table(branch, vs30):
+
+    tic = time.perf_counter()
 
     ids=branch['ids']
     rlz_sets = {}
@@ -79,6 +86,8 @@ def build_rlz_table(branch, vs30):
     for src_group in weight_iter: # could be done with list comprehension, but I can't figure out the syntax?
         weight_combs.append(reduce(mul, src_group, 1) )
 
+    toc = time.perf_counter()
+    print(f'time to build realization table: {toc-tic:.1f} seconds')
 
     return rlz_combs, weight_combs
 
@@ -109,24 +118,25 @@ def rate_to_prob(rate):
 
 def build_source_branch(values, rlz_combs):
 
-    # branch_weights = []
+    tic = time.perf_counter()
     for i,rlz_comb in enumerate(rlz_combs):
-        # branch_weight = 1
         rate = np.zeros(next(iter(values.values())).shape)
         for rlz in rlz_comb:
             rate += prob_to_rate(values[rlz])
-            # branch_weight *= rlz_weights[rlz]
         prob = rate_to_prob(rate)
-        # breakpoint()
         if i==0:
             prob_table = np.array(prob)
         else:
             prob_table = np.vstack((prob_table,np.array(prob)))
-        # branch_weights.append(branch_weight)
+
+    toc = time.perf_counter()
+    print(f'time to build source branch table table: {toc-tic:.1f} seconds')
     
     return prob_table
 
+
 def build_source_branch_ws(values, rlz_combs, weights):
+    '''DEPRECIATED'''
 
     branch_weights = []
     for i,rlz_comb in enumerate(rlz_combs):
@@ -151,50 +161,63 @@ def build_source_branch_ws(values, rlz_combs, weights):
     
     return prob_table, branch_weights
 
+def calculate_agg(branch_probs, agg, weight_combs):
+
+    tic = time.perf_counter()
+    median = np.array([])
+    for i in range(branch_probs.shape[1]):
+        quantiles = weighted_quantile(branch_probs[:,i],agg,sample_weight=weight_combs)
+        median = np.append(median,np.array(quantiles))
+    
+    toc = time.perf_counter()
+    print(f'time to calulate single aggrigation: {toc-tic:.4f} seconds')
+
+    return median
+
 
 if __name__ == "__main__":
+
+    tic_total = time.perf_counter()
 
     # TODO: I'm making assumptions that the levels array is the same for every realization, imt, run, etc. 
     # If that were not the case, I would have to add some interpolation
 
-    # loc = "-41.300~174.780"
-    loc = "-43.530~172.630"
+    # loc = "-41.300~174.780" #WLG
+    loc = "-43.530~172.630" #CHC
     vs30 = 750
-    imt = 'SA(0.5)'
-    # tid = 'CRUA'
+    imt = 'PGA'
+    agg = 'mean'
+    # agg = [0.5]
+
     source_branches = [
-        dict(name='A', ids=['A_CRU', 'A_HIK', 'A_PUY'], weight=1.0),
-        # dict(name='B', ids=['B_CRU', 'B_HIK', 'B_PUY'], weight=1.0),
+        dict(name='A', ids=['A_CRU', 'A_HIK', 'A_PUY'], weight=0.25),
+        dict(name='B', ids=['B_CRU', 'B_HIK', 'B_PUY'], weight=0.75),
     ]
 
     #cache all realization values
     values = cache_realization_values(source_branches, loc, imt, vs30)
-     
 
     # for each source branch, assemble the gsim realization combinations
     realization_table = np.array([]) 
     rlz_weights = {}
-    for branch in source_branches:
+    weights = np.array([])
+    for i,branch in enumerate(source_branches):
 
         rlz_combs, weight_combs = build_rlz_table(branch, vs30)
-        weights = get_weights(branch, vs30)
-
+        w = np.array(weight_combs) * branch['weight']
+        weights = np.hstack( (weights,w) )
+                
          #set of realization probabilties for a single complete source branch
          #these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve
-        branch_probs = build_source_branch(values, rlz_combs)
-        # branch_probs, branch_weights = build_source_branch_ws(values, rlz_combs, weights)
+        if i==0:
+            branch_probs = build_source_branch(values, rlz_combs) 
+        else:
+            branch_probs = np.vstack((branch_probs,build_source_branch(values, rlz_combs)))
 
-
-        #TODO build up probabilities from other branches
+    median =  calculate_agg(branch_probs, agg, weights)
     
-    #TODO build up probabilities from other branches
-    median = np.array([])
-    for i in range(branch_probs.shape[1]):
-        quantiles = weighted_quantile(branch_probs[:,i],'mean',sample_weight=weight_combs)
-        # quantiles = weighted_quantile(branch_probs[:,i],'mean')
-        median = np.append(median,np.array(quantiles))
+    toc_total = time.perf_counter()
+    print(f'total time: {toc_total-tic_total:.1f} seconds')
 
-    # print(branch_probs)
     print(median)
-    # print(values['A_CRU:7'])
 
