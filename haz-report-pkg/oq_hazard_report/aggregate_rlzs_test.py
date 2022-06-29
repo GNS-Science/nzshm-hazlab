@@ -51,16 +51,16 @@ def aggrigate_realizations_multID(gt_id):
     weights = np.array([])
     for i,hazard_id in enumerate(hazard_ids):
         hd = HazardData(hazard_id)
+        
         for irlz in range(hd.nrlzs):
             if irlz == 0 and i == 0:
                 levels = np.array(hd.values(location=location,imt=imt,realization=irlz).lvls)
                 values = np.array(hd.values(location=location,imt=imt,realization=irlz).vals)
             else:
                 values = np.vstack((values,np.array(hd.values(location=location,imt=imt,realization=irlz).vals)))
-
+        breakpoint()
         weights = np.append(weights,np.array(list(hd.rlz_lt['weight'].values())))
         
-    # breakpoint()
     weights = weights/np.sum(weights)
 
     tic = time.perf_counter()
