@@ -174,32 +174,16 @@ def calculate_agg(branch_probs, agg, weight_combs):
 
     return median
 
-
-if __name__ == "__main__":
-
-    tic_total = time.perf_counter()
-
-    # TODO: I'm making assumptions that the levels array is the same for every realization, imt, run, etc. 
-    # If that were not the case, I would have to add some interpolation
-
-    # loc = "-41.300~174.780" #WLG
-    loc = "-43.530~172.630" #CHC
-    vs30 = 750
-    imt = 'PGA'
-    agg = 'mean'
-    # agg = [0.5]
-
-    source_branches = [
-        dict(name='A', ids=['A_CRU', 'A_HIK', 'A_PUY'], weight=0.25),
-        dict(name='B', ids=['B_CRU', 'B_HIK', 'B_PUY'], weight=0.75),
-    ]
-
-    #cache all realization values
-    values = cache_realization_values(source_branches, loc, imt, vs30)
+def build_branches(source_branches, values, vs30):
 
     # for each source branch, assemble the gsim realization combinations
-    realization_table = np.array([]) 
-    rlz_weights = {}
+    
+    # DELETE?
+    # realization_table = np.array([]) 
+    # rlz_weights = {}
+
+    tic = time.perf_counter()
+
     weights = np.array([])
     for i,branch in enumerate(source_branches):
 
@@ -214,6 +198,37 @@ if __name__ == "__main__":
         else:
             branch_probs = np.vstack((branch_probs,build_source_branch(values, rlz_combs)))
 
+    toc = time.perf_counter()
+    print(f'time to build branches: {toc-tic:.4f} seconds')
+
+    return weights, branch_probs
+
+
+
+if __name__ == "__main__":
+
+    tic_total = time.perf_counter()
+
+    # TODO: I'm making assumptions that the levels array is the same for every realization, imt, run, etc. 
+    # If that were not the case, I would have to add some interpolation
+
+    # loc = "-41.300~174.780" #WLG
+    loc = "-43.530~172.630" #CHC
+    vs30 = 750
+    imt = 'PGA'
+    agg = 'mean'
+    agg = [0.5]
+
+    source_branches = [
+        dict(name='A', ids=['A_CRU', 'A_HIK', 'A_PUY'], weight=0.25),
+        dict(name='B', ids=['B_CRU', 'B_HIK', 'B_PUY'], weight=0.75),
+    ]
+
+    #cache all realization values
+    values = cache_realization_values(source_branches, loc, imt, vs30)
+
+    weights, branch_probs = build_branches(source_branches, values, vs30)
+    
     median =  calculate_agg(branch_probs, agg, weights)
     
     toc_total = time.perf_counter()
