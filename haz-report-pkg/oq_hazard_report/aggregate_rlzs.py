@@ -11,17 +11,32 @@ from oq_hazard_report.data_functions import weighted_quantile
 from toshi_hazard_store.query_v3 import get_rlz_curves_v3, get_hazard_metadata_v3
 
 inv_time = 1.0
+VERBOSE = False
 
-def cache_realization_values(source_branches, loc, imt, vs30):
+def get_imts(source_branches, vs30):
+
+    ids = source_branches[0]['ids']
+    meta = next(get_hazard_metadata_v3(ids, [vs30]))
+    imts = list(meta.imts)
+    imts.sort()
+
+    return imts
+
+def cache_realization_values(source_branches, loc, vs30):
+
     tic = time.perf_counter()
+
     values = {}
     for branch in source_branches:
-        for res in get_rlz_curves_v3([loc], [vs30], None, branch['ids'], [imt]):
-            key = ':'.join((res.hazard_solution_id,str(res.rlz))) #could use sort_key, but this simplifies
-            values[key] = np.array(res.values[0].vals) #only one entry in res.values since query was for single imt
+        for res in get_rlz_curves_v3([loc], [vs30], None, branch['ids'], None):
+            key = ':'.join((res.hazard_solution_id,str(res.rlz))) 
+            values[key] = {}
+            for val in res.values:
+                values[key][val.imt] = np.array(val.vals)
+    
     toc = time.perf_counter()
-
-    print(f'time to load realizations: {toc-tic:.1f} seconds')
+    if VERBOSE:
+        print(f'time to load realizations: {toc-tic:.1f} seconds')
 
     return values
 
@@ -87,7 +102,8 @@ def build_rlz_table(branch, vs30):
         weight_combs.append(reduce(mul, src_group, 1) )
 
     toc = time.perf_counter()
-    print(f'time to build realization table: {toc-tic:.1f} seconds')
+    if VERBOSE:
+        print(f'time to build realization table: {toc-tic:.1f} seconds')
 
     return rlz_combs, weight_combs
 
@@ -116,13 +132,16 @@ def rate_to_prob(rate):
     return 1.0 - np.exp(-inv_time*rate)
 
 
-def build_source_branch(values, rlz_combs):
+def build_source_branch(values, rlz_combs, imt):
 
+    k = next(iter(values.keys()))
+    kk = next(iter(values[k].keys()))
+    rate_shape = values[k][kk].shape
     tic = time.perf_counter()
     for i,rlz_comb in enumerate(rlz_combs):
-        rate = np.zeros(next(iter(values.values())).shape)
+        rate = np.zeros(rate_shape)
         for rlz in rlz_comb:
-            rate += prob_to_rate(values[rlz])
+            rate += prob_to_rate(values[rlz][imt])
         prob = rate_to_prob(rate)
         if i==0:
             prob_table = np.array(prob)
@@ -130,7 +149,8 @@ def build_source_branch(values, rlz_combs):
             prob_table = np.vstack((prob_table,np.array(prob)))
 
     toc = time.perf_counter()
-    print(f'time to build source branch table table: {toc-tic:.1f} seconds')
+    if VERBOSE:
+        print(f'time to build source branch table table: {toc-tic:.1f} seconds')
     
     return prob_table
 
@@ -174,14 +194,9 @@ def calculate_agg(branch_probs, agg, weight_combs):
 
     return median
 
-def build_branches(source_branches, values, vs30):
-
-    # for each source branch, assemble the gsim realization combinations
+def build_branches(source_branches, values, imt, vs30):
+    '''for each source branch, assemble the gsim realization combinations'''
     
-    # DELETE?
-    # realization_table = np.array([]) 
-    # rlz_weights = {}
-
     tic = time.perf_counter()
 
     weights = np.array([])
@@ -194,9 +209,9 @@ def build_branches(source_branches, values, vs30):
          #set of realization probabilties for a single complete source branch
          #these can then be aggrigated in prob space (+/- impact of NB) to create a hazard curve
         if i==0:
-            branch_probs = build_source_branch(values, rlz_combs) 
+            branch_probs = build_source_branch(values, rlz_combs, imt) 
         else:
-            branch_probs = np.vstack((branch_probs,build_source_branch(values, rlz_combs)))
+            branch_probs = np.vstack((branch_probs,build_source_branch(values, rlz_combs, imt)))
 
     toc = time.perf_counter()
     print(f'time to build branches: {toc-tic:.4f} seconds')
@@ -215,24 +230,29 @@ if __name__ == "__main__":
     # loc = "-41.300~174.780" #WLG
     loc = "-43.530~172.630" #CHC
     vs30 = 750
-    imt = 'PGA'
     agg = 'mean'
-    agg = [0.5]
-
+    # agg = [0.5]
+    
     source_branches = [
         dict(name='A', ids=['A_CRU', 'A_HIK', 'A_PUY'], weight=0.25),
         dict(name='B', ids=['B_CRU', 'B_HIK', 'B_PUY'], weight=0.75),
     ]
 
-    #cache all realization values
-    values = cache_realization_values(source_branches, loc, imt, vs30)
+    imts = get_imts(source_branches, vs30)
 
-    weights, branch_probs = build_branches(source_branches, values, vs30)
-    
-    median =  calculate_agg(branch_probs, agg, weights)
+    values = cache_realization_values(source_branches, loc, vs30)
+
+    median = {}
+    for imt in imts:
+        weights, branch_probs = build_branches(source_branches, values, imt, vs30)
+        median[imt] =  calculate_agg(branch_probs, agg, weights) # TODO: could be stored in pandas DataFrame
     
     toc_total = time.perf_counter()
     print(f'total time: {toc_total-tic_total:.1f} seconds')
 
-    print(median)
+    for k,v in median.items():
+        print('='*50)
+        print(f'{k}:')
+        print(v[:4],'...',v[-4:])
+
 
