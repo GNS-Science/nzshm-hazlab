@@ -4,28 +4,85 @@ from oq_hazard_report.data_functions import calculate_agg, compute_hazard_at_poe
 from uuid import RESERVED_FUTURE
 from matplotlib.collections import LineCollection
 
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 
-def plot_hazard_curve_wunc(hazard_data, location, imt, ax, xlim, ylim):
+def plot_hazard_curve_wunc(hazard_data, location, imt, ax, xlim, ylim, bandw=False, inset=None):
 
     lvls = hazard_data.values(location=location,imt=imt,realization=0).lvls
 
-    da = 0.01
-    aggs = np.arange(0,1.0+da,da)
-    for i,agg in enumerate(aggs):
-        # alpha = min(1.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)+0.25)
-        # alpha = min(1.0,-(2.0/len(aggs))**2 * (i-len(aggs)/2.0)**2  + 1.2)
-        # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)-0.1)
-        # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0))
-        # alpha = (len(aggs)/2.0 + np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0) - 1.0
-        alpha = max(0.5,(len(aggs)/2.0 + np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0) - 1.0)
-        print(alpha)
-        vals = calculate_agg(hazard_data,location,imt,agg)
-        # ax.plot(lvls,vals,color=str(alpha),alpha=0.6,lw=1)
-        ax.plot(lvls,vals,color=str(alpha),lw=1)
-                
+    if bandw:
+        quantiles = dict(
+                        upper1 = 0.8,
+                        lower1 = 0.2,
+                        upper2 = 0.95,
+                        lower2 = 0.05,
+                        )
+        values = {}
+        for k,quant in quantiles.items():
+            values[k] = calculate_agg(hazard_data,location,imt,quant)
+        ax.fill_between(lvls, values['upper1'], values['lower1'],alpha = 0.5, color='b')
+        ax.plot(lvls, values['upper2'],color='b',lw=1)
+        ax.plot(lvls, values['lower2'],color='b',lw=1)
+    else:
+        da = 0.01
+        aggs = np.arange(0,1.0+da,da)
+        for i,agg in enumerate(aggs):
+            # alpha = min(1.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)+0.25)
+            # alpha = min(1.0,-(2.0/len(aggs))**2 * (i-len(aggs)/2.0)**2  + 1.2)
+            # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)-0.1)
+            # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0))
+            # alpha = (len(aggs)/2.0 + np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0) - 1.0
+            alpha = max(0.5,(len(aggs)/2.0 + np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0) - 1.0)
+            print(alpha)
+            vals = calculate_agg(hazard_data,location,imt,agg)
+            # ax.plot(lvls,vals,color=str(alpha),alpha=0.6,lw=1)
+            ax.plot(lvls,vals,color=str(alpha),lw=1)
+                    
     vals = calculate_agg(hazard_data,location,imt,0.5)
     ax.plot(lvls,vals,'b',alpha=.8,lw=2)
+
+    if inset:
+        poe = inset['poe']
+        inv_time = inset['inv_time']
+        rp = -inv_time/np.log(1-poe)
+        ax.plot(xlim,[1/rp]*2,ls='--',color='dimgray',zorder=-1)
+        axins = inset_axes(ax, width="35%", height="25%")
+
+        da = 0.02
+        aggs = np.arange(0.01,0.99,da)
+        haz_poe = [] #acceleration
+        for i,agg in enumerate(aggs):
+            vals = calculate_agg(hazard_data,location,imt,agg)
+            haz_poe.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
+        pdf = []
+        for i in range(1,len(aggs)-1):
+            pdf.append( (aggs[i+1] - aggs[i-1])/(2*(haz_poe[i+1]-haz_poe[i-1])) )
+        axins.plot(haz_poe[1:-1],pdf,color='k',lw=1)
+
+        
+        da = 0.02
+        aggs = np.arange(0.2-da,0.8+da,da)
+        haz_poe = [] #acceleration
+        for i,agg in enumerate(aggs):
+            vals = calculate_agg(hazard_data,location,imt,agg)
+            haz_poe.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
+        pdf = []
+        for i in range(1,len(aggs)-1):
+            pdf.append( (aggs[i+1] - aggs[i-1])/(2*(haz_poe[i+1]-haz_poe[i-1])) )
+        axins.fill_between(haz_poe[1:-1],pdf,alpha = 0.5, color='b',lw=1)
+
+        xticks = axins.get_xticks()
+        axins.set_xticks(xticks,labels=[])
+        yticks = axins.get_yticks()
+        axins.set_yticks(yticks,labels=[])
+        # ylim = axins.get_ylim()
+        # axins.set_ylim((min(pdf)-0.05,ylim[1]))
+        # axins.set_ylabel('Probability of Shaking at PoE',fontsize=10)
+        # axins.set_xlabel('Shaking Intensity [g]',fontsize=10)
+
+
+        
 
     _ = ax.set_xscale('log')
     _ = ax.set_yscale('log')
@@ -34,7 +91,7 @@ def plot_hazard_curve_wunc(hazard_data, location, imt, ax, xlim, ylim):
     _ = ax.grid(color='lightgray')
 
 
-def plot_spectrum_wunc(hazard_data, location, poe, inv_time, ax):
+def plot_spectrum_wunc(hazard_data, location, poe, inv_time, ax, bandw=False):
     #TODO: this is slow!
 
     periods = [period_from_imt(imt) for imt in hazard_data.imts]
@@ -43,18 +100,36 @@ def plot_spectrum_wunc(hazard_data, location, poe, inv_time, ax):
 
     lvls = hazard_data.values(location=location,imt='PGA',realization=0).lvls
 
-    da = 0.01
-    aggs = np.arange(0,1.0+da,da)
-    for i,agg in enumerate(aggs):
-        # alpha = min(1.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)+0.25)
-        # alpha = min(1.0,-(2.0/len(aggs))**2 * (i-len(aggs)/2.0)**2  + 1.2)
-        # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)-0.1)
-        alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0))
-        hazard = []
-        for imt in imts:
-            vals = calculate_agg(hazard_data,location,imt,agg)
-            hazard.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
-        ax.plot(periods,hazard,color=str(alpha),alpha=0.6,lw=1)
+    if bandw:
+        quantiles = dict(
+                        upper1 = 0.8,
+                        lower1 = 0.2,
+                        upper2 = 0.95,
+                        lower2 = 0.05,
+                        )
+        hazard = {}
+        for k,quant in quantiles.items():
+            haz = []
+            for imt in imts:
+                vals = calculate_agg(hazard_data,location,imt,quant)
+                haz.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
+            hazard[k] = haz
+        ax.fill_between(periods,hazard['upper1'],hazard['lower1'],alpha = 0.5, color='b')
+        ax.plot(periods, hazard['upper2'],color='b',lw=1)
+        ax.plot(periods, hazard['lower2'],color='b',lw=1)
+    else:
+        da = 0.01
+        aggs = np.arange(0,1.0+da,da)
+        for i,agg in enumerate(aggs):
+            # alpha = min(1.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)+0.25)
+            # alpha = min(1.0,-(2.0/len(aggs))**2 * (i-len(aggs)/2.0)**2  + 1.2)
+            # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)-0.1)
+            alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0))
+            hazard = []
+            for imt in imts:
+                vals = calculate_agg(hazard_data,location,imt,agg)
+                hazard.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
+            ax.plot(periods,hazard,color=str(alpha),alpha=0.6,lw=1)
 
 
     hazard = []
