@@ -6,6 +6,75 @@ from matplotlib.collections import LineCollection
 
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
+def plot_hazard_curve_fromdf(hazard_data, location, imt, ax, xlim, ylim,
+                                central='mean', bandw=None, ref_lines=None, quants=None,
+                                xscale='log',custom_label=None, color=None):
+    
+    lat, lon = location.split('~')
+
+    hd_filt = hazard_data.loc[ (hazard_data['imt'] == imt) & (hazard_data['lat'] == lat) & (hazard_data['lon'] == lon)]
+
+    levels = hd_filt.loc[ hazard_data['agg'] == central]['level'].to_numpy(dtype='float64')
+    values = hd_filt.loc[ hazard_data['agg'] == central]['hazard'].to_numpy(dtype='float64')
+
+    clr = color if color else 'k'
+
+    lh, = ax.plot(levels,values,color=clr,lw=3,label=central)
+
+    clr = color if color else 'b'
+    if bandw: #{'u1':'0.8,'u2':'0.95', ...}
+        
+        bandw_data = {}
+        for k,v in bandw.items():
+            values = hd_filt.loc[ hazard_data['agg'] == v]['hazard'].to_numpy(dtype='float64')
+            bandw_data[k] = values
+        
+        ax.fill_between(levels, bandw_data['upper1'], bandw_data['lower1'],alpha = 0.5, color=clr)
+        ax.plot(levels, bandw_data['upper2'],color=clr,lw=1)
+        ax.plot(levels, bandw_data['lower2'],color=clr,lw=1)
+        # ax.plot(levels, bandw_data['upper2'],linestyle='--',color=clr,lw=1)
+        # ax.plot(levels, bandw_data['lower2'],linestyle='--',color=clr,lw=1)
+        # ax.plot(levels, bandw_data['upper1'],color=clr,lw=2)
+        # ax.plot(levels, bandw_data['lower1'],color=clr,lw=2)
+    if quants:
+        for quant in quants:
+            levels = hd_filt.loc[ hazard_data['agg'] == quant]['level'].to_numpy()
+            values = hd_filt.loc[ hazard_data['agg'] == quant]['hazard'].to_numpy()
+            ax.plot(levels,values,'b',alpha=.8,lw=1,label=quant)
+
+
+    for ref_line in ref_lines:
+        if ref_line['type'] == 'poe':
+            poe = ref_line['poe']
+            inv_time = ref_line['inv_time']
+            rp = -inv_time/np.log(1-poe)
+        elif ref_line['type'] == 'rp':
+            inv_time = ref_line['inv_time']
+            rp = ref_line['rp']
+            poe = 1 - np.exp(-inv_time/rp)
+
+        text = f'{poe*100:.0f}% in {inv_time:.0f} years (1/{rp:.0f})'
+        
+        _ = ax.plot(xlim,[1/rp]*2,ls='--',color='dimgray',zorder=-1)
+        # _ = ax.annotate(text, [xlim[1],1/rp], ha='right',va='bottom')
+        _ = ax.annotate(text, [xlim[1],1/rp], ha='right',va='bottom')
+
+    if not bandw:
+        _ = ax.legend(handlelength=2)
+
+    if xscale == 'log':
+        _ = ax.set_xscale('log')
+    _ = ax.set_yscale('log')
+    _ = ax.set_ylim(ylim)
+    _ = ax.set_xlim(xlim)
+    _ = ax.set_xlabel('Shaking Intensity, %s [g]'%imt)
+    _ = ax.set_ylabel('Annual Probability of Exceedance')
+    _ = ax.grid(color='lightgray')
+
+    return lh
+
+            
+
 
 def plot_hazard_curve_wunc(hazard_data, location, imt, ax, xlim, ylim, bandw=False, inset=None):
 
@@ -81,13 +150,80 @@ def plot_hazard_curve_wunc(hazard_data, location, imt, ax, xlim, ylim, bandw=Fal
         # axins.set_ylabel('Probability of Shaking at PoE',fontsize=10)
         # axins.set_xlabel('Shaking Intensity [g]',fontsize=10)
 
-
-        
-
     _ = ax.set_xscale('log')
     _ = ax.set_yscale('log')
     _ = ax.set_ylim(ylim)
     _ = ax.set_xlim(xlim)
+    _ = ax.grid(color='lightgray')
+
+
+def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax, 
+                            central='mean',bandw=False):
+    #TODO: this is slow!
+
+    lat, lon = location.split('~')
+
+    hd_filt = hazard_data.loc[ (hazard_data['lat'] == lat) & (hazard_data['lon'] == lon)]
+
+
+    imts = set(hazard_data['imt'])
+    periods = [period_from_imt(imt) for imt in imts]
+    periods.sort()
+    imts = [imt_from_period(period) for period in periods]
+
+    lvls = list(set(hazard_data['level']))
+    lvls.sort()
+
+
+    if bandw:
+        quantiles = dict(
+                        upper1 = 0.8,
+                        lower1 = 0.2,
+                        upper2 = 0.975,
+                        lower2 = 0.025,
+                        )
+        hazard = {}
+        for k,quant in quantiles.items():
+            haz = []
+            for imt in imts:
+                # vals = calculate_agg(hazard_data,location,imt,quant)
+                vals = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'hazard']
+                lvsl = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'level']
+                haz.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
+            hazard[k] = haz
+        ax.fill_between(periods,hazard['upper1'],hazard['lower1'],alpha = 0.5, color='b')
+        ax.plot(periods, hazard['upper2'],color='b',lw=1)
+        ax.plot(periods, hazard['lower2'],color='b',lw=1)
+    else:
+        da = 0.01
+        aggs = np.arange(0,1.0+da,da)
+        for i,agg in enumerate(aggs):
+            # alpha = min(1.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)+0.25)
+            # alpha = min(1.0,-(2.0/len(aggs))**2 * (i-len(aggs)/2.0)**2  + 1.2)
+            # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)-0.1)
+            alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0))
+            hazard = []
+            for imt in imts:
+                vals = calculate_agg(hazard_data,location,imt,agg)
+                hazard.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
+            ax.plot(periods,hazard,color=str(alpha),alpha=0.6,lw=1)
+
+
+    hazard = []
+    for imt in imts:
+        values = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'hazard']
+        levels = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'level']
+        hazard.append(compute_hazard_at_poe(levels,values,poe,inv_time))
+
+    ax.plot(periods, hazard, 'b', alpha=0.8,lw=2)
+
+    xlim = [0, max(periods)]
+    ylim = ax.get_ylim()
+    ylim = [0, ylim[1]]
+    _ = ax.set_ylim(ylim)
+    _ = ax.set_xlim(xlim)
+    _ = ax.set_xlabel('Period [s]')
+    _ = ax.set_ylabel('Shaking Intensity [g]')
     _ = ax.grid(color='lightgray')
 
 
