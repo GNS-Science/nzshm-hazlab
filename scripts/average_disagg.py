@@ -35,6 +35,8 @@ def plot_magdist2d(Mags, Dists, Avg_md_disagg, nrows, ncols, skip):
     cmap = 'OrRd'
     xlim = (5,9)
     ylim = (0,350)
+    # xlim = (7,10)
+    # ylim = (0,50)
     for i in range(ndisaggs):
 
         if i%skip == 0:
@@ -124,6 +126,22 @@ def plot_weights(data):
 
     return fig, ax
 
+def plot_dists(data):
+    # plot the weights as a function of rank
+    fig, ax = plt.subplots(1,1)
+    fig.set_size_inches(8,8)    
+    fig.set_facecolor('white')
+    x = np.array([d['rank'] for d in data])
+    y = np.array([d['distance'] for d in data])
+    sorter = np.argsort(x)
+    x = x[sorter]
+    y = y[sorter]
+    ax.stem(x,y,'o')
+    ax.set_xlabel('weight rank')
+    ax.set_ylabel('distance to target (g)')
+
+    return fig, ax
+
 
 def calc_running_average(mags, dists, data, rank):
     tmp_m, tmp_d, tmp_r = ddf.meshgrid_disaggs_v2(mags, dists, data[0]['md_data'])
@@ -155,8 +173,9 @@ def load_data(disaggs, site_name, imt, poe):
     rank = []
     for i, disagg in enumerate(disaggs['hazard_solutions']):
         if (disagg['site_name'] == site_name) & (disagg['imt'] == imt) & (disagg['poe'] == poe):
-            r = disagg['rank']
+            r = 249 - disagg['rank']
             weight = disagg['weight']
+            distance = disagg['dist']
             rank.append(r)
 
             hazard_solution_id = disagg['hazard_solution_id']
@@ -173,7 +192,8 @@ def load_data(disaggs, site_name, imt, poe):
                     rank = r,
                     weight = weight,
                     trt_data = ddf.get_disagg_trt(csv_archive),
-                    md_data = rates_tot
+                    md_data = rates_tot,
+                    distance = distance,
                 )
             )
             
@@ -196,44 +216,65 @@ headers={"x-api-key":API_KEY}
 toshi_api = ToshiApi(API_URL, None, None, with_schema_validation=True, headers=headers)
 
 
-site_name = 'Auckland'
+site_name = 'Wellington'
 poe = 0.02
 imt = 'PGA'
-save = True
+save = False
+skip_load = True
+prefix = 'Hightest Weight Branches'
 
+disagg_result_dir = Path('/home/chrisdc/NSHM/Disaggs')
 # disagg_result_file = Path('/home/chrisdc/NSHM/Disaggs/disagg_result_R2VuZXJhbFRhc2s6MTEzOTky.json') #10
 # disagg_result_file = Path('/home/chrisdc/NSHM/Disaggs/disagg_result_R2VuZXJhbFRhc2s6MTE0MDIz.json') #100
-disagg_result_file = Path('/home/chrisdc/NSHM/Disaggs/disagg_result_R2VuZXJhbFRhc2s6MTE0MzI0.json') #250
+# disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE0MzI0.json' #250 AKL
+# disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE1MDc1.json' # 250 WLG
+# disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE1MTIw.json' # 250 ZQN
+# disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE2NTc5.json' # 250 WHO
+# disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE3MzMw.json' # 250 KBZ
+disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE4MDgx.json' # 250 WLG weight metric
+disagg_result_file = Path(disagg_result_dir, disagg_result_filename)
+
 with open(disagg_result_file,'r') as jsonfile:
     disaggs = json.load(jsonfile)
 
-
-rank, data, mags, dists = load_data(disaggs, site_name, imt, poe)
-avg_trt_disagg, Mags, Dists, Avg_md_disagg = calc_running_average(mags, dists, data, rank)
+if not skip_load:
+    rank, data, mags, dists = load_data(disaggs, site_name, imt, poe)
+    avg_trt_disagg, Mags, Dists, Avg_md_disagg = calc_running_average(mags, dists, data, rank)
 
 fig1, ax = plot_weights(data)
+ax.set_title(f'{prefix} {site_name} {imt} {int(poe*100):d}% in 50yrs')
 fig2, ax = plot_stacked_bar(data)
+ax.set_title(f'{prefix} {site_name} {imt} {int(poe*100):d}% in 50yrs')
 fig3, ax = plot_trt_evolution(avg_trt_disagg, data)
+ax.set_title(f'{prefix} {site_name} {imt} {int(poe*100):d}% in 50yrs')
+
 
 nrows = 4
 ncols = 4
 skip = 16
 fig4, ax = plot_trt_bars(avg_trt_disagg, nrows, ncols, skip)
+fig4.suptitle(f'{prefix} {site_name} {imt} {int(poe*100):d}% in 50yrs')
 fig5, ax = plot_magdist2d(Mags, Dists, Avg_md_disagg, nrows, ncols, skip)
+fig5.suptitle(f'{prefix} {site_name} {imt} {int(poe*100):d}% in 50yrs')
+
+
+#========================================================================#
+fig, ax = plot_dists(data)
+ax.set_title(f'{prefix} {site_name} {imt} {int(poe*100):d}% in 50yrs')
+#========================================================================#
+
 
 if save:
+    file_prefix = ['weights', 'trtbar','trtevol','2dbar','magdist']
+    figs = [fig1, fig2, fig3, fig4, fig5]
     filename_template = f'{site_name}_{imt}_{int(poe*100):d}'
-    
-    fig1.savefig('weights_' + filename_template + '.png')
-    plt.close(fig1) 
-    fig2.savefig('trtbar_' + filename_template + '.png')
-    plt.close(fig2) 
-    fig3.savefig('trtevol_' + filename_template + '.png')
-    plt.close(fig3) 
-    fig4.savefig('2dbar_' + filename_template + '.png')
-    plt.close(fig4) 
-    fig5.savefig('magdist_' + filename_template + '.png')
-    plt.close(fig5) 
+    fig_dir = Path('/home/chrisdc/NSHM/oqresults/Full_Models/SLT_v6_gmm_v0b/Disaggs')
+
+    for prefix, fig in zip(file_prefix, figs):
+        file_path = Path(fig_dir, prefix + '_' + filename_template + '.png')
+        fig.savefig(str(file_path))
+        plt.close(fig) 
+        print(f'saved {file_path}')
 else:
     plt.show()        
 
