@@ -82,8 +82,8 @@ def plot_stacked_bar(data):
     slab = slab[sorter]
     crust = crust[sorter]
     ax.bar(x,crust,label='Active Shallow Crust')
-    ax.bar(x,sint, label='Subduction Interface')
-    ax.bar(x,slab, label='Subduction Intraslab')
+    ax.bar(x,sint, bottom=crust, label='Subduction Interface')
+    ax.bar(x,slab, bottom=crust+sint, label='Subduction Intraslab')
     ax.set_xlabel('distance rank')
     ax.set_ylabel('contribution')
     ax.legend()
@@ -121,8 +121,9 @@ def plot_weights(data):
     x = x[sorter]
     y = y[sorter]
     ax.stem(x,y,'o')
-    ax.set_xlabel('distance rank')
+    ax.set_xlabel('rank')
     ax.set_ylabel('branch weight')
+    ax.ticklabel_format(axis='y', style='sci')
 
     return fig, ax
 
@@ -137,8 +138,24 @@ def plot_dists(data):
     x = x[sorter]
     y = y[sorter]
     ax.stem(x,y,'o')
-    ax.set_xlabel('weight rank')
+    ax.set_xlabel('rank')
     ax.set_ylabel('distance to target (g)')
+
+    return fig, ax
+
+def plot_prods(data):
+    # plot the weights as a function of rank
+    fig, ax = plt.subplots(1,1)
+    fig.set_size_inches(8,8)    
+    fig.set_facecolor('white')
+    x = np.array([d['rank'] for d in data])
+    y = np.array([d['product'] for d in data])
+    sorter = np.argsort(x)
+    x = x[sorter]
+    y = y[sorter]
+    ax.stem(x,y,'o')
+    ax.set_xlabel('rank')
+    ax.set_ylabel('weight x frequency product (g)')
 
     return fig, ax
 
@@ -173,9 +190,11 @@ def load_data(disaggs, site_name, imt, poe):
     rank = []
     for i, disagg in enumerate(disaggs['hazard_solutions']):
         if (disagg['site_name'] == site_name) & (disagg['imt'] == imt) & (disagg['poe'] == poe):
+            # r = disagg['rank']
             r = 249 - disagg['rank']
             weight = disagg['weight']
             distance = disagg['dist']
+            # product = disagg['product']
             rank.append(r)
 
             hazard_solution_id = disagg['hazard_solution_id']
@@ -194,6 +213,7 @@ def load_data(disaggs, site_name, imt, poe):
                     trt_data = ddf.get_disagg_trt(csv_archive),
                     md_data = rates_tot,
                     distance = distance,
+                    # product = product,
                 )
             )
             
@@ -220,8 +240,8 @@ site_name = 'Wellington'
 poe = 0.02
 imt = 'PGA'
 save = False
-skip_load = True
-prefix = 'Hightest Weight Branches'
+skip_load = False
+prefix = 'Weight'
 
 disagg_result_dir = Path('/home/chrisdc/NSHM/Disaggs')
 # disagg_result_file = Path('/home/chrisdc/NSHM/Disaggs/disagg_result_R2VuZXJhbFRhc2s6MTEzOTky.json') #10
@@ -231,7 +251,9 @@ disagg_result_dir = Path('/home/chrisdc/NSHM/Disaggs')
 # disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE1MTIw.json' # 250 ZQN
 # disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE2NTc5.json' # 250 WHO
 # disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE3MzMw.json' # 250 KBZ
-disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE4MDgx.json' # 250 WLG weight metric
+# disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE4MDgx.json' # 250 WLG weight metric
+# disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTE4ODMy.json' # 250 WLG product metric
+disagg_result_filename = 'disagg_result_R2VuZXJhbFRhc2s6MTIxMjYx.json' # 250 WLG weight metric, vertical slice
 disagg_result_file = Path(disagg_result_dir, disagg_result_filename)
 
 with open(disagg_result_file,'r') as jsonfile:
@@ -261,6 +283,9 @@ fig5.suptitle(f'{prefix} {site_name} {imt} {int(poe*100):d}% in 50yrs')
 #========================================================================#
 fig, ax = plot_dists(data)
 ax.set_title(f'{prefix} {site_name} {imt} {int(poe*100):d}% in 50yrs')
+
+# fig, ax = plot_prods(data)
+# ax.set_title(f'{prefix} {site_name} {imt} {int(poe*100):d}% in 50yrs')
 #========================================================================#
 
 

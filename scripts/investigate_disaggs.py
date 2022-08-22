@@ -85,7 +85,7 @@ with open(slab_fn,'r') as slab_file:
 fig, ax = plt.subplots(1,1)
 fig.set_size_inches(8,8)
 fig.set_facecolor('white')
-nz = geopandas.read_file('/home/chrisdc/NSHM/DEV/scripts/Data/nz-coastlines-and-islands-polygons-topo-150k/nz-coastlines-and-islands-polygons-topo-150k.shp')
+nz = geopandas.read_file('/home/chrisdc/NSHM/DATA/nz-coastlines-and-islands-polygons-topo-150k/nz-coastlines-and-islands-polygons-topo-150k.shp')
 
 nz.boundary.plot(ax=ax)
 ax.plot(lons,lats,'r.')

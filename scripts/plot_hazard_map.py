@@ -80,10 +80,10 @@ def get_poe_grid(thp_id, site_list, imt, agg, poe):
 #================================================================================================================#
 # thp_id_TI = 'SLT_v5_gmm_v0_ST_TI'
 # thp_id_TD = 'SLT_v5_gmm_v0_ST_TD'
-thp_id = 'SLT_v6_gmm_v0c'
+thp_id = 'SLT_v7_gmm_v1'
 
 site_list = 'NZ_0_2_NB_1_1'
-imt = 'SA(1.5)'
+imt = 'PGA'
 agg = 'mean'
 poe = 0.1
 
@@ -99,9 +99,9 @@ grid = get_poe_grid(thp_id, site_list, imt, agg, poe)
 
 fig = pygmt.Figure()
 pygmt.config(FONT_ANNOT_PRIMARY = 14)
-pygmt.makecpt(cmap = "jet", series=[0,.4,0.01])
+# pygmt.makecpt(cmap = "jet", series=[0,.4,0.01])
 # pygmt.makecpt(cmap = "jet", series=[0,1.25,0.02])
-# pygmt.makecpt(cmap = "jet", series=[0,1,0.1])
+pygmt.makecpt(cmap = "jet", series=[0,2,0.05])
 # pygmt.makecpt(cmap = "jet", series=[0.5,2,0.1])
 
 fig.grdimage(grid=grid, projection="M15c", cmap = True, dpi = 100, frame = "a")

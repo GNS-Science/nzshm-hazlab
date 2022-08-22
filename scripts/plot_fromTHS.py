@@ -9,8 +9,9 @@ from toshi_hazard_store.query_v3 import get_hazard_curves
 
 from oq_hazard_report.plotting_functions import plot_hazard_curve_fromdf
 
-plot_title = 'SLT v5, GMCM v0'
-fig_dir = Path('/home/chrisdc/NSHM/oqresults/Full_Models/SLT_v6_gmm_v0b/Compare/GMCM_corr')
+plot_title = 'SLT v7, GMCM EE'
+fig_dir = Path('/home/chrisdc/NSHM/oqresults/Full_Models/SLT_v7_gmm_v1/Compare')
+# /home/chrisdc/NSHM/oqresults/Full_Models/SLT_v6_gmm_v0b/Compare/GMCM_corr')
 hazard_models = [
     # dict(id='SLT_v5_gmm_v0',name='full model'),
     
@@ -41,8 +42,11 @@ hazard_models = [
     # dict(id='SLT_v5_gmm_v0',name='SLT v5, GMCM v0'),
     # dict(id='SLT_v6_gmm_v0b',name='SLT v6, GMCM v0b'),
 
-    dict(id='SLT_v6_gmm_v0b',name='WITHOUT GMCM correlation'),
-    dict(id='SLT_v6_gmm_v0b_corr',name='WITH GMCM correlation'),
+    # dict(id='SLT_v6_gmm_v0b',name='WITHOUT GMCM correlation'),
+    # dict(id='SLT_v6_gmm_v0b_corr',name='WITH GMCM correlation'),
+
+    dict(id='SLT_v6_gmm_v0b',name='SLT v6, GMCM v0b'),
+    dict(id='SLT_v7_gmm_v1',name='SLT v7, GMCM EE'),
 
 
 

@@ -24,7 +24,7 @@ def plot_map(ax, imt, rp, inv_time, results, intensity_type='acc'):
 
     periods = [period_from_imt(imt) for imt in imtls.keys()]
 
-    coast_file_path = '/home/chrisdc/NSHM/DEV/regional_mfd/data/nz-coastlines-and-islands-polygons-topo-150k/nz-coastlines-and-islands-polygons-topo-150k.shp'
+    coast_file_path = '/home/chrisdc/NSHM/DATA/nz-coastlines-and-islands-polygons-topo-150k/nz-coastlines-and-islands-polygons-topo-150k.shp'
     inversion_solution_file = '/home/chrisdc/NSHM/DEV/nzshm_hazlab/examples/NZSHM22_InversionSolution-QXV0b21hdGlvblRhc2s6MTAxNjU5.zip'
 
     nz = geopandas.read_file(coast_file_path)
