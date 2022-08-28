@@ -4,6 +4,9 @@ import csv
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import geopandas as gp
+from shapely.geometry import Polygon
+
 
 import pygmt
 import xarray as xr
@@ -22,9 +25,9 @@ def compute_hazard_at_poe(levels,values,poe,inv_time):
     haz = np.exp( np.interp( np.log(1/rp), np.flip(np.log(values)), np.flip(np.log(levels)) ) )
     return haz
 
-def get_hazard_grid(thp_id, site_list, force=False):
+def get_hazard_grid(thp_id, vs30, site_list, force=False):
 
-    grid_filename = '-'.join( (thp_id,site_list) ) + '.json'
+    grid_filename = f'{thp_id}-{vs30}-{site_list}.json'
     grid_filepath = Path(ARCHIVE_DIR,grid_filename)
 
     if grid_filepath.exists() and (not force):
@@ -33,9 +36,9 @@ def get_hazard_grid(thp_id, site_list, force=False):
     
     resample = 0.1
     locations = []
-    vs30s = [400]
-    imts = ['PGA','SA(0.5)','SA(1.5)']
-    aggs = ['mean','0.005','0.1','0.2','0.5','0.8','0.9','0.995']
+    imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)', 'SA(10.0)']
+    aggs = ["mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
+    
     grid = RegionGrid[site_list]
     grid_locs = grid.load()
     for gloc in grid_locs:
@@ -43,7 +46,7 @@ def get_hazard_grid(thp_id, site_list, force=False):
         loc = loc.resample(float(resample)) if resample else loc
         locations.append(loc.resample(0.001).code)
 
-    haggs = query_v3.get_hazard_curves(locations, vs30s, [thp_id], imts=imts, aggs=aggs)
+    haggs = query_v3.get_hazard_curves(locations, [vs30], [thp_id], imts=imts, aggs=aggs)
 
     tmpcsv = io.StringIO()
     model_writer = csv.writer(tmpcsv)
@@ -56,9 +59,9 @@ def get_hazard_grid(thp_id, site_list, force=False):
     return df
 
 
-def get_poe_grid(thp_id, site_list, imt, agg, poe):
+def get_poe_grid(thp_id, site_list, imt, agg, poe, vs30):
 
-    hazard = get_hazard_grid(thp_id, site_list)
+    hazard = get_hazard_grid(thp_id, vs30, site_list)
     levels = np.array([float(col[4:]) for col in hazard.columns[5:]])
     hazard['haz-poe'] = np.nan
     for index, row in hazard.iterrows():
@@ -78,49 +81,46 @@ def get_poe_grid(thp_id, site_list, imt, agg, poe):
     return grid
 
 #================================================================================================================#
-# thp_id_TI = 'SLT_v5_gmm_v0_ST_TI'
-# thp_id_TD = 'SLT_v5_gmm_v0_ST_TD'
-thp_id = 'SLT_v7_gmm_v1'
+thp_id = 'SLT_v8_gmm_v2'
+fig_dir = Path('/home/chrisdc/NSHM/oqresults/Full_Models/SLT_v8_gmm_v2/Maps')
 
 site_list = 'NZ_0_2_NB_1_1'
 imt = 'PGA'
 agg = 'mean'
-poe = 0.1
+poe = 0.02
+vs30 = 400
+region="165/180/-48/-34"
+acc_max = 2
 
-# grid_TI = get_poe_grid(thp_id_TI, site_list, imt, agg, poe)
-# grid_TD = get_poe_grid(thp_id_TD, site_list, imt, agg, poe)
-
-grid = get_poe_grid(thp_id, site_list, imt, agg, poe)
-
-
-# grid_ratio = grid_TD/grid_TI
-
+grid = get_poe_grid(thp_id, site_list, imt, agg, poe, vs30)
 #============================================================================================================
+
+
+fault_polygons = gp.read_file('/home/chrisdc/NSHM/DATA/Crustal_Rupture_Set_RmlsZToxMDAwODc=/fault_sections.geojson')
+ba_poly = Polygon(   [
+                            (177.2, -37.715),
+                            (176.2, -38.72),
+                            (175.375, -39.27),
+                            (174.25, -40),
+                            (173.1, -39.183),
+                            (171.7, -34.76),
+                            (173.54, -33.22),
+                            (177.2, -37.715),
+                            ]
+                        )
+backarc_polygon = gp.GeoSeries([ba_poly])
 
 fig = pygmt.Figure()
 pygmt.config(FONT_ANNOT_PRIMARY = 14)
-# pygmt.makecpt(cmap = "jet", series=[0,.4,0.01])
-# pygmt.makecpt(cmap = "jet", series=[0,1.25,0.02])
-pygmt.makecpt(cmap = "jet", series=[0,2,0.05])
-# pygmt.makecpt(cmap = "jet", series=[0.5,2,0.1])
+pygmt.makecpt(cmap = "jet", series=[0,acc_max,0.05])
 
-fig.grdimage(grid=grid, projection="M15c", cmap = True, dpi = 100, frame = "a")
+fig.grdimage(grid=grid, region=region, projection="M15c", cmap = True, dpi = 100, frame = "a")
 fig.coast(shorelines = True, water="white")
-fig.basemap(frame=["a", f"+t{imt} {poe*100:.0f}% in 50 yrs"])
+fig.basemap(frame=["a", f"+t{vs30}m/s {imt} {poe*100:.0f}% in 50 yrs"])
+# fig.plot(data=fault_polygons)
+# fig.plot(data=backarc_polygon, pen="1p,red")
 fig.colorbar(frame=f'af+l"{imt} ({poe*100:.0f}% PoE in 50)"')
+filepath = Path(fig_dir,f'{vs30}-{imt}-{poe}.png')
+# fig.savefig(filepath)
 fig.show()
 
-
-# fig = pygmt.Figure()
-# pygmt.config(FONT_ANNOT_PRIMARY = 14)
-
-
-# fig.basemap(region=[160,185,-48,-33],frame=["a", "+t2010"])
-
-# pygmt.makecpt(cmap = "jet", series=[0,1.5,0.1])
-# # fig.grdimage(grid=grid, projection="M15c", cmap = True, dpi = 100, frame = "a")
-
-# fig.coast(shorelines = True, water="white")
-
-# fig.colorbar(frame='af+l"PGA (10% PoE in 50)"')
-# fig.show()
