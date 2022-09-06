@@ -1,3 +1,6 @@
 matplotlib
-markdown
 git+https://github.com/GNS-Science/nzshm-common-py
+git+https://github.com/GNS-Science/toshi-hazard-store.git
+markdown
+h5py
+scipy 

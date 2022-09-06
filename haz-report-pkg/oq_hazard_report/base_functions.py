@@ -9,7 +9,6 @@ import re
 import h5py
 
 from pathlib import Path
-from openquake.commonlib import datastore
 from scipy import stats
 from scipy.optimize import minimize
 
