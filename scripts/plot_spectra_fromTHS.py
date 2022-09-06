@@ -21,7 +21,7 @@ def get_hazard(hazard_id, locs, vs30, imts, aggs, force=False):
         return hazard_data
 
     columns = ['lat', 'lon', 'imt', 'agg', 'level', 'hazard']
-    index = range(len(locs) * len(imts) * len(aggs) * 29)
+    index = range((len(locs)-1) * len(imts) * len(aggs) * 29)
     hazard_curves = pd.DataFrame(columns=columns, index=index)
 
     ind = 0
@@ -51,7 +51,7 @@ def get_hazard(hazard_id, locs, vs30, imts, aggs, force=False):
 # ╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝╚═╝░░╚══╝
 
 plot_title = 'SLT v8, GMCM v2'
-fig_dir = Path('/home/chrisdc/NSHM/oqresults/Full_Models/SLT_v8_gmm_v2/Solo/Spectra')
+
 # /home/chrisdc/NSHM/oqresults/Full_Models/SLT_v6_gmm_v0b/Compare/GMCM_corr')
 hazard_model = dict(id='SLT_v8_gmm_v2',name='SLT v8, GMCM v2')
 
@@ -60,7 +60,8 @@ PLOT_HEIGHT = 8.625
 grid_res = 0.001
 
 legend = False
-vs30 = 400
+vs30 = 750
+fig_dir = Path('/home/chrisdc/NSHM/oqresults/Full_Models/SLT_v8_gmm_v2/Solo/Spectra/',f'vs30_{int(vs30)}')
 imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)', 'SA(10.0)']
 aggs = ["mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
 
@@ -91,7 +92,7 @@ for poe in POES:
 
 
 for location in LOCATIONS_BY_ID.keys():
-    if location == 'ROT': continue
+    if (location == 'GIS') | (location=='ROT'): continue
     print(f'plotting {location} ... ')
     for poe in poes:
         for bounds,bandw in bandws.items():
@@ -102,7 +103,6 @@ for location in LOCATIONS_BY_ID.keys():
             fig, ax = plt.subplots(1,1)
             fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
             fig.set_facecolor('white')
-
             plot_spectrum_fromdf(hazard_model['data'], loc, poe, inv_time, ax, bandw=True)
             title = f'{name} {poe*100:.0f}% in 50 years {bounds}'
             plot_name = 'spectra_' + '_'.join( (name,str(poe),bounds) ) + '.png'

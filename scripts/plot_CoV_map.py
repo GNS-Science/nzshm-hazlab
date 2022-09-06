@@ -1,3 +1,4 @@
+import math
 import json
 import io
 import csv
@@ -26,6 +27,11 @@ def compute_hazard_at_poe(levels,values,poe,inv_time):
     haz = np.exp( np.interp( np.log(1/rp), np.flip(np.log(values)), np.flip(np.log(levels)) ) )
     return haz
 
+def compute_poe_at_level(levels,values,target_level):
+
+    return np.interp(target_level,levels,values)
+    
+
 def get_hazard_grid(thp_id, vs30, site_list, force=False):
 
     grid_filename = f'{thp_id}-{vs30}-{site_list}.json'
@@ -39,7 +45,7 @@ def get_hazard_grid(thp_id, vs30, site_list, force=False):
     locations = []
     imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)', 'SA(10.0)']
     # imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)']
-    aggs = ["mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
+    aggs = ["std","mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
     
     grid = RegionGrid[site_list]
     grid_locs = grid.load()
@@ -60,25 +66,32 @@ def get_hazard_grid(thp_id, vs30, site_list, force=False):
     return df
 
 
-def get_poe_grid(thp_id, site_list, imt, agg, poe, vs30):
+def get_cov_grid(thp_id, site_list, imt, agg, poe, vs30):
 
     hazard = get_hazard_grid(thp_id, vs30, site_list)
-    breakpoint()
+    hazard_mean = hazard[ hazard['agg'] == 'mean' ]
+    hazard_std = hazard[ hazard['agg'] == 'std' ]
     levels = np.array([float(col[4:]) for col in hazard.columns[5:]])
-    hazard['haz-poe'] = np.nan
-    for index, row in hazard.iterrows():
-        values = row[5:-1].to_numpy(dtype='float64')
-        hazard.loc[index,'haz-poe'] = compute_hazard_at_poe(levels,values,poe,50)
+    hazard_cov = hazard_mean.copy()
+    hazard_cov['cov'] = np.nan
 
-    haz_poe = hazard.loc[:,['agg','imt','lat','lon','haz-poe']]
-    haz_poe  = haz_poe[ (haz_poe['imt'] == imt) & (haz_poe['agg'] == agg) ]
+    for (imean, row_mean),(istd,row_std) in zip(hazard_mean.iterrows(),hazard_std.iterrows()):
+        values_mean = row_mean[5:].to_numpy(dtype='float64')
+        values_std = row_std[5:].to_numpy(dtype='float64')
+        values_cov = values_std/values_mean
+        level_at_poe = compute_hazard_at_poe(levels,values_mean,poe,50)
+        hazard_cov.loc[imean,'cov'] = np.interp(level_at_poe,levels,values_cov)
+        # hazard_cov.loc[imean,'cov'] = np.exp(np.interp(np.log(level_at_poe),np.log(levels),np.log(values_cov)))
 
-    haz_poe = haz_poe[['lat','lon','haz-poe']]
 
-    haz_poe = haz_poe.pivot(index="lat", columns="lon")
-    haz_poe = haz_poe.droplevel(0, axis=1)
-    grid = xr.DataArray(data=haz_poe)
+    haz_cov = hazard_cov.loc[:,['agg','imt','lat','lon','cov']]
+    haz_cov  = haz_cov[ (haz_cov['imt'] == imt) & (haz_cov['agg'] == 'mean') ]
 
+    haz_cov = haz_cov[['lat','lon','cov']]
+
+    haz_cov = haz_cov.pivot(index="lat", columns="lon")
+    haz_cov = haz_cov.droplevel(0, axis=1)
+    grid = xr.DataArray(data=haz_cov)
 
     return grid
 
@@ -107,65 +120,21 @@ thp_id = 'SLT_v8_gmm_v2'
 fig_dir = Path('/home/chrisdc/NSHM/oqresults/Full_Models/SLT_v8_gmm_v2/Maps')
 
 site_list = 'NZ_0_2_NB_1_1'
-# imts = ['PGA','SA(0.5)','SA(1.5)']
+# imts = ['PGA','SA(0.5)','SA(1.5)','SA(3.0)']
 imts = ['PGA']
-# imts = ['SA(3.0)']
-agg = 'mean'
-# poes = [0.02, 0.1]
-poes = [0.02]
+ 
+poes = [0.02, 0.1]
 vs30s = [400]
 
 plot_faults = True
-colormap = 'inferno' # 'viridis', 'jet', 'plasma', 'imola', 'hawaii'
-filename_ext = '_' + colormap
+colormap = 'jet'
 
-acc_max = {
-    400:{
-    'PGA':3.0,
-    'SA(0.5)':5.1,
-    'SA(1.5)':3.0,
-    'SA(3.0)':1.1,
-    },
-    250:{
-    'PGA':3.0,
-    'SA(0.5)':5.1,
-    'SA(1.5)':3.0,
-    'SA(3.0)':1.5,
-    },
-    750:{
-    'PGA':3.0,
-    'SA(0.5)':4.1,
-    'SA(1.5)':1.5,
-    'SA(3.0)':1.1,
-    },
+region="165/180/-48/-34"
+series = {
+    0.02: [0.5,1.5,0.02],
+    0.1: [0.25,1.2,0.02],
 }
-
-
-acc_min = {
-    
-    400:{
-    'PGA':0.1,
-    'SA(0.5)':0.1,
-    'SA(1.5)':0.1,
-    'SA(3.0)':0.05,
-    },
-    250:{
-    'PGA':0.1,
-    'SA(0.5)':0.2,
-    'SA(1.5)':0.1,
-    'SA(3.0)':0.05,
-    },
-    750:{
-    'PGA':0.1,
-    'SA(0.5)':0.1,
-    'SA(1.5)':0.05,
-    'SA(3.0)':0.01,
-    },
-}
-
-region="163/185/-50/-24" if plot_faults else "165/180/-48/-34"
-
-
+dv = 0.1
 
 #============================================================================================================
 
@@ -173,27 +142,25 @@ for vs30 in vs30s:
     for imt in imts:
         for poe in poes:
             full_dir = Path(fig_dir,f'{int(vs30)}')
-            grid = get_poe_grid(thp_id, site_list, imt, agg, poe, vs30)
+            filepath = Path(full_dir,f'{thp_id}-CoV-{vs30}-{imt}-{poe}.png')
+
+            cov = get_cov_grid(thp_id, site_list, imt, 'mean', poe, vs30)
+            print(f'cov min and max = {float(cov.min())}, {float(cov.max())}')
             fig = pygmt.Figure()
             pygmt.config(FONT_ANNOT_PRIMARY = 14)
-            pygmt.makecpt(cmap = colormap, log=True, series=[np.log10(acc_min[vs30][imt]),np.log10(acc_max[vs30][imt]),.1])
+            vmin = math.floor(float(cov.min())*10.0)/10.0
+            vmax = math.ceil(float(cov.max())*10.0)/10.0
+            # series = [vmin,vmax,dv]
+            series = [0.4,1.7,0.1]
+            pygmt.makecpt(cmap = colormap, series=series)
 
-            print(f'vs30-{vs30}, poe-{poe}, imt-{imt}: max shaking: {grid.max()}')
-            fig.grdimage(grid=grid, region=region, projection="M15c", cmap = True, dpi = 100, frame = "a")
+            fig.grdimage(grid=cov, region=region, projection="M15c", cmap = True, dpi = 100, frame = "a")
             fig.coast(shorelines = True, water="white")
-            fig.basemap(frame=["a", f"+t{vs30}m/s {imt} {poe*100:.0f}% in 50 yrs"])
-            if plot_faults:
-                faults, backarc, hikurangi, puysegur = load_polygons()
-                fig.plot(data=hikurangi,color="220/220/220",transparency=60,pen="black")
-                fig.plot(data=puysegur,color="220/220/220",transparency=60,pen="black")
-                fig.plot(data=faults)
-                # fig.plot(data=backarc, pen="1p,red")
-                filepath = Path(full_dir,f'{thp_id}-{vs30}-{imt}-{poe}_faults.png')
-            else:
-                filepath = Path(full_dir,f'{thp_id}-{vs30}-{imt}-{poe}.png')
+            fig.basemap(frame=["a", f"+tCoV {vs30}m/s {imt} {poe*100:.0f}% in 50 yrs"])
 
-            fig.colorbar(frame=f'af+l"{imt} ({poe*100:.0f}% PoE in 50)"')#,position='+ef')
 
-            # fig.savefig(filepath)
+            fig.colorbar(frame=f'af+l"CoV ({imt} {poe*100:.0f}% PoE in 50)"')#,position='+ef')
+
+            fig.savefig(filepath)
             fig.show()
 
