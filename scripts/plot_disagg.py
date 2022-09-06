@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 import matplotlib.pyplot as plt
-import oq_hazard_report.disagg_plotting_functions as dpf
+import oq_hazard_report.disagg_plotting_functions_old as dpf
 
 from runzi.automation.scaling.toshi_api import ToshiApi
 from runzi.automation.scaling.local_config import (API_KEY, API_URL, WORK_PATH)

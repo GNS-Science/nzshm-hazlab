@@ -470,7 +470,7 @@ class ReportBuilder:
 
         table_md += '\n'
 
-        return table_md
+        return table_md        
 
 
 

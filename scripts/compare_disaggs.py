@@ -9,7 +9,7 @@ from collections import namedtuple
 import matplotlib.pyplot as plt
 import numpy as np
 
-import oq_hazard_report.disagg_plotting_functions as dpf
+import oq_hazard_report.disagg_plotting_functions_old as dpf
 import oq_hazard_report.disagg_data_functions as ddf
 
 
