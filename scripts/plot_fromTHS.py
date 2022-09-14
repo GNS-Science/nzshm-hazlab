@@ -1,3 +1,4 @@
+import time
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -21,8 +22,11 @@ def get_hazard(hazard_id, locs, vs30, imts, aggs, force=False):
         hazard_data = pd.read_json(curves_filepath,dtype=dtype)
         return hazard_data
 
+    res = next(get_hazard_curves([locs[0]], [vs30], [hazard_id], [imts[0]], ['mean']))
+    num_levels = len(res.values)
+
     columns = ['lat', 'lon', 'imt', 'agg', 'level', 'hazard']
-    index = range(len(locs) * len(imts) * len(aggs) * 29)
+    index = range(len(locs) * len(imts) * len(aggs) * num_levels)
     hazard_curves = pd.DataFrame(columns=columns, index=index)
 
     ind = 0
@@ -56,16 +60,16 @@ fig_dir = Path('/home/chrisdc/NSHM/oqresults/Full_Models/SLT_v8_gmm_v2/tmp2')
 # /home/chrisdc/NSHM/oqresults/Full_Models/SLT_v6_gmm_v0b/Compare/GMCM_corr')
 hazard_models = [
     # dict(id='SLT_v8_gmm_v1',name='SLT v8, GMCM EE'),
-    dict(id='SLT_v8_gmm_v2',name='SLT v8, GMCM v2'),
-    dict(id='SLT_v8_gmm_v2_TEST2',name='SLT v8, TEST'),
+    # dict(id='SLT_v8_gmm_v2',name='SLT v8, GMCM v2'),
+    dict(id='SLT_v8_gmm_v2_FINAL',name='SLT v8, FINAL'),
 ]
 
 legend = True
-vs30 = 400
+vs30 = 250
 # vs30 = 750
 # imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)', 'SA(10.0)']
 imts = ['PGA','SA(0.5)', 'SA(1.5)', 'SA(3.0)']
-aggs = ["mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
+aggs = ["std","cov","mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
 
 
 locations = [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values()] 
@@ -95,8 +99,8 @@ for hazard_model in hazard_models:
 POES = [0.1,0.02]
 INVESTIGATION_TIME = 50
 bandws = {
-            # '0.5,10,90,99.5':{'lower2':'0.005','lower1':'0.1','upper1':'0.9','upper2':'0.995'},
-            '10,20,80,90':{'lower2':'0.01','lower1':'0.1','upper1':'0.9','upper2':'0.99'},
+            '0.5,10,90,99.5':{'lower2':'0.005','lower1':'0.1','upper1':'0.9','upper2':'0.995'},
+            # '10,20,80,90':{'lower2':'0.01','lower1':'0.1','upper1':'0.9','upper2':'0.99'},
         }
 
 ref_lines = []
@@ -108,8 +112,6 @@ for poe in POES:
 
 for imt in imts:
     for location in LOCATIONS_BY_ID.keys():
-        if location != "WLG":
-            continue
         print(f'plotting {location} ... ')
         for bounds,bandw in bandws.items():
             pt = (LOCATIONS_BY_ID[location]["latitude"], LOCATIONS_BY_ID[location]["longitude"])
@@ -139,5 +141,7 @@ for imt in imts:
             ax.set_title(title)
             # plt.savefig(file_path)
             plt.show()
+            # plt.pause(1)
+            # time.sleep(5)
             plt.close()
 
