@@ -46,14 +46,14 @@ def spot_check(hazard_id, vs30):
     try:
         assert i == len(imts)*len(aggs)*len(locations)
     except AssertionError as err:
-        print(f'{err}: hazard ID {hazard_id}, vs30 {vs30} missing value(s)')
+        print(f'{err}: hazard ID {hazard_id}, vs30 {vs30} missing value(s). Expected {len(imts)*len(aggs)*len(locations)} got {i}')
         raise
 
     
                 
 
 hazard_id = 'SLT_v8_gmm_v2_FINAL'
-vs30s = [400,750,250,600,350,175,300,450,375,275]
+vs30s = [400,750,250,600,350,175,300,450,375,275,225,200,150]
 
 for vs30 in vs30s:
     spot_check(hazard_id,vs30)

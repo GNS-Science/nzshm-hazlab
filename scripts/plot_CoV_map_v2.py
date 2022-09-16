@@ -117,7 +117,7 @@ imts = ['PGA']
 # imts = ['SA(3.0)']
 agg = 'mean'
 # poes = [0.02, 0.1]
-poes = [0.02]
+poes = [0.1]
 vs30s = [400]
 
 plot_faults = False
@@ -138,16 +138,17 @@ for vs30 in vs30s:
 
             grid = get_poe_grid(thp_id, site_list, imt, poe, vs30)
             print(f'cov min and max = {float(grid.min())}, {float(grid.max())}')
-            fig = pygmt.Figure()
-            pygmt.config(FONT_ANNOT_PRIMARY = 14)
-            series = [0.4,1.7,0.1]
-            pygmt.makecpt(cmap = colormap, series=series)
+fig = pygmt.Figure()
+pygmt.config(FONT_ANNOT_PRIMARY = 14)
+#series = [float(grid.min()), float(grid.max()), 0.1] #0.4,1.7,0.1]
+series = [0,1,0.05]
+pygmt.makecpt(cmap = colormap, series=series)
 
-            fig.grdimage(grid=grid, region=region, projection="M15c", cmap = True, dpi = 100, frame = "a")
-            fig.coast(shorelines = True, water="white")
-            fig.basemap(frame=["a", f"+tCoV {vs30}m/s {imt} {poe*100:.0f}% in 50 yrs"])
-            fig.colorbar(frame=f'af+l"CoV ({imt} {poe*100:.0f}% PoE in 50)"')#,position='+ef')
+fig.grdimage(grid=grid, region=region, projection="M15c", cmap = True, dpi = 100, frame = "a")
+fig.coast(shorelines = True, water="white")
+fig.basemap(frame=["a", f"+tCoV {vs30}m/s {imt} {poe*100:.0f}% in 50 yrs"])
+fig.colorbar(frame=f'af+l"CoV ({imt} {poe*100:.0f}% PoE in 50)"')#,position='+ef')
 
-            # fig.savefig(filepath)
-            fig.show()
+# fig.savefig(filepath)
+fig.show()
 
