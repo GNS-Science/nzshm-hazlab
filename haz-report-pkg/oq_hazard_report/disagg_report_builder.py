@@ -7,7 +7,7 @@ from markdown.extensions.toc import TocExtension
 import matplotlib.pyplot as plt
 
 import oq_hazard_report.disagg_plotting_functions as dpf
-from oq_hazard_report.resources.css_template import css_file
+from oq_hazard_report.resources.css_template import disagg_css_file as css_file
 
 HEAD_HTML = '''
 <!DOCTYPE html>
@@ -87,14 +87,38 @@ class DisaggReportBuilder:
                     text='Tectonic Region Type',
                     figs=[])
                 )
+        text = 'This bar chart shows the relative contributions to hazard from each tectonic region'
+        plots.append(dict(level=0, text=text))
         plots += self.make_trt_plot()
+
+        # plots.append( dict(
+        #             level=1,
+        #             text='Magnitude-Distance',
+        #             figs=[])
+        #         )
+        # plots += self.make_mag_dist_plot()
+        plots.append(dict(level='hrule'))
 
         plots.append( dict(
                     level=1,
-                    text='Magnitude-Distance',
+                    text='Magnitude-Distance-TRT',
                     figs=[])
                 )
-        plots += self.make_mag_dist_plot()
+        text = 'This plot shows the contribution to hazard by disatance to source and event magnitude for each tectonic region.\
+            This can be used to determine what type of events contribute most to the seismic hazard.'
+        plots.append(dict(level=0, text=text))
+        plots += self.make_mag_dist_trt_plot()
+
+        plots.append( dict(
+                    level=1,
+                    text='Magnitude-Distance-Epsilon',
+                    figs=[])
+                )
+        text = 'This plot shows the contribution to hazard by disatance to source and event magnitude colored by epsilon.\
+            Epsilon is the number of standard deviations by which the (logarithmic) acceleration differs\
+                 from the mean (logarithmic) acceleration of a ground-motion prediction equation.'
+        plots.append(dict(level=0, text=text))
+        plots += self.make_mag_dist_eps_plot()
 
 
         return plots
@@ -126,7 +150,7 @@ class DisaggReportBuilder:
     def make_mag_dist_plot(self):
         
         fig, ax = plt.subplots(1,1)
-        fig.set_size_inches(10,6)    
+        fig.set_size_inches(8,6)    
         fig.set_facecolor('white')
         plot_path = PurePath(self._plot_dir,'mag_dist_2d.png')
         plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
@@ -145,6 +169,53 @@ class DisaggReportBuilder:
 
         return plots
 
+    def make_mag_dist_trt_plot(self):
+        
+        fig, ax = plt.subplots(1,3)
+        fig.set_size_inches(12,3)    
+        fig.set_facecolor('white')
+        plot_path = PurePath(self._plot_dir,'mag_dist_trt_2d.png')
+        plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
+
+        dpf.plot_mag_dist_trt_2d(fig, ax, self._disagg)
+        plt.savefig(str(plot_path), bbox_inches="tight")
+        plt.close(fig)
+
+        plots = [
+            dict(
+            level=4,
+            text='',
+            fig = plot_rel_path
+            )
+        ]
+
+        return plots
+
+    def make_mag_dist_eps_plot(self):
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(111,projection='3d')
+        fig.set_size_inches(12,12)    
+        fig.set_facecolor('white')
+        plot_path = PurePath(self._plot_dir,'mag_dist_eps.png')
+        plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
+
+        dpf.plot_mag_dist_eps(fig, ax, self._disagg)
+        plt.savefig(str(plot_path), bbox_inches="tight")
+        plt.close(fig)
+
+        plots = [
+            dict(
+            level=4,
+            text='',
+            fig = plot_rel_path
+            )
+        ]
+
+        return plots
+
+
+
 
 
     def generate_report(self,plots):
@@ -152,20 +223,26 @@ class DisaggReportBuilder:
         print('generating report . . .')
 
         md_string = f'# {self._name}\n'
+        md_string += '\n---\n'
         # md_string += '<a name="top"></a>\n'
         md_string += '\n'
         # md_string += '[TOC]\n'
         md_string += '\n'
 
         for plot in plots:
-            md_string += f'{"#"*(plot["level"]+1)} {plot["text"]}\n'
+            if plot["level"] == 'hrule':
+                md_string += '\n---\n'
+            elif plot["level"] == 0:
+                md_string += plot["text"] + '\n'
+            else:
+                md_string += f'{"#"*(plot["level"]+1)} {plot["text"]}\n'
             # if plot['level'] < 4:
             #     md_string += f'[top](#top)\n'
             if plot.get('fig'):
                 md_string += f'<a href={plot["fig"]} target="_blank">![an image]({plot["fig"]})</a>\n'
             if plot.get('fig_table'):
                 md_string += self.build_fig_table(plot.get('fig_table'))
-
+            
     
         # html = markdown.markdown(md_string, extensions=[TocExtension(toc_depth="2-4"),'tables'])
         html = markdown.markdown(md_string,extensions=['tables'])
@@ -176,7 +253,7 @@ class DisaggReportBuilder:
         with open(PurePath(self._output_path, 'index.html'),'w') as output_file:
             output_file.write(html)
 
-        with open(PurePath(self._output_path, 'hazard_report.css'),'w') as output_file:
+        with open(PurePath(self._output_path, 'disagg_report.css'),'w') as output_file:
             output_file.write(css_file)
 
         print('done generating report')
