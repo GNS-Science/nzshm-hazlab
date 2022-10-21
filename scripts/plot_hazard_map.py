@@ -72,6 +72,8 @@ def get_poe_grid(thp_id, site_list, imt, agg, poe, vs30):
     haz_poe  = haz_poe[ (haz_poe['imt'] == imt) & (haz_poe['agg'] == agg) ]
 
     haz_poe = haz_poe[['lat','lon','haz-poe']]
+    haz_poe.to_csv('flat_hazardmap_400_02_mean.csv')
+    breakpoint()
 
     haz_poe = haz_poe.pivot(index="lat", columns="lon")
     haz_poe = haz_poe.droplevel(0, axis=1)
@@ -110,7 +112,7 @@ imts = ['PGA']
 # imts = ['SA(3.0)']
 agg = 'mean'
 # poes = [0.02, 0.1]
-poes = [0.1]
+poes = [0.02]
 vs30s = [400]
 
 plot_faults = True

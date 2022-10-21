@@ -5,6 +5,7 @@ from nzshm_common.location.location import LOCATIONS_BY_ID
 from nzshm_common.location.code_location import CodedLocation
 from nzshm_common.grids.region_grid import load_grid
 from toshi_hazard_store.query_v3 import get_hazard_curves
+import time
 
 from oq_hazard_report.plotting_functions import plot_hazard_curve_fromdf, plot_spectrum_fromdf
 
@@ -19,9 +20,12 @@ def get_hazard(hazard_id, locs, vs30, imts, aggs, force=False):
         dtype = {'lat':str,'lon':str}
         hazard_data = pd.read_json(curves_filepath,dtype=dtype)
         return hazard_data
+    
+    res = next(get_hazard_curves([locs[0]], [vs30], [hazard_id], [imts[0]], [aggs[0]]))
+    num_levels = len(res.values)
 
     columns = ['lat', 'lon', 'imt', 'agg', 'level', 'hazard']
-    index = range((len(locs)-1) * len(imts) * len(aggs) * 29)
+    index = range((len(locs)-1) * len(imts) * len(aggs) * num_levels)
     hazard_curves = pd.DataFrame(columns=columns, index=index)
 
     ind = 0
@@ -53,14 +57,14 @@ def get_hazard(hazard_id, locs, vs30, imts, aggs, force=False):
 plot_title = 'SLT v8, GMCM v2'
 
 # /home/chrisdc/NSHM/oqresults/Full_Models/SLT_v6_gmm_v0b/Compare/GMCM_corr')
-hazard_model = dict(id='SLT_v8_gmm_v2',name='SLT v8, GMCM v2')
+hazard_model = dict(id='SLT_v8_gmm_v2_FINAL',name='SLT v8, GMCM v2')
 
 PLOT_WIDTH = 12
 PLOT_HEIGHT = 8.625
 grid_res = 0.001
 
 legend = False
-vs30 = 750
+vs30 = 150
 fig_dir = Path('/home/chrisdc/NSHM/oqresults/Full_Models/SLT_v8_gmm_v2/Solo/Spectra/',f'vs30_{int(vs30)}')
 imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)', 'SA(10.0)']
 aggs = ["mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
@@ -78,7 +82,8 @@ bandws = {
         }
 
 inv_time = 50
-poes = [0.1,0.02]
+# poes = [0.1,0.02]
+poes = [0.02]
 
 hazard_model['data'] = get_hazard(hazard_model['id'], locations, vs30, imts, aggs)
 
@@ -92,7 +97,7 @@ for poe in POES:
 
 
 for location in LOCATIONS_BY_ID.keys():
-    if (location == 'GIS') | (location=='ROT'): continue
+    if (location != 'WLG'): continue
     print(f'plotting {location} ... ')
     for poe in poes:
         for bounds,bandw in bandws.items():
@@ -109,6 +114,7 @@ for location in LOCATIONS_BY_ID.keys():
             file_path = Path(fig_dir,plot_name) 
             ax.set_title(title)
             ax.set_ylim(ylim)
-            plt.savefig(file_path)
-            plt.close()
+            # plt.savefig(file_path)
+            # plt.close()
+            plt.show()
 

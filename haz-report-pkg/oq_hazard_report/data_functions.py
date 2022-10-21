@@ -5,7 +5,10 @@ from toshi_hazard_store import model, query
 def compute_hazard_at_poe(levels,values,poe,inv_time):
 
     rp = -inv_time/np.log(1-poe)
-    haz = np.exp( np.interp( np.log(1/rp), np.flip(np.log(values)), np.flip(np.log(levels)) ) )
+    try:
+        haz = np.exp( np.interp( np.log(1/rp), np.flip(np.log(values)), np.flip(np.log(levels)) ) )
+    except:
+        breakpoint()
     return haz
         
     

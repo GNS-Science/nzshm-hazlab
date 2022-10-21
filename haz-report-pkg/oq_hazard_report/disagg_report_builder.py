@@ -91,12 +91,17 @@ class DisaggReportBuilder:
         plots.append(dict(level=0, text=text))
         plots += self.make_trt_plot()
 
-        # plots.append( dict(
-        #             level=1,
-        #             text='Magnitude-Distance',
-        #             figs=[])
-        #         )
-        # plots += self.make_mag_dist_plot()
+        plots.append(dict(level='hrule'))
+
+        plots.append( dict(
+            level=1,
+            text='Magnitude-Distance',
+            figs=[])
+        )
+        text = 'This plot shows the contribution to hazard by distance to source and event magnitude.'
+        plots.append(dict(level=0, text=text))
+        plots += self.make_mag_dist_plot()
+
         plots.append(dict(level='hrule'))
 
         plots.append( dict(
@@ -104,7 +109,7 @@ class DisaggReportBuilder:
                     text='Magnitude-Distance-TRT',
                     figs=[])
                 )
-        text = 'This plot shows the contribution to hazard by disatance to source and event magnitude for each tectonic region.\
+        text = 'This plot shows the contribution to hazard by distance to source and event magnitude for each tectonic region.\
             This can be used to determine what type of events contribute most to the seismic hazard.'
         plots.append(dict(level=0, text=text))
         plots += self.make_mag_dist_trt_plot()
@@ -114,9 +119,10 @@ class DisaggReportBuilder:
                     text='Magnitude-Distance-Epsilon',
                     figs=[])
                 )
-        text = 'This plot shows the contribution to hazard by disatance to source and event magnitude colored by epsilon.\
+        text = 'This plot shows the contribution to hazard by distance to source and event magnitude colored by epsilon.\
             Epsilon is the number of standard deviations by which the (logarithmic) acceleration differs\
-                 from the mean (logarithmic) acceleration of a ground-motion prediction equation.'
+                 from the mean (logarithmic) acceleration of a ground-motion prediction equation. \
+                 The two plots differ only in the maximum distance plotted.'
         plots.append(dict(level=0, text=text))
         plots += self.make_mag_dist_eps_plot()
 
@@ -192,23 +198,30 @@ class DisaggReportBuilder:
         return plots
 
     def make_mag_dist_eps_plot(self):
-        
-        fig = plt.figure()
-        ax = fig.add_subplot(111,projection='3d')
-        fig.set_size_inches(12,12)    
-        fig.set_facecolor('white')
-        plot_path = PurePath(self._plot_dir,'mag_dist_eps.png')
-        plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
 
-        dpf.plot_mag_dist_eps(fig, ax, self._disagg)
-        plt.savefig(str(plot_path), bbox_inches="tight")
-        plt.close(fig)
+        ymaxma = [100,350]
+        fig_table = [[]]
+        for ymax in ymaxma:
+
+            fig = plt.figure()
+            fig.set_size_inches(8,8)
+            fig.set_facecolor('white')
+            plot_path = PurePath(self._plot_dir,f'mag_dist_eps_{ymax}.png')
+            plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
+            dpf.plot_mag_dist_eps(fig, self._disagg,ylim = (0,ymax))
+            plt.savefig(str(plot_path), bbox_inches="tight")
+            plt.close(fig)
+            fig_table[0].append(plot_rel_path)
+
+
+        title_table = [['_','_']]
 
         plots = [
             dict(
             level=4,
             text='',
-            fig = plot_rel_path
+            # fig = plot_rel_path
+            fig_table = {'figs':fig_table,'titles':title_table}
             )
         ]
 
