@@ -56,7 +56,7 @@ def main(configs):
         drb.run()
 
         upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
-        disaggs.append(add_to_list(model_id, report_folder, location_key, vs30, imt, poe))
+        # disaggs.append(add_to_list(model_id, report_folder, location_key, vs30, imt, poe))
 
     disagg_filepath = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/disaggs.json')
     if disagg_filepath.exists():
@@ -71,7 +71,7 @@ def main(configs):
 
 if __name__ == "__main__":
 
-    disagg_dir = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/round4')
+    disagg_dir = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/round1_2')
     disaggs = disagg_dir.glob('*.npy')
 
     main(disaggs)

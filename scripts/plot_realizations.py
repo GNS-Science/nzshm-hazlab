@@ -57,7 +57,7 @@ def load_data(filepaths):
 
 def get_agg_poe(agg_hcurves, ocation, imt, agg):
     pt = [(loc['latitude'], loc['longitude']) for loc in LOCATIONS_BY_ID.values() if loc['id']==location][0]
-    ll = CodedLocation(*pt).downsample(point_res).code
+    ll = CodedLocation(*pt,0.001).downsample(point_res).code
     lat, lon = ll.split('~')
 
 

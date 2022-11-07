@@ -10,6 +10,7 @@ from matplotlib.colors import LightSource
 MAGS = np.arange(5.25,10,.5)
 DISTS = np.arange(5,550,10)
 EPSS = np.arange(-3,5,2)
+# EPSS = np.arange(-3.75,4.0,.5)
 TRTS =  ['Active Shallow Crust', 'Subduction Interface', 'Subduction Intraslab']
 AXIS_MAG = 0
 AXIS_DIST = 1
@@ -124,7 +125,7 @@ def plot_single_mag_dist_eps(fig, ax, disagg, ylim):
     ls = LightSource(azdeg=45, altdeg=10)
 
     cmp = cm.get_cmap('coolwarm')
-    newcolors = cmp(np.linspace(0,1,4))
+    newcolors = cmp(np.linspace(0,1,len(EPSS)))
     newcmp = ListedColormap(newcolors)
     norm = Normalize(vmin=-4, vmax=4)
     
@@ -151,7 +152,11 @@ def plot_single_mag_dist_eps(fig, ax, disagg, ylim):
             bottom += disaggs_mde_r[:,:,i].ravel()
 
     # cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=newcmp), ticks=EPSS, shrink = 0.3, anchor=(0.0,0.75),label='epsilon')
-    cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=newcmp), ticks=list(EPSS-1) + [EPSS[-1]+1], shrink = 0.3, anchor=(0.0,0.75),label='epsilon')
+    # cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=newcmp), ticks=list(EPSS-1) + [EPSS[-1]+1], shrink = 0.3, anchor=(0.0,0.75),label='epsilon')
+    cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=newcmp),
+        ticks=(list(EPSS-0.25) + [EPSS[-1]+0.25])[0:-1:2] + [EPSS[-1]+0.25],
+        shrink = 0.3, anchor=(0.0,0.75),
+        label='epsilon')
     ax.set_xlabel('Magnitude')
     ax.set_ylabel('Distance (km)')
     ax.set_zlabel('% Contribution to Hazard')
