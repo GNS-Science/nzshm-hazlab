@@ -7,9 +7,12 @@ from matplotlib import cm
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap, Normalize
 from matplotlib.colors import LightSource
 
-MAGS = np.arange(5.25,10,.5)
-DISTS = np.arange(5,550,10)
-EPSS = np.arange(-3,5,2)
+from oq_hazard_report.disagg_data_functions import rate_to_prob, prob_to_rate
+
+# MAGS = np.arange(5.25,10,.5)
+#MAGS = np.arange(5.09745, 10.0, 0.1999)
+#DISTS = np.arange(5,550,10)
+#EPSS = np.arange(-3,5,2)
 # EPSS = np.arange(-3.75,4.0,.5)
 TRTS =  ['Active Shallow Crust', 'Subduction Interface', 'Subduction Intraslab']
 AXIS_MAG = 0
@@ -30,53 +33,27 @@ newcolors = cmp(np.linspace(0,1,256))
 newcolors[:5,:] = white
 newcmp = ListedColormap(newcolors)
 
-INV_TIME = 1.0
 
-def prob_to_rate(prob):
+def plot_trt(fig, ax, disagg, bins):
 
-    return -np.log(1 - prob) / INV_TIME
-
-
-def rate_to_prob(rate):
-
-    return 1.0 - np.exp(-INV_TIME * rate)
-
-
-def assemble_disaggs(disagg):
-
-    nmags = len(MAGS)
-    ndists = len(DISTS)
-    ntrts = len(TRTS)
-    neps = len(EPSS)
-
-    disaggs = np.empty((len(MAGS),len(DISTS),len(TRTS),len(EPSS)))
-    for i, (imag, idist, itrt, ieps) in enumerate(itertools.product(range(nmags), range(ndists), range(ntrts), range(neps))):
-        disaggs[imag,idist,itrt, ieps] = disagg[i]
-
-    return disaggs
-
-def plot_trt(fig, ax, disagg):
-
-    disaggs = assemble_disaggs(disagg)
-    disaggs_r = prob_to_rate(disaggs)
+    disaggs_r = prob_to_rate(disagg)
     # disagg_trt = rate_to_prob(np.sum(disaggs_r,axis=(AXIS_MAG,AXIS_DIST)) )
     disagg_trt_r = np.sum(disaggs_r,axis=(AXIS_MAG,AXIS_DIST,AXIS_EPS))
     # ax.bar(TRTS,disagg_trt/np.sum(disagg_trt) * 100)
-    ax.bar(TRTS,disagg_trt_r/np.sum(disagg_trt_r) * 100)
+    ax.bar(bins[AXIS_TRT],disagg_trt_r/np.sum(disagg_trt_r) * 100)
     ax.set_ylim([0, 110])
     ax.set_ylabel('% Contribution to Hazard')
 
 
-def plot_mag_dist_2d(fig, ax, disagg):
+def plot_mag_dist_2d(fig, ax, disagg, bins):
 
-    disaggs = assemble_disaggs(disagg)
-    disaggs_r = prob_to_rate(disaggs)
+    disaggs_r = prob_to_rate(disagg)
 
     # disagg_md = rate_to_prob(np.sum(disaggs_r,axis=AXIS_TRT))
     disagg_md_r = np.sum(disaggs_r,axis=(AXIS_TRT,AXIS_EPS))
     # disagg_md = disagg_md/np.sum(disagg_md) * 100
     disagg_md_r = disagg_md_r/np.sum(disagg_md_r) * 100
-    x, y = np.meshgrid(MAGS,DISTS)
+    x, y = np.meshgrid(bins[AXIS_MAG], bins[AXIS_DIST])
     # pcx = ax.pcolormesh(x,y,disagg_md.transpose(),vmin=0,vmax=np.max(disagg_md),shading='auto',cmap=CMAP)
     pcx = ax.pcolormesh(x,y,disagg_md_r.transpose(),vmin=0,vmax=np.max(disagg_md_r),shading='auto',cmap=newcmp)
     fig.colorbar(pcx,label=f'% Contribution to Hazard')
@@ -85,13 +62,12 @@ def plot_mag_dist_2d(fig, ax, disagg):
     ax.set_xlabel('Magnitude')
     ax.set_ylabel('Distance (km)')
 
-def plot_mag_dist_trt_2d(fig, ax, disagg):
+def plot_mag_dist_trt_2d(fig, ax, disagg, bins):
 
-    disaggs = assemble_disaggs(disagg)
-    disaggs_r = prob_to_rate(disaggs)
-    disaggs_trt0_r = prob_to_rate(disaggs.copy()[:,:,0,:])
-    disaggs_trt1_r = prob_to_rate(disaggs.copy()[:,:,1,:])
-    disaggs_trt2_r = prob_to_rate(disaggs.copy()[:,:,2,:])
+    disaggs_r = prob_to_rate(disagg)
+    disaggs_trt0_r = prob_to_rate(disagg.copy()[:,:,0,:])
+    disaggs_trt1_r = prob_to_rate(disagg.copy()[:,:,1,:])
+    disaggs_trt2_r = prob_to_rate(disagg.copy()[:,:,2,:])
 
     disagg_md_trt0_r = np.sum(disaggs_trt0_r,axis=(AXIS_EPS-1))
     disagg_md_trt1_r = np.sum(disaggs_trt1_r,axis=(AXIS_EPS-1))
@@ -103,7 +79,7 @@ def plot_mag_dist_trt_2d(fig, ax, disagg):
 
     vmax = max(np.max(disagg_md_trt0_r), np.max(disagg_md_trt1_r), np.max(disagg_md_trt2_r))
 
-    x, y = np.meshgrid(MAGS,DISTS)
+    x, y = np.meshgrid(bins[AXIS_MAG],bins[AXIS_DIST])
     pcx = ax[0].pcolormesh(x,y,disagg_md_trt0_r.transpose(),vmin=0,vmax=vmax,shading='auto',cmap=newcmp)
     pcx = ax[1].pcolormesh(x,y,disagg_md_trt1_r.transpose(),vmin=0,vmax=vmax,shading='auto',cmap=newcmp)
     pcx = ax[2].pcolormesh(x,y,disagg_md_trt2_r.transpose(),vmin=0,vmax=vmax,shading='auto',cmap=newcmp)
@@ -119,42 +95,57 @@ def plot_mag_dist_trt_2d(fig, ax, disagg):
     ax[0].set_ylabel('Distance (km)')
 
 
-
-def plot_single_mag_dist_eps(fig, ax, disagg, ylim):
+def plot_single_mag_dist_eps(fig, ax, disagg, bins, ylim, min_mag_bin_width = 0):
 
     ls = LightSource(azdeg=45, altdeg=10)
 
     cmp = cm.get_cmap('coolwarm')
-    newcolors = cmp(np.linspace(0,1,len(EPSS)))
+    newcolors = cmp(np.linspace(0,1,len(bins[AXIS_EPS])))
     newcmp = ListedColormap(newcolors)
     norm = Normalize(vmin=-4, vmax=4)
-    
-    dind = DISTS <= ylim[1]
-    dists = DISTS[dind]
-    _xx, _yy = np.meshgrid(MAGS, dists)
+
+    disaggs_mde_r = np.sum(prob_to_rate(disagg),axis=AXIS_TRT) 
+    if (bins[AXIS_MAG][1] - bins[AXIS_MAG][0]) < min_mag_bin_width:
+        nbins_comb =  int(np.ceil( min_mag_bin_width/(bins[AXIS_MAG][1] - bins[AXIS_MAG][0]) ))
+        nbins = int(np.ceil(len(bins[AXIS_MAG]) / nbins_comb))
+        mags = np.empty((nbins,))
+        merged_shape = list(disaggs_mde_r.shape)
+        merged_shape[0] = nbins
+        disaggs = np.empty(merged_shape)
+        for i in range(nbins):
+            if ((i+1)*nbins_comb) < len(bins[AXIS_MAG]):
+                mags[i] = np.mean(bins[AXIS_MAG][i*nbins_comb:(i+1)*nbins_comb])
+                disaggs[i] = np.mean(disaggs_mde_r[i*nbins_comb:(i+1)*nbins_comb], axis=AXIS_MAG)
+            else:
+                mags[i] = np.mean(bins[AXIS_MAG][i*nbins_comb:])
+                disaggs[i] = np.mean(disaggs_mde_r[i*nbins_comb:], axis=AXIS_MAG)
+    else:
+        disaggs = disaggs_mde_r
+        mags = bins[AXIS_MAG]
+    disaggs = disaggs / np.sum(disaggs) * 100.0
+
+    dind = bins[AXIS_DIST] <= ylim[1]
+    disaggs = disaggs[:,dind,:]
+    dists = bins[AXIS_DIST][dind]
+    _xx, _yy = np.meshgrid(mags, dists)
     x, y = _xx.T.ravel(), _yy.T.ravel()
     width = 0.1    
     depth = (ylim[1]-ylim[0])/(XLIM[1] - XLIM[0]) * width
-
-
-    
-    disaggs = assemble_disaggs(disagg)
-    disaggs_mde_r = np.sum(prob_to_rate(disaggs),axis=AXIS_TRT) / np.sum(prob_to_rate(disaggs)) * 100
-
-    disaggs_mde_r = disaggs_mde_r[:,dind,:]
+        
     bottom = np.zeros( x.shape )
-    for i in range(len(EPSS)):
+    for i in range(len(bins[AXIS_EPS])):
         z0 = bottom
-        z1 = disaggs_mde_r[:,:,i].ravel()
+        z1 = disaggs[:,:,i].ravel()
         ind = z1 > 0.1
         if any(ind):
             ax.bar3d(x[ind], y[ind], z0[ind], width, depth, z1[ind], color=newcolors[i], lightsource=ls, alpha=1.0)
-            bottom += disaggs_mde_r[:,:,i].ravel()
+            bottom += disaggs[:,:,i].ravel()
 
     # cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=newcmp), ticks=EPSS, shrink = 0.3, anchor=(0.0,0.75),label='epsilon')
     # cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=newcmp), ticks=list(EPSS-1) + [EPSS[-1]+1], shrink = 0.3, anchor=(0.0,0.75),label='epsilon')
+    deps = bins[AXIS_EPS][1] - bins[AXIS_EPS][0]
     cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=newcmp),
-        ticks=(list(EPSS-0.25) + [EPSS[-1]+0.25])[0:-1:2] + [EPSS[-1]+0.25],
+        ticks=(list(bins[AXIS_EPS] - deps/2) + [bins[AXIS_EPS][-1] + deps/2])[0:-1:2] + [bins[AXIS_EPS][-1] + deps/2],
         shrink = 0.3, anchor=(0.0,0.75),
         label='epsilon')
     ax.set_xlabel('Magnitude')
@@ -170,14 +161,11 @@ def plot_single_mag_dist_eps(fig, ax, disagg, ylim):
     # plt.show()
     
     
-
-
-
-def plot_mag_dist_eps(fig, disagg, ylim=None):
+def plot_mag_dist_eps(fig, disagg, bins, ylim=None, min_mag_bin_width=0):
 
     ax = fig.add_subplot(1,1,1,projection='3d')
     if not ylim: ylim = YLIM
-    plot_single_mag_dist_eps(fig, ax,disagg, ylim=ylim)
+    plot_single_mag_dist_eps(fig, ax, disagg, bins, ylim=ylim, min_mag_bin_width=min_mag_bin_width)
 
 
     

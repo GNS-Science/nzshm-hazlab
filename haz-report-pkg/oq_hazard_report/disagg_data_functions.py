@@ -4,6 +4,30 @@ from collections import namedtuple
 import csv
 import numpy as np
 
+AXIS_MAG = 0
+AXIS_DIST = 1
+AXIS_TRT = 2
+AXIS_EPS = 3
+
+INV_TIME = 1.0
+
+def prob_to_rate(prob):
+
+    return -np.log(1 - prob) / INV_TIME
+
+def rate_to_prob(rate):
+
+    return 1.0 - np.exp(-INV_TIME * rate)
+
+def calc_mean_disagg(disagg, bins):
+
+    disagg = prob_to_rate(disagg)
+    dist_mean = np.sum(np.sum(disagg, axis = (AXIS_MAG, AXIS_TRT, AXIS_EPS) ) / np.sum(disagg) * bins[AXIS_DIST])
+    mag_mean = np.sum(np.sum(disagg, axis = (AXIS_DIST, AXIS_TRT, AXIS_EPS) ) / np.sum(disagg) * bins[AXIS_MAG])
+    eps_mean = np.sum(np.sum(disagg, axis = (AXIS_MAG, AXIS_DIST, AXIS_TRT) ) / np.sum(disagg) * bins[AXIS_EPS])
+
+    return dict(dist = dist_mean, mag = mag_mean, eps = eps_mean)
+
 
 def meshgrid_disaggs(mags,dists,rates_int,rates_slab,rates_cru):
 
