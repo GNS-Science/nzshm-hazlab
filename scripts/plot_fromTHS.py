@@ -56,23 +56,26 @@ def get_hazard(hazard_id, locs, vs30, imts, aggs, force=False):
 # ╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝╚═╝░░╚══╝
 
 plot_title = 'SLT v8, GMCM v2'
-fig_dir = Path('/home/chrisdc/NSHM/oqresults/Full_Models/SLT_v8_gmm_v2/tmp2')
+fig_dir = Path('/home/chrisdc/NSHM/oqresults/CompareRateCalc')
 # /home/chrisdc/NSHM/oqresults/Full_Models/SLT_v6_gmm_v0b/Compare/GMCM_corr')
 hazard_models = [
     # dict(id='SLT_v8_gmm_v1',name='SLT v8, GMCM EE'),
     # dict(id='SLT_v8_gmm_v2',name='SLT v8, GMCM v2'),
     dict(id='SLT_v8_gmm_v2_FINAL',name='SLT v8, FINAL'),
+    # dict(id='SLT_v8_gmm_v2_FINAL_userate',name='SLT v8, FINAL by rate'),
 ]
 
 legend = True
-vs30 = 250
-# vs30 = 750
-# imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)', 'SA(10.0)']
-imts = ['PGA','SA(0.5)', 'SA(1.5)', 'SA(3.0)']
+vs30 = 400
+imts = ['PGA','SA(0.2)','SA(0.5)']
 aggs = ["std","cov","mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
 
 
-locations = [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values()] 
+locations = [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values() if loc['id'] == "WLG"] 
+# locations = ["-43.530~172.630"]
+locations = ["-40.960~175.660"]
+aggs = ["mean"]
+imts = ["PGA"]
 
 xscale = 'log'
 xlim = [1e-2,1e1]
@@ -96,6 +99,8 @@ if not fig_dir.exists():
 for hazard_model in hazard_models:
     hazard_model['data'] = get_hazard(hazard_model['id'], locations, vs30, imts, aggs)
 
+assert 0
+
 POES = [0.1,0.02]
 INVESTIGATION_TIME = 50
 bandws = {
@@ -111,7 +116,8 @@ for poe in POES:
         ref_lines.append(ref_line)
 
 for imt in imts:
-    for location in LOCATIONS_BY_ID.keys():
+    # for location in LOCATIONS_BY_ID.keys():
+    for location in locations:
         print(f'plotting {location} ... ')
         for bounds,bandw in bandws.items():
             pt = (LOCATIONS_BY_ID[location]["latitude"], LOCATIONS_BY_ID[location]["longitude"])

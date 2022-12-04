@@ -69,7 +69,7 @@ def plot_hazard_curve_fromdf(hazard_data, location, imt, ax, xlim, ylim,
     _ = ax.set_xlim(xlim)
     _ = ax.set_xlabel('Shaking Intensity, %s [g]'%imt)
     _ = ax.set_ylabel('Annual Probability of Exceedance')
-    _ = ax.grid(color='lightgray')
+    _ = ax.grid(color='lightgray')  
 
     return lh
 

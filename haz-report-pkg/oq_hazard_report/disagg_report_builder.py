@@ -7,6 +7,7 @@ from markdown.extensions.toc import TocExtension
 import matplotlib.pyplot as plt
 
 import oq_hazard_report.disagg_plotting_functions as dpf
+import oq_hazard_report.disagg_data_functions as ddf
 from oq_hazard_report.resources.css_template import disagg_css_file as css_file
 
 HEAD_HTML = '''
@@ -15,7 +16,7 @@ HEAD_HTML = '''
 <head>
 <title>##TITLE##</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="hazard_report.css">
+<link rel="stylesheet" href="disagg_report.css">
 <style>
     .markdown-body {
         box-sizing: border-box;
@@ -45,13 +46,15 @@ TAIL_HTML = '''
 
 class DisaggReportBuilder:
 
-    def __init__(self,name, disagg_data_filepath, output_path):
+    def __init__(self, name, disagg_data_filepath, bins_filepath, output_path):
 
         self._name = name
         self._data_filepath = Path(disagg_data_filepath)
+        self._bins_filepath = Path(bins_filepath)
         self._output_path = Path(output_path)
 
         assert self._data_filepath.exists()
+        assert self._bins_filepath.exists()
 
         if self._output_path.exists() and (not self._output_path.is_dir()):
             raise Exception(f'output path {self._output_path} is not a directory')
@@ -59,23 +62,57 @@ class DisaggReportBuilder:
         if not self._output_path.exists():
             self._output_path.mkdir()
 
-        
 
     def load_data(self):
         self._disagg = np.load(self._data_filepath)
+        self._bins = np.load(self._bins_filepath, allow_pickle=True)
 
     
     def run(self):
 
-        self._plot_dir = Path(self._output_path,'figures')
+        self._plot_dir = Path(self._output_path, 'figures')
         if not self._plot_dir.is_dir():
             self._plot_dir.mkdir()
 
+        self._data_dir = Path(self._output_path, 'data')
+        if not self._data_dir.is_dir():
+            self._data_dir.mkdir()
+
         self.load_data()
-        
+
+        tables = [] 
+        tables.append(self.generate_mean_table())
         plots = self.generate_plots()
 
-        self.generate_report(plots)
+        self.generate_report(tables, plots)
+        self.generate_csv()
+
+    def generate_csv(self):
+
+        header = f'{self._name}, {self._bins[-1]:.2e}g '
+        bins = {'magnitude':0, 'distance':1, 'epsilon':3}
+        for k,v in bins.items():
+            bin_edges = [1.5*self._bins[v][0] - 0.5*self._bins[v][1], ]
+            for b in self._bins[v]:
+                bin_edges.append( b - bin_edges[-1] + b )
+            header += f'{k} bin edges = {bin_edges} '
+
+        csv_filepath = Path(self._data_dir, 'disagg.csv')
+        ddf.disagg_to_csv(self._disagg, self._bins, header, csv_filepath)
+
+    
+    def generate_mean_table(self):
+
+        means = ddf.calc_mean_disagg(self._disagg, self._bins)
+        table = {'type':'flat'}
+        table['title'] = 'Mean Source'
+        table['rows'] = [ 
+                ['Distance:', f'{int(means["dist"])}', 'km'], 
+                ['Magnitude:', f'{means["mag"]:0.1f}'],
+                ['Epsilon:', f'{means["eps"]:0.1f}', '&sigma;'],
+        ]
+
+        return table 
 
 
     def generate_plots(self):
@@ -114,6 +151,8 @@ class DisaggReportBuilder:
         plots.append(dict(level=0, text=text))
         plots += self.make_mag_dist_trt_plot()
 
+        plots.append(dict(level='hrule'))
+
         plots.append( dict(
                     level=1,
                     text='Magnitude-Distance-Epsilon',
@@ -136,9 +175,9 @@ class DisaggReportBuilder:
         fig.set_size_inches(7,5)    
         fig.set_facecolor('white')
         plot_path = PurePath(self._plot_dir,'trt_bar.png')
-        plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
+        plot_rel_path = PurePath(plot_path.parent.name, plot_path.name)
 
-        dpf.plot_trt(fig, ax, self._disagg)
+        dpf.plot_trt(fig, ax, self._disagg, self._bins)
         plt.savefig(str(plot_path), bbox_inches="tight")
         plt.close(fig)
 
@@ -161,7 +200,7 @@ class DisaggReportBuilder:
         plot_path = PurePath(self._plot_dir,'mag_dist_2d.png')
         plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
 
-        dpf.plot_mag_dist_2d(fig, ax, self._disagg)
+        dpf.plot_mag_dist_2d(fig, ax, self._disagg, self._bins)
         plt.savefig(str(plot_path), bbox_inches="tight")
         plt.close(fig)
 
@@ -183,7 +222,7 @@ class DisaggReportBuilder:
         plot_path = PurePath(self._plot_dir,'mag_dist_trt_2d.png')
         plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
 
-        dpf.plot_mag_dist_trt_2d(fig, ax, self._disagg)
+        dpf.plot_mag_dist_trt_2d(fig, ax, self._disagg, self._bins)
         plt.savefig(str(plot_path), bbox_inches="tight")
         plt.close(fig)
 
@@ -208,7 +247,7 @@ class DisaggReportBuilder:
             fig.set_facecolor('white')
             plot_path = PurePath(self._plot_dir,f'mag_dist_eps_{ymax}.png')
             plot_rel_path = PurePath(plot_path.parent.name,plot_path.name)
-            dpf.plot_mag_dist_eps(fig, self._disagg,ylim = (0,ymax))
+            dpf.plot_mag_dist_eps(fig, self._disagg, self._bins, ylim = (0,ymax), min_mag_bin_width=0.3)
             plt.savefig(str(plot_path), bbox_inches="tight")
             plt.close(fig)
             fig_table[0].append(plot_rel_path)
@@ -228,20 +267,29 @@ class DisaggReportBuilder:
         return plots
 
 
-
-
-
-    def generate_report(self,plots):
+    def generate_report(self, tables, plots):
 
         print('generating report . . .')
-
-        md_string = f'# {self._name}\n'
-        md_string += '\n---\n'
+        md_string = f'# {self._name}, {self._bins[-1]:.2e} g\n'
+        # md_string += '\n---\n'
         # md_string += '<a name="top"></a>\n'
         md_string += '\n'
         # md_string += '[TOC]\n'
         md_string += '\n'
 
+        for table in tables:
+            md_string += '\n---\n'
+            md_string += '## ' + table['title'] + '\n'
+            if table['type'] == 'flat':
+                for row in table['rows']:
+                    md_string += '**' + row[0] + '** '
+                    md_string += ' '.join(row[1:]) + '  \n'
+            else:
+                md_string += '| ' + ' | '.join(table['header'])  + ' |\n'
+                md_string += '| ' + '|'.join([' ---- ']*len(table['header'])) + ' |\n'
+                for row in table['rows']:
+                    md_string += '| ' + ' | '.join(row) + ' |\n '
+        
         for plot in plots:
             if plot["level"] == 'hrule':
                 md_string += '\n---\n'
@@ -255,7 +303,7 @@ class DisaggReportBuilder:
                 md_string += f'<a href={plot["fig"]} target="_blank">![an image]({plot["fig"]})</a>\n'
             if plot.get('fig_table'):
                 md_string += self.build_fig_table(plot.get('fig_table'))
-            
+        
     
         # html = markdown.markdown(md_string, extensions=[TocExtension(toc_depth="2-4"),'tables'])
         html = markdown.markdown(md_string,extensions=['tables'])

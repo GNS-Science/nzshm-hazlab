@@ -1,4 +1,5 @@
 from zipfile import ZipFile
+import itertools
 import io
 from collections import namedtuple
 import csv
@@ -152,3 +153,18 @@ def get_disagg_MDT(csv_archive):
     rates_cru = np.array(rates_cru)
 
     return mags,dists,rates_int,rates_slab,rates_cru
+
+
+def disagg_to_csv(disagg, bins, header, csv_filepath):
+
+    disagg = disagg.flatten()
+    disagg_pc = prob_to_rate(disagg)
+    disagg_pc = disagg_pc / np.sum(disagg_pc) * 100.0
+    with open(csv_filepath, 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([header])
+        writer.writerow(['magnitude','distance (km)','TRT','epsilon (sigma)','annual probability of exceedance', '% contribution to hazard'])
+        for i, (mag, dist, trt, eps) in enumerate(itertools.product(*bins[:-1])):
+            row = (f'{mag:0.1f}', f'{dist:0.0f}', trt, f'{eps:0.3f}', f'{disagg[i]:0.3e}', f'{disagg_pc[i]:0.3e}')
+            writer.writerow(row)
+
