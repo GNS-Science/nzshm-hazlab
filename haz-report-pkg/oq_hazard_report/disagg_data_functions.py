@@ -10,6 +10,13 @@ AXIS_DIST = 1
 AXIS_TRT = 2
 AXIS_EPS = 3
 
+AXIS_NUMS = dict(
+    mag = AXIS_MAG,
+    dist = AXIS_DIST,
+    trt = AXIS_TRT,
+    eps = AXIS_EPS
+)
+
 INV_TIME = 1.0
 
 def prob_to_rate(prob):
@@ -19,6 +26,26 @@ def prob_to_rate(prob):
 def rate_to_prob(rate):
 
     return 1.0 - np.exp(-INV_TIME * rate)
+
+def calc_mode_disagg(disagg, bins, dimensions):
+
+    disagg = prob_to_rate(disagg)
+    
+    sum_dims = tuple(AXIS_NUMS[d] for d in AXIS_NUMS.keys() if d not in dimensions)
+    keep_dims = tuple(d for d in AXIS_NUMS.keys() if d in dimensions)
+
+    disagg = np.sum(disagg, axis=sum_dims)
+    disagg = disagg / np.sum(disagg)
+    
+    mode_ind = np.where(disagg == disagg.max())
+    mode = {}
+    for i, dim in enumerate(keep_dims):
+        mode[dim] = float(bins[AXIS_NUMS[dim]][mode_ind[i]])
+
+    contribution = disagg.max()
+
+    return mode, contribution
+
 
 def calc_mean_disagg(disagg, bins):
 

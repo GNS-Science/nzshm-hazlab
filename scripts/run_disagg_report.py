@@ -24,18 +24,19 @@ def add_to_list(model_id, report_folder, location_key, vs30, imt, poe):
         )
 
 
-def main(configs):
+def main(disagg_filepaths):
 
     print(S3_REPORT_BUCKET)
 
     disaggs = []
-    for config in configs:
+    for disagg_filepath in disagg_filepaths:
 
-        disagg_filepath = config
+        bin_filepath = Path(disagg_filepath.parent, 'bins' + disagg_filepath.name[5:]) 
         model_id = MODEL_ID
 
+
         # disagg_filepath = Path(disagg_filepath)
-        j0,j1,j2,j3,j4,j5, latlon, vs30, imt, poe = disagg_filepath.stem.split('_')
+        j0,j1,j2,j3,j4,j5, latlon, vs30, imt, poe, j6 = disagg_filepath.stem.split('_')
         lat,lon = latlon.split('~')
         location_key = [key for key,loc in LOCATIONS_BY_ID.items() if (loc['latitude'] == float(lat)) & (loc['longitude'] == float(lon))]
         if not location_key:
@@ -52,11 +53,11 @@ def main(configs):
         report_folder.mkdir(parents=True, exist_ok=True)
         
         
-        drb = DisaggReportBuilder(title,disagg_filepath,report_folder)
+        drb = DisaggReportBuilder(title, disagg_filepath, bin_filepath, report_folder)
         drb.run()
 
         upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
-        # disaggs.append(add_to_list(model_id, report_folder, location_key, vs30, imt, poe))
+        disaggs.append(add_to_list(model_id, report_folder, location_key, vs30, imt, poe))
 
     disagg_filepath = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/disaggs.json')
     if disagg_filepath.exists():
@@ -71,8 +72,9 @@ def main(configs):
 
 if __name__ == "__main__":
 
-    disagg_dir = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/round1_2')
-    disaggs = disagg_dir.glob('*.npy')
+    disagg_dir = Path('/home/chrisdc/mnt/glacier/NZSHM-WORKING/PROD/deaggs')
+    disaggs = disagg_dir.glob('deagg*npy')
+    # disaggs = disagg_dir.glob('deagg_SLT_v8_gmm_v2_FINAL_-43.530~172.630_750_SA(0.5)_2_eps-dist-mag-trt.npy')
 
     main(disaggs)
 

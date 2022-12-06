@@ -82,6 +82,8 @@ class DisaggReportBuilder:
 
         tables = [] 
         tables.append(self.generate_mean_table())
+        tables.append(self.generate_mode_table(['mag','dist']))
+        tables.append(self.generate_mode_table(['mag','dist','eps']))
         plots = self.generate_plots()
 
         self.generate_report(tables, plots)
@@ -99,6 +101,24 @@ class DisaggReportBuilder:
 
         csv_filepath = Path(self._data_dir, 'disagg.csv')
         ddf.disagg_to_csv(self._disagg, self._bins, header, csv_filepath)
+
+    
+    def generate_mode_table(self, dimensions):
+
+        dims = dict(
+            dist = 'Distance',
+            mag = 'Magnitude',
+            eps = 'Epsilon',
+            trt = 'Tectonic Region Type',
+        )
+        mode, contribution = ddf.calc_mode_disagg(self._disagg, self._bins, dimensions)
+        table = {'type':'flat'}
+        table['title'] = 'Mode (' + ' '.join(dimensions) + ')'
+        table['rows'] = []
+        for d in dimensions:
+            table['rows'].append([dims[d] + ':', f'{mode[d]:0.1f}'])
+        table['rows'].append(['Contribution:', f'{contribution*100:0.2f}%'])
+        return table 
 
     
     def generate_mean_table(self):
@@ -270,16 +290,15 @@ class DisaggReportBuilder:
     def generate_report(self, tables, plots):
 
         print('generating report . . .')
-        md_string = f'# {self._name}, {self._bins[-1]:.2e} g\n'
-        # md_string += '\n---\n'
-        # md_string += '<a name="top"></a>\n'
-        md_string += '\n'
-        # md_string += '[TOC]\n'
-        md_string += '\n'
+        md_string = f'# {self._name}\n'
+        gm = f'{self._bins[-1]:.2e}'.split('e')
+        gm[1] = gm[1][0] + gm[1][2:] if gm[1][1] == '0' else gm[1]
+        md_string += f'## Ground Motion: {gm[0]} x 10' + f'<sup>{gm[1]}</sup>g\n'
+
+        md_string += '---\n'
 
         for table in tables:
-            md_string += '\n---\n'
-            md_string += '## ' + table['title'] + '\n'
+            md_string += '\n## ' + table['title'] + '\n'
             if table['type'] == 'flat':
                 for row in table['rows']:
                     md_string += '**' + row[0] + '** '
@@ -289,7 +308,8 @@ class DisaggReportBuilder:
                 md_string += '| ' + '|'.join([' ---- ']*len(table['header'])) + ' |\n'
                 for row in table['rows']:
                     md_string += '| ' + ' | '.join(row) + ' |\n '
-        
+
+        md_string += '\n---\n' 
         for plot in plots:
             if plot["level"] == 'hrule':
                 md_string += '\n---\n'
