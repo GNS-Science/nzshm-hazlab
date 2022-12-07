@@ -71,7 +71,7 @@ def main(disagg_filepaths):
         drb = DisaggReportBuilder(title, disagg_filepath, bin_filepath, report_folder)
         drb.run()
 
-        # upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
+        upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
         disaggs.append(disagg)
 
     disaggs = old_disaggs + disaggs
