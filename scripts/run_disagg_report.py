@@ -28,12 +28,22 @@ def main(disagg_filepaths):
 
     print(S3_REPORT_BUCKET)
 
+    disagg_info_filepath = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/disaggs.json')
+
+    if disagg_info_filepath.exists():
+        with disagg_info_filepath.open() as ojf:
+            old_disaggs = json.load(ojf)
+    else:
+        old_disaggs = []
+    
     disaggs = []
-    for disagg_filepath in disagg_filepaths:
+    for i, disagg_filepath in enumerate(disagg_filepaths):
+
+        if i>10:
+            break
 
         bin_filepath = Path(disagg_filepath.parent, 'bins' + disagg_filepath.name[5:]) 
         model_id = MODEL_ID
-
 
         # disagg_filepath = Path(disagg_filepath)
         j0,j1,j2,j3,j4,j5, latlon, vs30, imt, poe, j6 = disagg_filepath.stem.split('_')
@@ -50,23 +60,24 @@ def main(disagg_filepaths):
         imt_tmp = imt.replace('(','').replace(')','').replace('.','')
 
         report_folder = Path(WORK_PATH, model_id, f'{location_key}-{vs30}-{imt_tmp}-{poe}'.lower())
+
+        disagg = add_to_list(model_id, report_folder, location_key, vs30, imt, poe)
+        if disagg in old_disaggs:
+            print(f'skipping {location_key}-{vs30}-{imt_tmp}-{poe}')
+            continue
+        
+        print(f'generating report for {location_key}-{vs30}-{imt_tmp}-{poe}')
         report_folder.mkdir(parents=True, exist_ok=True)
-        
-        
         drb = DisaggReportBuilder(title, disagg_filepath, bin_filepath, report_folder)
         drb.run()
 
-        upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
-        disaggs.append(add_to_list(model_id, report_folder, location_key, vs30, imt, poe))
+        # upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
+        disaggs.append(disagg)
 
-    disagg_filepath = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/disaggs.json')
-    if disagg_filepath.exists():
-        with disagg_filepath.open() as ojf:
-            old_disaggs = json.load(ojf)
-        disaggs = old_disaggs + disaggs
+    disaggs = old_disaggs + disaggs
 
-    with disagg_filepath.open(mode='w') as jf: #TODO: increment file or concat
-        json.dump(disaggs,jf,indent=2)
+    with disagg_info_filepath.open(mode='w') as jf: 
+        json.dump(disaggs, jf, indent=2)
 
 
 
