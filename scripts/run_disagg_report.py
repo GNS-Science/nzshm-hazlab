@@ -10,7 +10,7 @@ from runzi.util.aws.s3_folder_upload import upload_to_bucket
 ROOT_PATH = 'openquake/DATA'
 MODEL_ID = 'SLT_v8_gmm_v2_FINAL'
 S3_URL = 'nshm-static-reports.gns.cri.nz'
-
+DISAGG_INFO_FILEPATH = Path(os.environ['NZSHM22_DISAGG_REPORT_LIST'])
 
 def add_to_list(model_id, report_folder, location_key, vs30, imt, poe):
     return dict(
@@ -28,10 +28,10 @@ def main(disagg_filepaths):
 
     print(S3_REPORT_BUCKET)
 
-    disagg_info_filepath = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/disaggs.json')
+    # disagg_info_filepath = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/disaggs.json')
 
-    if disagg_info_filepath.exists():
-        with disagg_info_filepath.open() as ojf:
+    if DISAGG_INFO_FILEPATH.exists():
+        with DISAGG_INFO_FILEPATH.open() as ojf:
             old_disaggs = json.load(ojf)
     else:
         old_disaggs = []
@@ -39,9 +39,7 @@ def main(disagg_filepaths):
     disaggs = []
     for i, disagg_filepath in enumerate(disagg_filepaths):
 
-        if i>10:
-            break
-
+        print(f'generating report for disagg {i} of {len(disagg_filepaths)}')
         bin_filepath = Path(disagg_filepath.parent, 'bins' + disagg_filepath.name[5:]) 
         model_id = MODEL_ID
 
@@ -76,7 +74,7 @@ def main(disagg_filepaths):
 
     disaggs = old_disaggs + disaggs
 
-    with disagg_info_filepath.open(mode='w') as jf: 
+    with DISAGG_INFO_FILEPATH.open(mode='w') as jf: 
         json.dump(disaggs, jf, indent=2)
 
 
