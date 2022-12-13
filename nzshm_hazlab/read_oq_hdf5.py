@@ -1,4 +1,4 @@
-from oq_hazard_report.base_functions import *
+from nzshm_hazlab.base_functions import *
 from nzshm_common.location import location
 
 def retrieve_data(file_id,named_sites=True):

@@ -11,8 +11,8 @@ from runzi.automation.scaling.toshi_api import ToshiApi
 from runzi.automation.scaling.local_config import (API_KEY, API_URL, WORK_PATH)
 from runzi.automation.scaling.hazard_output_helper import HazardOutputHelper
 
-import oq_hazard_report.disagg_plotting_functions_old as dpf
-import oq_hazard_report.disagg_data_functions as ddf
+import nzshm_hazlab.disagg_plotting_functions as dpf
+import nzshm_hazlab.disagg_data_functions as ddf
 
 MASTER_KEYS = ['Active Shallow Crust', 'Subduction Interface', 'Subduction Intraslab']
 MASTER_NAMES = ['ASC','INT','SLAB']

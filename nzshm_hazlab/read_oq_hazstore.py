@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from oq_hazard_report.read_oq_hdf5 import convert_imtls_to_disp, find_site_names
+from nzshm_hazlab.read_oq_hdf5 import convert_imtls_to_disp, find_site_names
 from toshi_hazard_store import query
 from nzshm_common.location import location
 

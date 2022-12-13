@@ -7,7 +7,7 @@ from matplotlib import cm
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap, Normalize
 from matplotlib.colors import LightSource
 
-from oq_hazard_report.disagg_data_functions import rate_to_prob, prob_to_rate
+from nzshm_hazlab.disagg_data_functions import rate_to_prob, prob_to_rate
 
 # MAGS = np.arange(5.25,10,.5)
 #MAGS = np.arange(5.09745, 10.0, 0.1999)

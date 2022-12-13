@@ -1,4 +1,4 @@
-from oq_hazard_report.base_functions import *
+from nzshm_hazlab.base_functions import *
 
 def calculate_hazard_design_intensities(data,hazard_rps,intensity_type='acc'):
     '''

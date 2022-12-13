@@ -6,9 +6,9 @@ from markdown.extensions.toc import TocExtension
 
 import matplotlib.pyplot as plt
 
-import oq_hazard_report.disagg_plotting_functions as dpf
-import oq_hazard_report.disagg_data_functions as ddf
-from oq_hazard_report.resources.css_template import disagg_css_file as css_file
+import nzshm_hazlab.disagg_plotting_functions as dpf
+import nzshm_hazlab.disagg_data_functions as ddf
+from hazard_report.resources.css_template import disagg_css_file as css_file
 
 HEAD_HTML = '''
 <!DOCTYPE html>

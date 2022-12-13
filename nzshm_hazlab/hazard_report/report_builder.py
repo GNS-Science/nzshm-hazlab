@@ -12,12 +12,12 @@ import os
 
 from zipfile import ZipFile
 
-import oq_hazard_report.read_oq_hdf5
-import oq_hazard_report.plotting_functions
-import oq_hazard_report.prepare_design_intensities
-import oq_hazard_report.read_oq_hazstore
+import nzshm_hazlab.read_oq_hdf5
+import nzshm_hazlab.plotting_functions
+import nzshm_hazlab.prepare_design_intensities
+import nzshm_hazlab.read_oq_hazstore
 
-from oq_hazard_report.resources.css_template import css_file
+from hazard_report.resources.css_template import css_file
 
 HEAD_HTML = '''
 <!DOCTYPE html>
@@ -99,7 +99,7 @@ class ReportBuilder:
             self.load_data_from_hazstore()
 
     def load_data_from_hazstore(self):
-        self.data = oq_hazard_report.read_oq_hazstore.retrieve_data(self._hazard_id)
+        self.data = nzshm_hazlab.read_oq_hazstore.retrieve_data(self._hazard_id)
 
     def load_data_from_hdf5(self):
         
@@ -110,7 +110,7 @@ class ReportBuilder:
                     self.hdf_file = zip.extract(n,path=self._output_path)
         print('done extracting archive')
 
-        self.data = oq_hazard_report.read_oq_hdf5.retrieve_data(self.hdf_file)
+        self.data = nzshm_hazlab.read_oq_hdf5.retrieve_data(self.hdf_file)
         os.remove(self.hdf_file)
 
     def run(self):
@@ -189,7 +189,7 @@ class ReportBuilder:
                 fig, ax = plt.subplots(1,1)
                 fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
                 
-                oq_hazard_report.plotting_functions.plot_hazard_curve(ax=ax, site_list=[site,], imt=imt,results=self.data, **args_linear)
+                nzshm_hazlab.plotting_functions.plot_hazard_curve(ax=ax, site_list=[site,], imt=imt,results=self.data, **args_linear)
                 plt.savefig(str(plot_path), bbox_inches="tight")
                 plt.close(fig)
 
@@ -204,7 +204,7 @@ class ReportBuilder:
                 fig, ax = plt.subplots(1,1)
                 fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
                 
-                oq_hazard_report.plotting_functions.plot_hazard_curve(ax=ax, site_list=[site,], imt=imt,results=self.data,**args_log)
+                nzshm_hazlab.plotting_functions.plot_hazard_curve(ax=ax, site_list=[site,], imt=imt,results=self.data,**args_log)
                 plt.savefig(str(plot_path), bbox_inches="tight")
                 plt.close(fig)
 
@@ -261,7 +261,7 @@ class ReportBuilder:
                 fig, ax = plt.subplots(1,1)
                 fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
                 
-                oq_hazard_report.plotting_functions.plot_spectrum(ax=ax, rp=rp, site=site,results=self.data, **args)
+                nzshm_hazlab.plotting_functions.plot_spectrum(ax=ax, rp=rp, site=site,results=self.data, **args)
                 plt.savefig(str(plot_path), bbox_inches="tight")
                 figs[row].append(plot_rel_path)
                 titles[row].append(f'{poe*100:.0f}% in {INVESTIGATION_TIME:.0f} years (1/{rp:.0f})')
@@ -333,7 +333,7 @@ class ReportBuilder:
             rps = np.concatenate( (RPS, -INVESTIGATION_TIME/np.log(1 - np.array(POES))) )
 
             intensity_type = 'acc'
-            im_hazard, stats_im_hazard = oq_hazard_report.prepare_design_intensities.calculate_hazard_design_intensities(self.data,rps,intensity_type)
+            im_hazard, stats_im_hazard = nzshm_hazlab.prepare_design_intensities.calculate_hazard_design_intensities(self.data,rps,intensity_type)
             self.data['hazard_design'] = {intensity_type:dict()}
 
             self.data['hazard_design'][intensity_type]['im_hazard'] = im_hazard
@@ -357,7 +357,7 @@ class ReportBuilder:
             plots += self.make_spectra_plots(rps,args)
 
             intensity_type = 'disp'
-            im_hazard, stats_im_hazard = oq_hazard_report.prepare_design_intensities.calculate_hazard_design_intensities(self.data,rps,intensity_type)
+            im_hazard, stats_im_hazard = nzshm_hazlab.prepare_design_intensities.calculate_hazard_design_intensities(self.data,rps,intensity_type)
             self.data['hazard_design'] = {intensity_type:dict()}
 
             self.data['hazard_design'][intensity_type]['im_hazard'] = im_hazard
@@ -478,7 +478,7 @@ if __name__ == "__main__":
 
     datadir = '/home/chrisdc/NSHM/DEV/nzshm_hazlab/examples/openquake_hdf5_archive-T3BlbnF1YWtlSGF6YXJkVGFzazoxMDIwMjA='
 
-    report_builder = oq_hazard_report.report_builder.ReportBuilder(output_path="/tmp/hazard_reports")
+    report_builder = hazard_report.report_builder.ReportBuilder(output_path="/tmp/hazard_reports")
     report_builder.setName('TEST')
     report_builder.setHazardArchive('/home/chrisdc/NSHM/DEV/nzshm_hazlab/examples/openquake_hdf5_archive-T3BlbnF1YWtlSGF6YXJkVGFzazoxMDIwMjA=.zip')
 

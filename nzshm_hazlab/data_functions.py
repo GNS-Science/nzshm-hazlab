@@ -2,6 +2,16 @@ import numpy as np
 from toshi_hazard_store import model, query
 
 
+def rp_from_poe(poe, inv_time):
+
+    return -inv_time/np.log(1-poe)
+
+
+def poe_from_rp(rp, inv_time):
+
+    return 1 - np.exp(-inv_time/rp)
+
+
 def compute_hazard_at_poe(levels,values,poe,inv_time):
 
     rp = -inv_time/np.log(1-poe)

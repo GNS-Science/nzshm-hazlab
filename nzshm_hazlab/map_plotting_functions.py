@@ -4,7 +4,7 @@ import shapely
 from zipfile import ZipFile
 import numpy as np
 import pandas as pd
-from oq_hazard_report.base_functions import *
+from nzshm_hazlab.base_functions import *
 
 
 def plot_map(ax, imt, rp, inv_time, results, intensity_type='acc'):

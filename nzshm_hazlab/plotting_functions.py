@@ -1,5 +1,12 @@
-from oq_hazard_report.base_functions import *
-from oq_hazard_report.data_functions import calculate_agg, compute_hazard_at_poe
+# from nzshm_hazlab.base_functions import *
+from nzshm_hazlab.data_functions import ( 
+
+    calculate_agg,
+    compute_hazard_at_poe,
+    rp_from_poe,
+    poe_from_rp,
+    rp_from_poe
+)
 
 from uuid import RESERVED_FUTURE
 from matplotlib.collections import LineCollection
@@ -47,11 +54,11 @@ def plot_hazard_curve_fromdf(hazard_data, location, imt, ax, xlim, ylim,
         if ref_line['type'] == 'poe':
             poe = ref_line['poe']
             inv_time = ref_line['inv_time']
-            rp = -inv_time/np.log(1-poe)
+            rp = rp_from_poe(poe, inv_time)
         elif ref_line['type'] == 'rp':
             inv_time = ref_line['inv_time']
             rp = ref_line['rp']
-            poe = 1 - np.exp(-inv_time/rp)
+            poe = poe_from_rp(poe, inv_time)
 
         text = f'{poe*100:.0f}% in {inv_time:.0f} years (1/{rp:.0f})'
         

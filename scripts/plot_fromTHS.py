@@ -8,7 +8,7 @@ from nzshm_common.grids.region_grid import load_grid
 from toshi_hazard_store.query_v3 import get_hazard_curves
 
 
-from oq_hazard_report.plotting_functions import plot_hazard_curve_fromdf
+from nzshm_hazlab.plotting_functions import plot_hazard_curve_fromdf
 
 ARCHIVE_DIR = '/home/chrisdc/NSHM/oqdata/HAZ_CURVE_ARCHIVE'
 
@@ -28,7 +28,6 @@ def get_hazard(hazard_id, locs, vs30, imts, aggs, force=False):
     columns = ['lat', 'lon', 'imt', 'agg', 'level', 'hazard']
     index = range(len(locs) * len(imts) * len(aggs) * num_levels)
     hazard_curves = pd.DataFrame(columns=columns, index=index)
-
     ind = 0
     for i,res in enumerate(get_hazard_curves(locs, [vs30], [hazard_id], imts, aggs)):
         lat = f'{res.lat:0.3f}'
@@ -66,15 +65,15 @@ hazard_models = [
 ]
 
 legend = True
+force = False
 vs30 = 400
 imts = ['PGA','SA(0.2)','SA(0.5)']
 aggs = ["std","cov","mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
+omit = ['WRE']
 
-
-locations = [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values() if loc['id'] == "WLG"] 
-# locations = ["-43.530~172.630"]
-locations = ["-40.960~175.660"]
-aggs = ["mean"]
+locations =  [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values() if loc['id'] not in omit]
+locations =  [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values() if loc['id'] in ['WLG']]
+aggs = ["mean", '0.05', '0.1', '0.9', '0.95']
 imts = ["PGA"]
 
 xscale = 'log'
@@ -97,14 +96,12 @@ if not fig_dir.exists():
     fig_dir.mkdir()
 
 for hazard_model in hazard_models:
-    hazard_model['data'] = get_hazard(hazard_model['id'], locations, vs30, imts, aggs)
-
-assert 0
+    hazard_model['data'] = get_hazard(hazard_model['id'], locations, vs30, imts, aggs, force=force)
 
 POES = [0.1,0.02]
 INVESTIGATION_TIME = 50
 bandws = {
-            '0.5,10,90,99.5':{'lower2':'0.005','lower1':'0.1','upper1':'0.9','upper2':'0.995'},
+            '0.5,10,90,99.5':{'lower2':'0.05','lower1':'0.1','upper1':'0.9','upper2':'0.95'},
             # '10,20,80,90':{'lower2':'0.01','lower1':'0.1','upper1':'0.9','upper2':'0.99'},
         }
 
@@ -117,7 +114,7 @@ for poe in POES:
 
 for imt in imts:
     # for location in LOCATIONS_BY_ID.keys():
-    for location in locations:
+    for location in LOCATIONS_BY_ID.keys():
         print(f'plotting {location} ... ')
         for bounds,bandw in bandws.items():
             pt = (LOCATIONS_BY_ID[location]["latitude"], LOCATIONS_BY_ID[location]["longitude"])
@@ -149,5 +146,5 @@ for imt in imts:
             plt.show()
             # plt.pause(1)
             # time.sleep(5)
-            plt.close()
+            # plt.close()
 
