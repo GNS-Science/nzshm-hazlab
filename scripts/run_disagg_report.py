@@ -3,7 +3,7 @@ from pathlib import Path, PurePath
 import os
 
 from nzshm_common.location.location import LOCATIONS_BY_ID
-from oq_hazard_report.disagg_report_builder import DisaggReportBuilder
+from nzshm_hazlab.hazard_report.disagg_report_builder import DisaggReportBuilder
 from runzi.automation.scaling.local_config import (WORK_PATH, API_KEY, API_URL, S3_REPORT_BUCKET)
 from runzi.util.aws.s3_folder_upload import upload_to_bucket
 
