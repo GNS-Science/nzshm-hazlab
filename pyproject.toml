@@ -14,9 +14,11 @@ matplotlib = "^3.6.2"
 ipython = {version = "^8.7.0", optional = true}
 pyqt5 = {version = "^5.15.7", optional = true}
 markdown = "^3.4.1"
+runzi = {git = "https://github.com/GNS-Science/nzshm-runzi.git", rev = "feature/full-disaggs", optional = true}
 
 [tool.poetry.extras]
 ipython = ["ipython", "pyqt5"]
+runzi = ["runzi"]
 
 [build-system]
 requires = ["poetry-core"]

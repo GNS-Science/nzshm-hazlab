@@ -30,7 +30,7 @@ python-versions = "*"
 
 [[package]]
 name = "botocore"
-version = "1.29.28"
+version = "1.29.29"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -462,6 +462,21 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "runzi"
+version = "0.2.1"
+description = "My short description for my project."
+category = "main"
+optional = true
+python-versions = ">=3.6.0"
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/GNS-Science/nzshm-runzi.git"
+reference = "feature/full-disaggs"
+resolved_reference = "b86138116ccc17a8e67b6f2057fba802543f1d97"
+
+[[package]]
 name = "setuptools"
 version = "65.6.3"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
@@ -596,11 +611,12 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 
 [extras]
 ipython = ["ipython", "pyqt5"]
+runzi = ["runzi"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ac336de7212b40dab2f00db3e80caf1e1673d8cadad331c369ac124d6cb05100"
+content-hash = "4e338786c29d9119bc6755b281eca8a0bd6c64ca2e7ce0c95cc6d0c5ee84bd00"
 
 [metadata.files]
 appnope = [
@@ -616,8 +632,8 @@ backcall = [
     {file = "backcall-0.2.0.tar.gz", hash = "sha256:5cbdbf27be5e7cfadb448baf0aa95508f91f2bbc6c6437cd9cd06e2a4c215e1e"},
 ]
 botocore = [
-    {file = "botocore-1.29.28-py3-none-any.whl", hash = "sha256:982732e7ed65cb6ed11ea3ce0e32dff2bcd465836c32376154f0802aa0a112c7"},
-    {file = "botocore-1.29.28.tar.gz", hash = "sha256:f0b8bb976e368dea20a960b47169e31fc0828feb6f0b9f59f1e5be8d08919b10"},
+    {file = "botocore-1.29.29-py3-none-any.whl", hash = "sha256:dca2daf108aae6c847d8ec99b7e918b46ae81713bf70b2199ab94627faf935a1"},
+    {file = "botocore-1.29.29.tar.gz", hash = "sha256:97a6d059e688ff9caa7c0a4e30cc58fa27be8bf3347578ce7c62fb808380fb55"},
 ]
 colorama = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
@@ -1061,6 +1077,7 @@ pytz = [
     {file = "pytz-2022.6-py2.py3-none-any.whl", hash = "sha256:222439474e9c98fced559f1709d89e6c9cbf8d79c794ff3eb9f8800064291427"},
     {file = "pytz-2022.6.tar.gz", hash = "sha256:e89512406b793ca39f5971bc999cc538ce125c0e51c27941bef4568b460095e2"},
 ]
+runzi = []
 setuptools = [
     {file = "setuptools-65.6.3-py3-none-any.whl", hash = "sha256:57f6f22bde4e042978bcd50176fdb381d7c21a9efa4041202288d3737a0c6a54"},
     {file = "setuptools-65.6.3.tar.gz", hash = "sha256:a7620757bf984b58deaf32fc8a4577a9bbc0850cf92c20e1ce41c38c19e5fb75"},
