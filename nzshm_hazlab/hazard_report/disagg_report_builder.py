@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import nzshm_hazlab.disagg_plotting_functions as dpf
 import nzshm_hazlab.disagg_data_functions as ddf
-from hazard_report.resources.css_template import disagg_css_file as css_file
+from nzshm_hazlab.hazard_report.resources.css_template import disagg_css_file as css_file
 
 HEAD_HTML = '''
 <!DOCTYPE html>
