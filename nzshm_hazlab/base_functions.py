@@ -6,11 +6,11 @@ import os
 import json
 import glob
 import re
-import h5py
+# import h5py
 
 from pathlib import Path
-from scipy import stats
-from scipy.optimize import minimize
+# from scipy import stats
+# from scipy.optimize import minimize
 
 
 
@@ -52,27 +52,27 @@ def imt_from_period(period):
     return imt
 
 
-def find_fragility_median(im_value, beta, design_prob):
-    return minimize(median_based_on_p_collapse, im_value, args=(im_value, beta, design_prob), method='Nelder-Mead').x[0]
+# def find_fragility_median(im_value, beta, design_prob):
+#     return minimize(median_based_on_p_collapse, im_value, args=(im_value, beta, design_prob), method='Nelder-Mead').x[0]
 
 
-def median_based_on_p_collapse(x, im, beta, target_prob):
-    return np.abs(target_prob - stats.lognorm(beta, scale=x).cdf(im))[0]
+# def median_based_on_p_collapse(x, im, beta, target_prob):
+#     return np.abs(target_prob - stats.lognorm(beta, scale=x).cdf(im))[0]
 
 
-def set_plot_formatting():
-    # set up plot formatting
-    SMALL_SIZE = 15
-    MEDIUM_SIZE = 18
-    BIGGER_SIZE = 25
+# def set_plot_formatting():
+#     # set up plot formatting
+#     SMALL_SIZE = 15
+#     MEDIUM_SIZE = 18
+#     BIGGER_SIZE = 25
 
-    plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
-    plt.rc('axes', titlesize=MEDIUM_SIZE)  # fontsize of the axes title
-    plt.rc('axes', labelsize=MEDIUM_SIZE)  # fontsize of the x and y labels
-    plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
-    plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
-    plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
-    plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+#     plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
+#     plt.rc('axes', titlesize=MEDIUM_SIZE)  # fontsize of the axes title
+#     plt.rc('axes', labelsize=MEDIUM_SIZE)  # fontsize of the x and y labels
+#     plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+#     plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+#     plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
+#     plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 
-set_plot_formatting()
+# set_plot_formatting()

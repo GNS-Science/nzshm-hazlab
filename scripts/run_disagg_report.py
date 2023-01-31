@@ -1,3 +1,4 @@
+import argparse
 import json
 from pathlib import Path, PurePath
 import os
@@ -12,7 +13,7 @@ MODEL_ID = 'SLT_v8_gmm_v2_FINAL'
 S3_URL = 'nshm-static-reports.gns.cri.nz'
 DISAGG_INFO_FILEPATH = Path(os.environ['NZSHM22_DISAGG_REPORT_LIST'])
 
-def add_to_list(model_id, report_folder, location_key, vs30, imt, poe):
+def list_entry(model_id, report_folder, location_key, vs30, imt, poe):
     return dict(
         hazard_model = model_id,
         location_key = location_key,
@@ -24,9 +25,11 @@ def add_to_list(model_id, report_folder, location_key, vs30, imt, poe):
         )
 
 
-def main(disagg_filepaths):
+def main(disagg_filepaths, dry_run=False):
 
     print(S3_REPORT_BUCKET)
+    disagg_filepaths = list(disagg_filepaths)
+    ndisaggs = len(disagg_filepaths)
 
     # disagg_info_filepath = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/disaggs.json')
 
@@ -39,7 +42,7 @@ def main(disagg_filepaths):
     disaggs = []
     for i, disagg_filepath in enumerate(disagg_filepaths):
 
-        print(f'generating report for disagg {i} of {len(disagg_filepaths)}')
+        print(f'generating report for disagg {i} of {ndisaggs}')
         bin_filepath = Path(disagg_filepath.parent, 'bins' + disagg_filepath.name[5:]) 
         model_id = MODEL_ID
 
@@ -48,7 +51,7 @@ def main(disagg_filepaths):
         lat,lon = latlon.split('~')
         location_key = [key for key,loc in LOCATIONS_BY_ID.items() if (loc['latitude'] == float(lat)) & (loc['longitude'] == float(lon))]
         if not location_key:
-            site_name = location_key.replace('~',',')
+            site_name = location_key.replace('~',',') #TODO: this won't work
             location_key = latlon.replace('~','')
         else:
             location_key = location_key[0]
@@ -59,32 +62,39 @@ def main(disagg_filepaths):
 
         report_folder = Path(WORK_PATH, model_id, f'{location_key}-{vs30}-{imt_tmp}-{poe}'.lower())
 
-        disagg = add_to_list(model_id, report_folder, location_key, vs30, imt, poe)
+        disagg = list_entry(model_id, report_folder, location_key, vs30, imt, poe)
         if disagg in old_disaggs:
             print(f'skipping {location_key}-{vs30}-{imt_tmp}-{poe}')
             continue
         
         print(f'generating report for {location_key}-{vs30}-{imt_tmp}-{poe}')
-        report_folder.mkdir(parents=True, exist_ok=True)
-        drb = DisaggReportBuilder(title, disagg_filepath, bin_filepath, report_folder)
-        drb.run()
 
-        upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
-        disaggs.append(disagg)
+        if not dry_run:
+            report_folder.mkdir(parents=True, exist_ok=True)
+            drb = DisaggReportBuilder(title, disagg_filepath, bin_filepath, report_folder)
+            drb.run()
 
-    disaggs = old_disaggs + disaggs
+            upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
+            disaggs.append(disagg)
 
-    with DISAGG_INFO_FILEPATH.open(mode='w') as jf: 
-        json.dump(disaggs, jf, indent=2)
+    if not dry_run:
+        disaggs = old_disaggs + disaggs
+
+        with DISAGG_INFO_FILEPATH.open(mode='w') as jf: 
+            json.dump(disaggs, jf, indent=2)
 
 
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description="run disagg report generation and upload to S3")
+    parser.add_argument('-d', '--dry-run', action='store_true') 
+    args = parser.parse_args()
+
     disagg_dir = Path('/home/chrisdc/mnt/glacier/NZSHM-WORKING/PROD/deaggs')
     disaggs = disagg_dir.glob('deagg*npy')
     # disaggs = disagg_dir.glob('deagg_SLT_v8_gmm_v2_FINAL_-43.530~172.630_750_SA(0.5)_2_eps-dist-mag-trt.npy')
 
-    main(disaggs)
+    main(disaggs, args.dry_run)
 
     

@@ -40,7 +40,7 @@ def calc_mode_disagg(disagg, bins, dimensions):
     mode_ind = np.where(disagg == disagg.max())
     mode = {}
     for i, dim in enumerate(keep_dims):
-        mode[dim] = float(bins[AXIS_NUMS[dim]][mode_ind[i]])
+        mode[dim] = float(bins[AXIS_NUMS[dim]][mode_ind[i][0]])
 
     contribution = disagg.max()
 

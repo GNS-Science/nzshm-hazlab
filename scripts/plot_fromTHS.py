@@ -11,8 +11,12 @@ from toshi_hazard_store.query_v3 import get_hazard_curves
 from nzshm_hazlab.plotting_functions import plot_hazard_curve_fromdf
 
 ARCHIVE_DIR = '/home/chrisdc/NSHM/oqdata/HAZ_CURVE_ARCHIVE'
+AGGS = ["mean", "cov", "std", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
+IMTS = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)','SA(10.0)']
+
 
 def get_hazard(hazard_id, locs, vs30, imts, aggs, force=False):
+
 
     curves_filename = f'{hazard_id}-{vs30}.json'
     curves_filepath = Path(ARCHIVE_DIR,curves_filename)
@@ -41,7 +45,7 @@ def get_hazard(hazard_id, locs, vs30, imts, aggs, force=False):
             hazard_curves.loc[ind,'hazard'] = value.val
             ind += 1
 
-    hazard_curves.to_json(curves_filepath)
+    # hazard_curves.to_json(curves_filepath)
     return hazard_curves
 
 
@@ -60,19 +64,36 @@ fig_dir = Path('/home/chrisdc/NSHM/oqresults/CompareRateCalc')
 hazard_models = [
     # dict(id='SLT_v8_gmm_v1',name='SLT v8, GMCM EE'),
     # dict(id='SLT_v8_gmm_v2',name='SLT v8, GMCM v2'),
-    dict(id='SLT_v8_gmm_v2_FINAL',name='SLT v8, FINAL'),
-    # dict(id='SLT_v8_gmm_v2_FINAL_userate',name='SLT v8, FINAL by rate'),
+    # dict(id='SLT_v8_gmm_v2_FINAL',name='SLT v8, FINAL'),
+    # dict(id='NSHM_v1.0.1',name='NSHM v1.0.1'),
+    dict(id='NSHM_v1.0.1_CRUsens_baseline', name='15km'),
+    dict(id='NSHM_v1.0.1_sens_jump10km', name='10km'),
+    dict(id='NSHM_v1.0.1_sens_jump5km', name='5km'),
 ]
 
 legend = True
-force = False
+force = True
 vs30 = 400
-imts = ['PGA','SA(0.2)','SA(0.5)']
+imts = ['PGA']
 aggs = ["std","cov","mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
 omit = ['WRE']
+# keep = ['WLG','AKL']
+keep = ['GIS', 'WHO', 'TEU']
 
 locations =  [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values() if loc['id'] not in omit]
-locations =  [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values() if loc['id'] in ['WLG']]
+locations =  [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values() if loc['id'] in keep]
+locations = [(-43.453043, 171.206647),] + keep
+location_codes = []
+for loc in locations:
+    if type(loc) is str:
+        pt = (LOCATIONS_BY_ID[loc]["latitude"], LOCATIONS_BY_ID[loc]["longitude"])
+        grid_res = 0.001
+    else:
+        pt = loc
+        grid_res = 0.1
+    location_codes.append(CodedLocation(*pt,grid_res).downsample(0.001).code)
+# location_codes = location_codes[1:]
+
 aggs = ["mean", '0.05', '0.1', '0.9', '0.95']
 imts = ["PGA"]
 
@@ -89,14 +110,13 @@ ylim = [1e-6,1]
 
 PLOT_WIDTH = 12
 PLOT_HEIGHT = 8.625
-grid_res = 0.001
 colors = ['#1b9e77', '#d95f02', '#7570b3']
 
 if not fig_dir.exists():
     fig_dir.mkdir()
 
 for hazard_model in hazard_models:
-    hazard_model['data'] = get_hazard(hazard_model['id'], locations, vs30, imts, aggs, force=force)
+    hazard_model['data'] = get_hazard(hazard_model['id'], location_codes, vs30, imts, aggs, force=force)
 
 POES = [0.1,0.02]
 INVESTIGATION_TIME = 50
@@ -113,14 +133,19 @@ for poe in POES:
         ref_lines.append(ref_line)
 
 for imt in imts:
-    # for location in LOCATIONS_BY_ID.keys():
-    for location in LOCATIONS_BY_ID.keys():
+    for location in locations:
         print(f'plotting {location} ... ')
-        for bounds,bandw in bandws.items():
+        if type(location) is str:
             pt = (LOCATIONS_BY_ID[location]["latitude"], LOCATIONS_BY_ID[location]["longitude"])
-            loc = CodedLocation(*pt,grid_res).downsample(grid_res).code
             name = LOCATIONS_BY_ID[location]['name']
+            grid_res = 0.001
+        else:
+            pt = location
+            name = str(pt)
+            grid_res = 0.1
+        loc = CodedLocation(*pt,grid_res).downsample(0.001).code
 
+        for bounds,bandw in bandws.items():
             fig, ax = plt.subplots(1,1)
             fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
             fig.set_facecolor('white')

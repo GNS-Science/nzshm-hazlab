@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from base_functions import period_from_imt, imt_from_period
+from nzshm_hazlab.base_functions import period_from_imt, imt_from_period
 from nzshm_hazlab.data_functions import ( 
 
     calculate_agg,
