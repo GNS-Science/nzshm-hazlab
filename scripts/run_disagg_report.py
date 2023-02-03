@@ -25,7 +25,7 @@ def list_entry(model_id, report_folder, location_key, vs30, imt, poe):
         )
 
 
-def main(disagg_filepaths, dry_run=False):
+def main(disagg_filepaths, dry_run=False, local=False):
 
     print(S3_REPORT_BUCKET)
     disagg_filepaths = list(disagg_filepaths)
@@ -63,7 +63,7 @@ def main(disagg_filepaths, dry_run=False):
         report_folder = Path(WORK_PATH, model_id, f'{location_key}-{vs30}-{imt_tmp}-{poe}'.lower())
 
         disagg = list_entry(model_id, report_folder, location_key, vs30, imt, poe)
-        if disagg in old_disaggs:
+        if not local and disagg in old_disaggs:
             print(f'skipping {location_key}-{vs30}-{imt_tmp}-{poe}')
             continue
         
@@ -74,10 +74,13 @@ def main(disagg_filepaths, dry_run=False):
             drb = DisaggReportBuilder(title, disagg_filepath, bin_filepath, report_folder)
             drb.run()
 
-            upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
-            disaggs.append(disagg)
+            if not local:
+                breakpoint()
+                upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
+                disaggs.append(disagg)
 
-    if not dry_run:
+    if not dry_run and not local:
+        breakpoint() 
         disaggs = old_disaggs + disaggs
 
         with DISAGG_INFO_FILEPATH.open(mode='w') as jf: 
@@ -89,12 +92,14 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="run disagg report generation and upload to S3")
     parser.add_argument('-d', '--dry-run', action='store_true') 
+    parser.add_argument('-l', '--local', action='store_true', help="don't upload to S3, keep reports on local machine" )
     args = parser.parse_args()
 
-    disagg_dir = Path('/home/chrisdc/mnt/glacier/NZSHM-WORKING/PROD/deaggs')
+    # disagg_dir = Path('/home/chrisdc/mnt/glacier/NZSHM-WORKING/PROD/deaggs')
+    disagg_dir = Path('/home/chrisdc/mnt/glacier/NZSHM-WORKING/PROD/deaggs-v1.0.2')
     disaggs = disagg_dir.glob('deagg*npy')
     # disaggs = disagg_dir.glob('deagg_SLT_v8_gmm_v2_FINAL_-43.530~172.630_750_SA(0.5)_2_eps-dist-mag-trt.npy')
 
-    main(disaggs, args.dry_run)
+    main(disaggs, args.dry_run, args.local)
 
     

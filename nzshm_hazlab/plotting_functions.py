@@ -167,7 +167,7 @@ def plot_hazard_curve_wunc(hazard_data, location, imt, ax, xlim, ylim, bandw=Fal
 
 
 def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax, 
-                            central='mean',bandw=False):
+                            central='mean',bandw=False, color='b'):
     #TODO: this is slow!
 
     lat, lon = location.split('~')
@@ -180,8 +180,8 @@ def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax,
     periods.sort()
     imts = [imt_from_period(period) for period in periods]
 
-    lvls = list(set(hazard_data['level']))
-    lvls.sort()
+    # lvls = list(set(hazard_data['level']))
+    # lvls.sort()
 
 
     if bandw:
@@ -197,12 +197,12 @@ def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax,
             for imt in imts:
                 # vals = calculate_agg(hazard_data,location,imt,quant)
                 vals = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'hazard']
-                lvsl = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'level']
+                lvls = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'level']
                 haz.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
             hazard[k] = haz
-        ax.fill_between(periods,hazard['upper1'],hazard['lower1'],alpha = 0.5, color='b')
-        ax.plot(periods, hazard['upper2'],color='b',lw=1)
-        ax.plot(periods, hazard['lower2'],color='b',lw=1)
+        ax.fill_between(periods,hazard['upper1'],hazard['lower1'],alpha = 0.5, color=color)
+        ax.plot(periods, hazard['upper2'],color=color,lw=1)
+        ax.plot(periods, hazard['lower2'],color=color,lw=1)
     else:
         da = 0.01
         aggs = np.arange(0,1.0+da,da)
@@ -224,7 +224,8 @@ def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax,
         levels = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'level']
         hazard.append(compute_hazard_at_poe(levels,values,poe,inv_time))
 
-    ax.plot(periods, hazard, 'b', alpha=0.8,lw=2)
+    lh = ax.plot(periods, hazard, color=color, alpha=0.8,lw=2)
+    lh = lh[0]
 
     xlim = [0, max(periods)]
     ylim = ax.get_ylim()
@@ -234,6 +235,9 @@ def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax,
     _ = ax.set_xlabel('Period [s]')
     _ = ax.set_ylabel('Shaking Intensity [g]')
     _ = ax.grid(color='lightgray')
+
+
+    return lh
 
 
 def plot_spectrum_wunc(hazard_data, location, poe, inv_time, ax, bandw=False):

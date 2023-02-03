@@ -66,9 +66,11 @@ hazard_models = [
     # dict(id='SLT_v8_gmm_v2',name='SLT v8, GMCM v2'),
     # dict(id='SLT_v8_gmm_v2_FINAL',name='SLT v8, FINAL'),
     # dict(id='NSHM_v1.0.1',name='NSHM v1.0.1'),
-    dict(id='NSHM_v1.0.1_CRUsens_baseline', name='15km'),
-    dict(id='NSHM_v1.0.1_sens_jump10km', name='10km'),
-    dict(id='NSHM_v1.0.1_sens_jump5km', name='5km'),
+    # dict(id='NSHM_v1.0.1_CRUsens_baseline', name='15km'),
+    # dict(id='NSHM_v1.0.1_sens_jump10km', name='10km'),
+    # dict(id='NSHM_v1.0.1_sens_jump5km', name='5km'),
+    dict(id='NSHM_v1.0.2', name='v1.0.2'),
+    dict(id='TEST', name='TEST'),
 ]
 
 legend = True
@@ -77,12 +79,10 @@ vs30 = 400
 imts = ['PGA']
 aggs = ["std","cov","mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
 omit = ['WRE']
-# keep = ['WLG','AKL']
-keep = ['GIS', 'WHO', 'TEU']
+keep = ['WLG','AKL']
+# keep = ['GIS', 'WHO', 'TEU']
 
-locations =  [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values() if loc['id'] not in omit]
-locations =  [f"{loc['latitude']:0.3f}~{loc['longitude']:0.3f}" for loc in LOCATIONS_BY_ID.values() if loc['id'] in keep]
-locations = [(-43.453043, 171.206647),] + keep
+locations = keep
 location_codes = []
 for loc in locations:
     if type(loc) is str:
@@ -92,7 +92,6 @@ for loc in locations:
         pt = loc
         grid_res = 0.1
     location_codes.append(CodedLocation(*pt,grid_res).downsample(0.001).code)
-# location_codes = location_codes[1:]
 
 aggs = ["mean", '0.05', '0.1', '0.9', '0.95']
 imts = ["PGA"]

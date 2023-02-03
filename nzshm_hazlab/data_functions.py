@@ -14,6 +14,8 @@ def poe_from_rp(rp, inv_time):
 
 def compute_hazard_at_poe(levels,values,poe,inv_time):
 
+    values = values.to_numpy(dtype='float')
+    levels = levels.to_numpy(dtype='float')
     rp = -inv_time/np.log(1-poe)
     try:
         haz = np.exp( np.interp( np.log(1/rp), np.flip(np.log(values)), np.flip(np.log(levels)) ) )
