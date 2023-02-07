@@ -112,7 +112,8 @@ def save_hazard_curves(hazard_id: str, vs30: int, hazard_curves: DataFrame, appe
     if archive_filepath(hazard_id, vs30).exists() and append:
         hazard_curves_orig = load_hazard_curves(hazard_id, vs30)
         hazard_curves = concat_hazard_curves(hazard_curves_orig, hazard_curves)
-   
+
+    print('saving hazard curves to archive')
     hazard_curves.to_json(archive_filepath(hazard_id, vs30))
     return hazard_curves
 
@@ -150,6 +151,7 @@ def get_hazard(
     if no_archive:
         return download_hazard(hazard_id, vs30, locs, imts, aggs)
     else:
+        print('loading hazard curves from archive')
         hazard_curves_arc = load_hazard_curves(hazard_id, vs30)
         locations_arch = [
             CodedLocation(float(lat), float(lon), RESOLUTION)
