@@ -14,12 +14,15 @@ matplotlib = "^3.6.2"
 ipython = {version = "^8.7.0", optional = true}
 pyqt5 = {version = "^5.15.7", optional = true}
 markdown = "^3.4.1"
-nzshm-runzi = {git = "https://github.com/GNS-Science/nzshm-runzi.git", rev = "feature/full-disaggs", optional = true}
 geopandas = "^0.12.2"
+nzshm-runzi = {git = "https://github.com/GNS-Science/nzshm-runzi.git", optional = true}
 
 [tool.poetry.extras]
 ipython = ["ipython", "pyqt5"]
 runzi = ["nzshm-runzi"]
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^0.991"
 
 [build-system]
 requires = ["poetry-core"]
