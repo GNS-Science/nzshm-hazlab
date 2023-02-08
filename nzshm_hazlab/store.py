@@ -12,7 +12,6 @@ from toshi_hazard_store.query_v3 import get_hazard_curves
 from nzshm_common.location.location import LOCATIONS_BY_ID
 from nzshm_common.grids import RegionGrid
 from nzshm_common.location import CodedLocation
-from nzshm_hazlab.plotting_functions import plot_hazard_curve_fromdf
 
 ARCHIVE_DIR = Path(os.environ['HAZARD_CURVE_ARCHIVE'])
 assert ARCHIVE_DIR.exists()
