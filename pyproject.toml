@@ -16,6 +16,7 @@ pyqt5 = {version = "^5.15.7", optional = true}
 markdown = "^3.4.1"
 geopandas = "^0.12.2"
 nzshm-runzi = {git = "https://github.com/GNS-Science/nzshm-runzi.git", optional = true}
+pygmt = "^0.8.0"
 
 [tool.poetry.extras]
 ipython = ["ipython", "pyqt5"]

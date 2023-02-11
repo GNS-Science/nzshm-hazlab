@@ -15,12 +15,13 @@ from nzshm_common.location import CodedLocation
 
 ARCHIVE_DIR = Path(os.environ['HAZARD_CURVE_ARCHIVE'])
 assert ARCHIVE_DIR.exists()
-DTYPE = {'lat':'str', 'lon':'str', 'imt':'str', 'agg':'str', 'level':'float64', 'hazard':'float64'}
+DTYPE = {'lat':'str', 'lon':'str', 'imt':'str', 'agg':'str', 'level':'float64', 'apoe':'float64'}
 SITE_LIST = 'NZ_0_1_NB_1_1'
-COLUMNS = ['lat', 'lon', 'imt', 'agg', 'level', 'hazard']
+COLUMNS = ['lat', 'lon', 'imt', 'agg', 'level', 'apoe']
 RESOLUTION = 0.001
 
 RecordIdentifier = namedtuple('RecordIdentifier', 'location imt agg')
+
 
 def all_locations() -> List[CodedLocation]:
     """all locations in NZ35 and 0.1 deg grid"""
@@ -95,7 +96,7 @@ def download_hazard(
             hazard_curves.loc[ind,'imt'] = res.imt
             hazard_curves.loc[ind,'agg'] = res.agg
             hazard_curves.loc[ind,'level'] = value.lvl
-            hazard_curves.loc[ind,'hazard'] = value.val
+            hazard_curves.loc[ind,'apoe'] = value.val
             ind += 1
 
     return hazard_curves
@@ -169,6 +170,13 @@ def get_hazard(
             hazard_curves = download_hazard(hazard_id, vs30, locs_request, imts_request, aggs_request)
             return save_hazard_curves(hazard_id, vs30, hazard_curves)
         return hazard_curves_arc
+
+
+def fix_archive(hazard_id, vs30):
+    """convert column name from 'hazard' to 'apoe'"""
+
+    hazard = load_hazard_curves(hazard_id, vs30)
+    save_hazard_curves(hazard_id, vs30, hazard.rename(columns={'hazard':'apoe'}), append=False)
 
 
 if __name__ == "__main__":

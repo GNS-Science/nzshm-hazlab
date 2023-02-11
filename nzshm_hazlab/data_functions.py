@@ -1,5 +1,9 @@
 import numpy as np
 from toshi_hazard_store import model, query
+from pandas import DataFrame
+from typing import List
+from nzshm_common.location import CodedLocation
+import pandas as pd
 
 
 def rp_from_poe(poe, inv_time):
@@ -14,15 +18,32 @@ def poe_from_rp(rp, inv_time):
 
 def compute_hazard_at_poe(levels,values,poe,inv_time):
 
-    values = values.to_numpy(dtype='float')
-    levels = levels.to_numpy(dtype='float')
+    if type(levels) is not np.ndarray:
+        values = values.to_numpy(dtype='float')
+        levels = levels.to_numpy(dtype='float')
     rp = -inv_time/np.log(1-poe)
     try:
         haz = np.exp( np.interp( np.log(1/rp), np.flip(np.log(values)), np.flip(np.log(levels)) ) )
     except:
         breakpoint()
     return haz
-        
+
+
+def get_poe_df(hazard: DataFrame, locations: List[CodedLocation], imt, agg, poe, inv_time):
+
+    hazard = hazard.loc[(hazard['agg'] == agg) & (hazard['imt'] == imt)]
+    haz_poe = pd.DataFrame(columns = ['lat', 'lon', 'level'])
+    for i, location in enumerate(locations):
+        lat, lon = location.code.split('~')
+        h = hazard.loc[(hazard['lat'] == lat) & (hazard['lon'] == lon)]
+        level = compute_hazard_at_poe(h['level'], h['apoe'], poe, inv_time)
+        haz_poe.loc[i] = {'lat':float(lat), 'lon': float(lon), 'level': level}
+
+    # haz_poe = haz_poe.pivot(index="lat", columns="lon")
+    # haz_poe = haz_poe.droplevel(0, axis=1)
+
+    return haz_poe
+
     
 def weighted_quantile(values, quantiles, sample_weight=None, 
                       values_sorted=False, old_style=False):

@@ -1,6 +1,6 @@
 from nzshm_common.location.location import LOCATIONS_BY_ID
 from nzshm_common.location import CodedLocation
-from nzshm_hazlab.store import get_hazard
+from nzshm_hazlab.store.curves import get_hazard
 from nzshm_hazlab.plotting_functions import plot_hazard_curve
 import matplotlib.pyplot as plt
 from typing import Any

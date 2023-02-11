@@ -41,7 +41,7 @@ def plot_hazard_curve(
     hd_filt = hazard_data.loc[ (hazard_data['imt'] == imt) & (hazard_data['lat'] == lat) & (hazard_data['lon'] == lon)]
 
     levels = hd_filt.loc[ hazard_data['agg'] == central]['level'].to_numpy(dtype='float64')
-    values = hd_filt.loc[ hazard_data['agg'] == central]['hazard'].to_numpy(dtype='float64')
+    values = hd_filt.loc[ hazard_data['agg'] == central]['apoe'].to_numpy(dtype='float64')
 
     clr = color if color else 'k'
 
@@ -53,7 +53,7 @@ def plot_hazard_curve(
         
         bandw_data = {}
         for k,v in bandw.items():
-            values = hd_filt.loc[ hazard_data['agg'] == v]['hazard'].to_numpy(dtype='float64')
+            values = hd_filt.loc[ hazard_data['agg'] == v]['apoe'].to_numpy(dtype='float64')
             bandw_data[k] = values
         
         ax.fill_between(levels, bandw_data['upper1'], bandw_data['lower1'],alpha = 0.5, color=clr)
@@ -66,7 +66,7 @@ def plot_hazard_curve(
     if quants:
         for quant in quants:
             levels = hd_filt.loc[ hazard_data['agg'] == quant]['level'].to_numpy()
-            values = hd_filt.loc[ hazard_data['agg'] == quant]['hazard'].to_numpy()
+            values = hd_filt.loc[ hazard_data['agg'] == quant]['apoe'].to_numpy()
             ax.plot(levels,values,'b',alpha=.8,lw=1,label=quant)
 
 
@@ -217,7 +217,7 @@ def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax,
             haz = []
             for imt in imts:
                 # vals = calculate_agg(hazard_data,location,imt,quant)
-                vals = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'hazard']
+                vals = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'apoe']
                 lvls = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'level']
                 haz.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
             hazard[k] = haz
@@ -241,7 +241,7 @@ def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax,
 
     hazard = []
     for imt in imts:
-        values = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'hazard']
+        values = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'apoe']
         levels = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'level']
         hazard.append(compute_hazard_at_poe(levels,values,poe,inv_time))
 
