@@ -1,5 +1,6 @@
 from typing import List
 from math import log10
+from pathlib import Path
 
 import pygmt
 import xarray as xr
@@ -9,6 +10,12 @@ from xarray.core.dataarray import DataArray
 from shapely.geometry import Polygon
 
 from nzshm_hazlab.store.levels import get_hazard_at_poe
+
+CPT_FILEPATH = Path('/tmp/tmp.cpt')
+
+def clear_cpt():
+    if CPT_FILEPATH.exists():
+        CPT_FILEPATH.unlink()
 
 
 def get_poe_grid(hazard_id, imt, agg, poe, vs30):
@@ -42,24 +49,24 @@ def load_polygons():
 
 def plot_map(
         grid: DataArray,
-        colormap,
         dpi,
-        limits: List[float],
         font,
         font_annot,
         plot_width,
         legend_text,
+        region = None,
         plot_faults=False
 ):
 
     pygmt.config(FONT_LABEL=font, FONT_ANNOT_PRIMARY=font_annot)
 
     projection = f'M{plot_width}c'
-    region = "165/180/-48/-34"
+    if not region:
+        region = "165/180/-48/-34"
 
     fig = pygmt.Figure()
             
-    fig.grdimage(grid=grid, region=region, projection=projection, cmap = True, dpi = dpi, frame = "a")
+    fig.grdimage(grid=grid, region=region, projection=projection, cmap = '/tmp/tmp.cpt', dpi = dpi, frame = "a")
     # fig.coast(shorelines = True, water="white", region=region, projection=projection, frame = "a")
     fig.coast(shorelines = True, water="white")
     # fig.basemap(frame=["a", f"+t{vs30}m/s {imt} {poe*100:.0f}% in 50 yrs"])
@@ -86,40 +93,46 @@ def plot_hazard_map(
         grid: DataArray,
         colormap,
         dpi,
-        limits: List[float],
+        climits: List[float],
         font,
         font_annot,
         plot_width,
         legend_text,
+        region=None,
         plot_faults=False
 ):
 
-    pygmt.makecpt(cmap = colormap, log=True, series=[log10(limits[0]), log10(limits[1]), 0.1])
-    return plot_map(grid, colormap, dpi, limits, font, font_annot, plot_width, legend_text, plot_faults)
+    clear_cpt()
+    pygmt.makecpt(cmap = colormap, log=True, series=[log10(climits[0]), log10(climits[1]), 0.1], output=str(CPT_FILEPATH))
+    return plot_map(grid, dpi, font, font_annot, plot_width, legend_text, region, plot_faults)
 
 
 def plot_hazard_diff_map(
         grid1: DataArray,
         grid2: DataArray,
         diff_type,
-        colormap,
         dpi,
-        limits: List[float],
+        climits: List[float],
         font,
         font_annot,
         plot_width,
         legend_text,
+        region=None,
         plot_faults=False
 ):
 
+
     if diff_type == 'sub':
-        dgrid = grid1 - grid2
-        pygmt.makecpt(cmap = "blue,white,red", series=f"{limits[0]}, 0, {limits[1]}", continuous=True)
+        dgrid = grid2 - grid1
+        if not climits:
+            max_diff = max(abs(float(dgrid.min())), abs(float(dgrid.max())))
+            climits = (-max_diff, max_diff)
+        pygmt.makecpt(cmap = "blue,white,red", series=f"{climits[0]},0.0,{climits[1]}", continuous=True, output=str(CPT_FILEPATH))
     elif diff_type == 'ratio':
-        dgrid = grid1/grid2
-        pygmt.makecpt(cmap = "blue,white,red", series=f"{-1}, 0, {1}", continuous=True)
+        dgrid = grid2/grid1
+        pygmt.makecpt(cmap = "blue,white,red", series=f"{climits[0]},1.0,{climits[1]}", continuous=True, output=str(CPT_FILEPATH))
     else:
         raise Exception('diff type %s not recognized' % diff_type)
 
-    return plot_hazard_map(dgrid, colormap, dpi, limits, font, font_annot, plot_width, legend_text, plot_faults)  
+    return plot_map(dgrid, dpi, font, font_annot, plot_width, legend_text, region, plot_faults)  
     
