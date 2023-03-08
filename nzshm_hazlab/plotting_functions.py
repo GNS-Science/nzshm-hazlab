@@ -86,8 +86,8 @@ def plot_hazard_curve(
         # _ = ax.annotate(text, [xlim[1],1/rp], ha='right',va='bottom')
         _ = ax.annotate(text, [xlim[1],1/rp], ha='right',va='bottom')
 
-    if not bandw:
-        _ = ax.legend(handlelength=2)
+    # if not bandw:
+    _ = ax.legend(handlelength=2)
 
     if xscale == 'log':
         _ = ax.set_xscale('log')

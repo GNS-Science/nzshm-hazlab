@@ -6,7 +6,7 @@ from nzshm_hazlab.map_plotting_functions import plot_hazard_diff_map, get_poe_gr
 hazard_model1 = dict(id='SLT_v8_gmm_v2_FINAL',name='v1.0.0')
 hazard_model2 = dict(id='NSHM_v1.0.2',name='v1.0.2')
 vs30 = 400
-imt =  'PGA' # 'SA(5.0)' # 'SA(3.0)' 'SA(1.0)'
+imt =  'SA(5.0)' # 'PGA' # 'SA(5.0)' # 'SA(3.0)' 'SA(1.0)'
 agg = 'mean'
 poe = 0.02
 
@@ -14,7 +14,8 @@ poe = 0.02
 diff_type = 'sub' # 'ratio'
 
 # MAP PARAMETERS
-climits = None # [0.6,1.1]
+climits = [-0.05, 0.05] # None # [0.6,1.1]
+# climits = None
 plot_faults = False
 region = "170/180/-42/-34"
 plot_width = 10
@@ -35,7 +36,7 @@ projection = f'M{plot_width}c'
 full_dir = Path(fig_dir,f'{int(vs30)}')
 
 if diff_type == 'sub':
-    legend_text = f'{imt} ({poe*100:.0f}% PoE in 50) - difference'
+    legend_text = f'{imt} ({poe*100:.0f}% PoE in 50) - difference in g'
 elif diff_type == 'ratio':
     legend_text = f'{imt} ({poe*100:.0f}% PoE in 50) - ratio'
 plot_hazard_diff_map(grids['model1'], grids['model2'],diff_type, dpi, climits, font, font_annot, plot_width, legend_text, region, plot_faults=plot_faults)

@@ -191,7 +191,7 @@ def disagg_to_csv(disagg, bins, header, csv_filepath):
         writer = csv.writer(csvfile)
         writer.writerow([header])
         writer.writerow(['magnitude','distance (km)','TRT','epsilon (sigma)','annual probability of exceedance', '% contribution to hazard'])
-        for i, (mag, dist, trt, eps) in enumerate(itertools.product(*bins[:-1])):
+        for i, (mag, dist, trt, eps) in enumerate(itertools.product(*bins)):
             row = (f'{mag:0.1f}', f'{dist:0.0f}', trt, f'{eps:0.3f}', f'{disagg[i]:0.3e}', f'{disagg_pc[i]:0.3e}')
             writer.writerow(row)
 

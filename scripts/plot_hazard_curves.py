@@ -1,4 +1,4 @@
-from nzshm_common.location.location import LOCATIONS_BY_ID
+from nzshm_common.location.location import LOCATION_LISTS, location_by_id
 from nzshm_common.location import CodedLocation
 from nzshm_hazlab.store.curves import get_hazard
 from nzshm_hazlab.plotting_functions import plot_hazard_curve
@@ -9,7 +9,7 @@ resolution = 0.001
 INVESTIGATION_TIME = 50
 PLOT_WIDTH = 12
 PLOT_HEIGHT = 8.625
-colors = ['#1b9e77', '#d95f02', '#7570b3']
+colors = ['#1b9e77', '#d95f02', '#7570b3','k']
 xscale = 'log'
 xlim = [1e-2,1e1]
 # xlim = [0,3]
@@ -20,10 +20,10 @@ def key_2_location(key: Any) -> CodedLocation:
     if '~' in key:
         lat, lon = map(float, key.split('~'))
         location = CodedLocation(lat, lon, resolution)
-    elif key in LOCATIONS_BY_ID:
+    elif location_by_id(key):
         location = CodedLocation(
-            LOCATIONS_BY_ID[key]['latitude'],
-            LOCATIONS_BY_ID[key]['longitude'],
+            location_by_id(key)['latitude'],
+            location_by_id(key)['longitude'],
             resolution
         )
     elif type(key) == tuple:
@@ -42,27 +42,29 @@ def ref_lines(poes):
         refls.append(ref_line)
     return refls
    
-# error_bounds = {'lower2':'0.01','lower1':'0.1','upper1':'0.9','upper2':'0.99'}
-error_bounds = {}
+error_bounds = {'lower2':'0.01','lower1':'0.1','upper1':'0.9','upper2':'0.99'}
+# error_bounds = {}
 aggs = list(error_bounds.values()) + ['mean']
 
 hazard_models = [
-    dict(id='NSHM_v1.0.1_CRUsens_baseline',name='Baseline'),
-    dict(id='NSHM_v1.0.1_sens_jump5km', name='5km Max Jump')
+    dict(id='NSHM_v1.0.2', name='v1.0.2'),
+    dict(id='TEST', name='test'),
 ]
 
-location_keys = ['WLG']
+location_keys = ['WLG', 'CHC']
 locations = [key_2_location(k) for k in location_keys]
-imts = ['PGA', 'SA(3.0)']
+
+# imts = ['PGA', 'SA(3.0)','SA(5.0)', 'SA(10.0)']
+imts = ['PGA', 'SA(0.5)']
 poes = [0.1, 0.02]
-vs30 = 400
+vs30 = 400 
 
 for model in hazard_models:
-    model['hcurves'] = get_hazard(model['id'], locations, vs30, imts, aggs)
+    model['hcurves'] = get_hazard(model['id'], locations, vs30, imts, aggs, no_archive=True)
 
 for loc_key in location_keys:
     loc = key_2_location(loc_key)
-    location_name = LOCATIONS_BY_ID[loc_key]['name'] if loc_key in LOCATIONS_BY_ID else loc_key
+    location_name = location_by_id(loc_key)['name'] if location_by_id(loc_key) else loc_key
     for imt in imts:
         fig, ax = plt.subplots(1,1)
         fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
@@ -75,7 +77,8 @@ for loc_key in location_keys:
                 ref_lines=ref_lines(poes),
                 color=colors[i],
                 custom_label=model['name'],
-                title=title
+                title=title,
+                bandw=error_bounds
             )
         
         plt.show()

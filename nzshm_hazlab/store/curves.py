@@ -7,7 +7,7 @@ from typing import List, Any
 import os
 from collections import namedtuple
 from itertools import product
-from toshi_hazard_store.query_v3 import get_hazard_curves
+import toshi_hazard_store
 
 from nzshm_common.location.location import LOCATIONS_BY_ID
 from nzshm_common.grids import RegionGrid
@@ -66,7 +66,7 @@ def download_hazard(
     """download all locations, imts and aggs for a particular hazard_id and vs30."""
 
     loc_strs = [loc.downsample(RESOLUTION).code for loc in locs]
-    hazards = get_hazard_curves(
+    hazards = toshi_hazard_store.query_v3.get_hazard_curves(
         hazard_model_ids=[hazard_id],
         vs30s = [vs30],
         locs = loc_strs[:1],
@@ -74,7 +74,6 @@ def download_hazard(
         aggs = aggs,
     )
     res = next(hazards)
-    
     nlevels = len(res.values)
     naggs = len(aggs)
     nimts = len(imts)
@@ -86,7 +85,7 @@ def download_hazard(
     total_records = len(locs) * len(imts) * len(aggs)
     print(f'retrieving {total_records} records from THS')
     print_step = math.ceil(total_records / 10) 
-    for i,res in enumerate(get_hazard_curves(loc_strs, [vs30], [hazard_id], imts, aggs)):
+    for i,res in enumerate(toshi_hazard_store.query_v3.get_hazard_curves(loc_strs, [vs30], [hazard_id], imts, aggs)):
         print(f'retrieved {i / total_records * 100:.0f}% of records from THS') if i%print_step == 0 else None
         lat = f'{res.lat:0.3f}'
         lon = f'{res.lon:0.3f}'
@@ -148,7 +147,7 @@ def get_hazard(
         no_archive: Any = False
 ) -> DataFrame:
 
-    if no_archive:
+    if (no_archive) | (hazard_id == "TEST"):
         return download_hazard(hazard_id, vs30, locs, imts, aggs)
     else:
         print('loading hazard curves from archive')

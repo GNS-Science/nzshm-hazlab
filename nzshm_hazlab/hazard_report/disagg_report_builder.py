@@ -46,15 +46,14 @@ TAIL_HTML = '''
 
 class DisaggReportBuilder:
 
-    def __init__(self, name, disagg_data_filepath, bins_filepath, output_path):
+    def __init__(self, name, shaking_level, disagg_data, bins, output_path):
 
         self._name = name
-        self._data_filepath = Path(disagg_data_filepath)
-        self._bins_filepath = Path(bins_filepath)
         self._output_path = Path(output_path)
+        self._shaking_level = shaking_level
 
-        assert self._data_filepath.exists()
-        assert self._bins_filepath.exists()
+        self._disagg = disagg_data
+        self._bins = bins
 
         if self._output_path.exists() and (not self._output_path.is_dir()):
             raise Exception(f'output path {self._output_path} is not a directory')
@@ -64,8 +63,9 @@ class DisaggReportBuilder:
 
 
     def load_data(self):
-        self._disagg = np.load(self._data_filepath)
-        self._bins = np.load(self._bins_filepath, allow_pickle=True)
+        pass
+        # self._disagg = np.load(self._data_filepath)
+        # self._bins = np.load(self._bins_filepath, allow_pickle=True)
 
     
     def run(self):
@@ -91,7 +91,7 @@ class DisaggReportBuilder:
 
     def generate_csv(self):
 
-        header = f'{self._name}, {self._bins[-1]:.2e}g '
+        header = f'{self._name}, {self._shaking_level:.2e}g '
         bins = {'magnitude':0, 'distance':1, 'epsilon':3}
         for k,v in bins.items():
             bin_edges = [1.5*self._bins[v][0] - 0.5*self._bins[v][1], ]
@@ -291,7 +291,7 @@ class DisaggReportBuilder:
 
         print('generating report . . .')
         md_string = f'# {self._name}\n'
-        gm = f'{self._bins[-1]:.2e}'.split('e')
+        gm = f'{self._shaking_level:.2e}'.split('e')
         gm[1] = gm[1][0] + gm[1][2:] if gm[1][1] == '0' else gm[1]
         md_string += f'## Ground Motion: {gm[0]} x 10' + f'<sup>{gm[1]}</sup>g\n'
 

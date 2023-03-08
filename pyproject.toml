@@ -9,15 +9,15 @@ packages = [{include = "nzshm_hazlab"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-toshi-hazard-store = "^0.5.5"
 matplotlib = "^3.6.2"
 ipython = {version = "^8.7.0", optional = true}
 pyqt5 = {version = "^5.15.7", optional = true}
 markdown = "^3.4.1"
-geopandas = "^0.12.2"
-nzshm-runzi = {git = "https://github.com/GNS-Science/nzshm-runzi.git", optional = true}
 pygmt = "^0.8.0"
 nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "feature/20-backarc-v2"}
+toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "fix/multi_batch"}
+nzshm-runzi = {git = "https://github.com/GNS-Science/nzshm-runzi.git", rev = "feature/148-disagg-error-handling", optional = true}
+geopandas = "^0.11.1"
 
 [tool.poetry.extras]
 ipython = ["ipython", "pyqt5"]
