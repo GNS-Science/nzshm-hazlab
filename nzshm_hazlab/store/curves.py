@@ -51,12 +51,16 @@ def empty_hazard() -> DataFrame:
 
 def load_hazard_curves(hazard_id: str, vs30: int) -> DataFrame:
     """Load hazard curves DataFrame from an archive"""
-
+    
     if archive_filepath(hazard_id, vs30).exists():
         return pd.read_json(archive_filepath(hazard_id, vs30), dtype=DTYPE)
     else:
         return empty_hazard()
 
+def clean_df(hazard_curves: DataFrame) -> DataFrame:
+    """remove NaNs"""
+
+    return hazard_curves.dropna()
 
 def download_hazard(
         hazard_id: str,
@@ -82,7 +86,7 @@ def download_hazard(
 
     index = range(len(locs) * nimts * naggs * nlevels)
     # hazard_curves = pd.DataFrame(columns=COLUMNS, index=index, dtype=DTYPE)
-    hazard_curves = pd.DataFrame({c: pd.Series(dtype=t) for c, t in DTYPE.items()})
+    hazard_curves = pd.DataFrame({c: pd.Series(dtype=t) for c, t in DTYPE.items()}, index=index)
     ind = 0
     total_records = len(locs) * len(imts) * len(aggs)
     print(f'retrieving {total_records} records from THS')
@@ -99,6 +103,8 @@ def download_hazard(
             hazard_curves.loc[ind,'level'] = value.lvl
             hazard_curves.loc[ind,'apoe'] = value.val
             ind += 1
+
+    hazard_curves = clean_df(hazard_curves)
 
     return hazard_curves
 
@@ -142,12 +148,13 @@ def hazard_from_archive(
 
 def get_hazard(
         hazard_id: str,
-        locs: List[CodedLocation],
         vs30: int,
+        locs: List[CodedLocation],
         imts: List[str],
         aggs: List[str],
         no_archive: Any = False
 ) -> DataFrame:
+
 
     if (no_archive) | (hazard_id == "TEST"):
         return download_hazard(hazard_id, vs30, locs, imts, aggs)
@@ -183,24 +190,16 @@ def fix_archive(hazard_id, vs30):
 if __name__ == "__main__":
 
     hazard_ids = [
-        # "NSHM_v1.0.1_CRUsens_baseline",
-        # "NSHM_v1.0.1_sens_jump5km",
-        # "NSHM_v1.0.1_sens_jump10km",
-        # "NSHM_v1.0.1_sens_jump10km_iso",
-        # "NSHM_v1.0.1_sens_jump5km_iso",
-        # "NSHM_v1.0.1_CRUsens_baseline_iso",
         "NSHM_v1.0.3",
         "NSHM_v1.0.2",
     ]
-    # hazard_ids = hazard_ids[1:]
 
-    # keep = ['WLG','AKL','CHC']
-    # locations = [CodedLocation(loc['latitude'], loc['longitude'], RESOLUTION) for loc in LOCATIONS_BY_ID.values() if loc['id'] in keep]
+    imts = ["PGA"]
+    aggs = ["mean"]
+    locations = all_locations()
+    # locations = [CodedLocation( *lat_lon(id), RESOLUTION)
+    #                 for id in LOCATION_LISTS["NZ"]["locations"]]
+    hazard = {}
     for id in hazard_ids:
         print(f'working on {id}')
-        # hazard_curves = get_hazard(id, locations, 400, ['PGA', 'SA(0.5)' ], ['mean'])
-        # imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)','SA(10.0)']
-        imts = ['PGA', 'SA(0.5)', 'SA(1.0)', 'SA(1.5)', 'SA(3.0)', 'SA(5.0)']
-        aggs = ["mean", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99"]
-        # aggs = ["mean", "cov", "std", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
-        download_hazard(id, 400, all_locations(), imts, aggs)
+        hazard[id] = get_hazard(id, 400, locations, imts, aggs)
