@@ -9,7 +9,7 @@ from collections import namedtuple
 from itertools import product
 import toshi_hazard_store
 
-from nzshm_common.location.location import LOCATIONS_BY_ID
+from nzshm_common.location.location import LOCATION_LISTS, location_by_id
 from nzshm_common.grids import RegionGrid
 from nzshm_common.location import CodedLocation
 
@@ -22,13 +22,15 @@ RESOLUTION = 0.001
 
 RecordIdentifier = namedtuple('RecordIdentifier', 'location imt agg')
 
+def lat_lon(id):
+    return location_by_id(id)['latitude'], location_by_id(id)['longitude']
 
 def all_locations() -> List[CodedLocation]:
     """all locations in NZ35 and 0.1 deg grid"""
 
     locations_nz35 = [
-        CodedLocation( loc['latitude'], loc['longitude'], RESOLUTION)
-        for loc in LOCATIONS_BY_ID.values()
+        CodedLocation( *lat_lon(id), RESOLUTION)
+        for id in LOCATION_LISTS["NZ"]["locations"]
     ]
 
     grid = RegionGrid[SITE_LIST]
@@ -84,7 +86,7 @@ def download_hazard(
     ind = 0
     total_records = len(locs) * len(imts) * len(aggs)
     print(f'retrieving {total_records} records from THS')
-    print_step = math.ceil(total_records / 10) 
+    print_step = math.ceil(total_records / 100) 
     for i,res in enumerate(toshi_hazard_store.query_v3.get_hazard_curves(loc_strs, [vs30], [hazard_id], imts, aggs)):
         print(f'retrieved {i / total_records * 100:.0f}% of records from THS') if i%print_step == 0 else None
         lat = f'{res.lat:0.3f}'
@@ -181,20 +183,24 @@ def fix_archive(hazard_id, vs30):
 if __name__ == "__main__":
 
     hazard_ids = [
-        "NSHM_v1.0.1_CRUsens_baseline",
-        "NSHM_v1.0.1_sens_jump5km",
-        "NSHM_v1.0.1_sens_jump10km",
-        "NSHM_v1.0.1_sens_jump10km_iso",
-        "NSHM_v1.0.1_sens_jump5km_iso",
-        "NSHM_v1.0.1_CRUsens_baseline_iso",
+        # "NSHM_v1.0.1_CRUsens_baseline",
+        # "NSHM_v1.0.1_sens_jump5km",
+        # "NSHM_v1.0.1_sens_jump10km",
+        # "NSHM_v1.0.1_sens_jump10km_iso",
+        # "NSHM_v1.0.1_sens_jump5km_iso",
+        # "NSHM_v1.0.1_CRUsens_baseline_iso",
+        "NSHM_v1.0.3",
+        "NSHM_v1.0.2",
     ]
-    hazard_ids = hazard_ids[1:]
+    # hazard_ids = hazard_ids[1:]
 
-    keep = ['WLG','AKL','CHC']
-    locations = [CodedLocation(loc['latitude'], loc['longitude'], RESOLUTION) for loc in LOCATIONS_BY_ID.values() if loc['id'] in keep]
+    # keep = ['WLG','AKL','CHC']
+    # locations = [CodedLocation(loc['latitude'], loc['longitude'], RESOLUTION) for loc in LOCATIONS_BY_ID.values() if loc['id'] in keep]
     for id in hazard_ids:
         print(f'working on {id}')
         # hazard_curves = get_hazard(id, locations, 400, ['PGA', 'SA(0.5)' ], ['mean'])
-        imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)','SA(10.0)']
-        aggs = ["mean", "cov", "std", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
+        # imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)','SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)','SA(10.0)']
+        imts = ['PGA', 'SA(0.5)', 'SA(1.0)', 'SA(1.5)', 'SA(3.0)', 'SA(5.0)']
+        aggs = ["mean", "0.01", "0.025", "0.05", "0.1", "0.2", "0.5", "0.8", "0.9", "0.95", "0.975", "0.99"]
+        # aggs = ["mean", "cov", "std", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
         download_hazard(id, 400, all_locations(), imts, aggs)
