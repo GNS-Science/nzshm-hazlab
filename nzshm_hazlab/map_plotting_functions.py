@@ -18,9 +18,9 @@ def clear_cpt():
         CPT_FILEPATH.unlink()
 
 
-def get_poe_grid(hazard_id, imt, agg, poe, vs30):
+def get_poe_grid(hazard_id, vs30, imt, agg, poe):
 
-    haz_poe = get_hazard_at_poe(hazard_id, imt, agg, poe, vs30)
+    haz_poe = get_hazard_at_poe(hazard_id, vs30, imt, agg, poe)
     haz_poe = haz_poe.pivot(index="lat", columns="lon")
     haz_poe = haz_poe.droplevel(0, axis=1)
     return xr.DataArray(data=haz_poe)
@@ -129,6 +129,8 @@ def plot_hazard_diff_map(
             climits = (-max_diff, max_diff)
         pygmt.makecpt(cmap = "blue,white,red", series=f"{climits[0]},0.0,{climits[1]}", continuous=True, output=str(CPT_FILEPATH))
     elif diff_type == 'ratio':
+        if not climits:
+            raise Exception('color bar limits must be set when plotting ratio map')
         dgrid = grid2/grid1
         pygmt.makecpt(cmap = "blue,white,red", series=f"{climits[0]},1.0,{climits[1]}", continuous=True, output=str(CPT_FILEPATH))
     else:

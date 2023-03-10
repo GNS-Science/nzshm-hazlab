@@ -1,3 +1,4 @@
+from pathlib import Path
 from nzshm_common.location.location import LOCATION_LISTS, location_by_id
 from nzshm_common.location import CodedLocation
 from nzshm_hazlab.store.curves import get_hazard
@@ -41,21 +42,26 @@ def ref_lines(poes):
                         inv_time = INVESTIGATION_TIME)
         refls.append(ref_line)
     return refls
-   
+
+fig_dir = Path('/home/chrisdc/NSHM/oqresults/v1.0.3')
+
 error_bounds = {'lower2':'0.01','lower1':'0.1','upper1':'0.9','upper2':'0.99'}
 # error_bounds = {}
 aggs = list(error_bounds.values()) + ['mean']
 
 hazard_models = [
     dict(id='NSHM_v1.0.2', name='v1.0.2'),
-    dict(id='TEST', name='test'),
+    dict(id='NSHM_v1.0.3', name='v1.0.3'),
 ]
 
-location_keys = ['WLG', 'CHC']
+# location_keys = ['WLG']
+location_keys = LOCATION_LISTS['NZ']['locations'].copy()
+if 'WRE' in location_keys:
+    location_keys.remove('WRE')
 locations = [key_2_location(k) for k in location_keys]
 
 # imts = ['PGA', 'SA(3.0)','SA(5.0)', 'SA(10.0)']
-imts = ['PGA', 'SA(0.5)']
+imts = ['SA(3.0)']
 poes = [0.1, 0.02]
 vs30 = 400 
 
@@ -80,8 +86,7 @@ for loc_key in location_keys:
                 title=title,
                 bandw=error_bounds
             )
-        
-        plt.show()
 
-
-
+        fname = f'{location_name}_{imt}_{vs30}.png' 
+        fig.savefig(Path(fig_dir, fname))
+        plt.close()

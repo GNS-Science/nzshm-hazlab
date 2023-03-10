@@ -33,7 +33,7 @@ def save_hazard_poe(haz_poe: DataFrame, hazard_id, imt, agg, poe, vs30):
     haz_poe.to_json(poe_archive_filepath(hazard_id, imt, agg, poe, vs30))
 
     
-def get_hazard_at_poe(hazard_id, imt, agg, poe, vs30):
+def get_hazard_at_poe(hazard_id, vs30, imt, agg, poe):
 
     # fp = poe_archive_filepath(hazard_id, imt, agg, poe, vs30)
     # if fp.exists():
@@ -41,7 +41,7 @@ def get_hazard_at_poe(hazard_id, imt, agg, poe, vs30):
     #     return pd.read_json(fp, dtype = POE_DTYPE)
     # else:
     print('calculating hazard at poe')
-    hazard = get_hazard(hazard_id, list(grid_locations(SITE_LIST)), vs30, [imt], [agg])
+    hazard = get_hazard(hazard_id, vs30, list(grid_locations(SITE_LIST)), [imt], [agg])
     haz_poe = get_poe_df(hazard, list(grid_locations(SITE_LIST)), imt, agg, poe, INV_TIME)
     # save_hazard_poe(haz_poe, hazard_id, imt, agg, poe, vs30)
     return haz_poe
