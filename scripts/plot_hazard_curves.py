@@ -12,9 +12,23 @@ PLOT_WIDTH = 12
 PLOT_HEIGHT = 8.625
 colors = ['#1b9e77', '#d95f02', '#7570b3','k']
 xscale = 'log'
-xlim = [1e-2,1e1]
+xlim = [1e-4,1e1]
 # xlim = [0,3]
-ylim = [1e-6,1]
+ylim = [1e-8,1]
+
+def plot_diff(model0, model1, loc, imt, ax):
+
+    lat, lon = loc.code.split('~')
+    m0 = model0[(model0['lat'] == lat) & (model0['lon'] == lon) & (model0['imt'] == imt) & (model0['agg'] == 'mean')]
+    m1 = model1[(model0['lat'] == lat) & (model1['lon'] == lon) & (model1['imt'] == imt) & (model1['agg'] == 'mean')]
+
+    x = m0['level'].to_numpy()
+    y0 = m0['apoe'].to_numpy()
+    y1 = m1['apoe'].to_numpy()
+
+    ax.plot(x,(y1-y0)/y0)
+    ax.grid(color='lightgray')
+    ax.set_xscale('log')
 
 def key_2_location(key: Any) -> CodedLocation:
 
@@ -51,22 +65,24 @@ aggs = list(error_bounds.values()) + ['mean']
 
 hazard_models = [
     dict(id='NSHM_v1.0.2', name='v1.0.2'),
-    dict(id='NSHM_v1.0.3', name='v1.0.3'),
+    dict(id='NSHM_v1.0.4', name='v1.0.4'),
 ]
 
-# location_keys = ['WLG']
-location_keys = LOCATION_LISTS['NZ']['locations'].copy()
-if 'WRE' in location_keys:
-    location_keys.remove('WRE')
+location_keys = ['srg_135']
+# location_keys = LOCATION_LISTS['NZ']['locations'].copy()
+# if 'WRE' in location_keys:
+#     location_keys.remove('WRE')
 locations = [key_2_location(k) for k in location_keys]
 
 # imts = ['PGA', 'SA(3.0)','SA(5.0)', 'SA(10.0)']
-imts = ['SA(3.0)']
+# imts = ['PGA','SA(0.5)', 'SA(1.5)', 'SA(3.0)', 'SA(5.0)', 'SA(10.0)']
+imts = ['SA(1.5)']
+# imts = ['SA(3.0)']
 poes = [0.1, 0.02]
-vs30 = 400 
+vs30 = 275 
 
 for model in hazard_models:
-    model['hcurves'] = get_hazard(model['id'], locations, vs30, imts, aggs, no_archive=True)
+    model['hcurves'] = get_hazard(model['id'], vs30, locations, imts, aggs, no_archive=True)
 
 for loc_key in location_keys:
     loc = key_2_location(loc_key)
@@ -89,4 +105,9 @@ for loc_key in location_keys:
 
         fname = f'{location_name}_{imt}_{vs30}.png' 
         fig.savefig(Path(fig_dir, fname))
-        plt.close()
+        # plt.close()
+
+        fix, ax = plt.subplots(1,1)
+        plot_diff(hazard_models[0]['hcurves'], hazard_models[1]['hcurves'], loc, imt, ax)
+
+        plt.show()
