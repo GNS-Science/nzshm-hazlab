@@ -6,7 +6,7 @@ from pandas import DataFrame
 from nzshm_common.location import CodedLocation
 from nzshm_common.grids import RegionGrid
 
-from .curves import get_hazard, ARCHIVE_DIR
+# from .curves import get_hazard #, ARCHIVE_DIR
 from nzshm_hazlab.data_functions import get_poe_df
 
 POE_DTYPE = {'lat': float, 'lon': float, 'level': float}
@@ -22,15 +22,15 @@ def grid_locations(site_list):
             yield CodedLocation(loc[0], loc[1], RESOLUTION)
 
 
-def poe_archive_filepath(hazard_id, imt, agg, poe, vs30):
+# def poe_archive_filepath(hazard_id, imt, agg, poe, vs30):
 
-    file_name = f'{hazard_id}-{imt}-{agg}-{poe}-{vs30}.bz2'
-    return Path(ARCHIVE_DIR, file_name)
+#     file_name = f'{hazard_id}-{imt}-{agg}-{poe}-{vs30}.bz2'
+#     return Path(ARCHIVE_DIR, file_name)
 
 
-def save_hazard_poe(haz_poe: DataFrame, hazard_id, imt, agg, poe, vs30):
+# def save_hazard_poe(haz_poe: DataFrame, hazard_id, imt, agg, poe, vs30):
 
-    haz_poe.to_json(poe_archive_filepath(hazard_id, imt, agg, poe, vs30))
+#     haz_poe.to_json(poe_archive_filepath(hazard_id, imt, agg, poe, vs30))
 
     
 def get_hazard_at_poe(hazard_id, vs30, imt, agg, poe):

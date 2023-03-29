@@ -3,8 +3,8 @@ from pathlib import Path
 from nzshm_hazlab.map_plotting_functions import plot_hazard_diff_map, get_poe_grid
 
 # MODEL PARAMETERS
-hazard_model1 = dict(id='NSHM_v1.0.2',name='v1.0.2')
-hazard_model2 = dict(id='NSHM_v1.0.3',name='v1.0.3')
+hazard_model1 = dict(id='NSHM_v1.0.3',name='v1.0.3')
+hazard_model2 = dict(id='NSHM_v1.0.4',name='v1.0.4')
 vs30 = 400
 # imt =  'SA(5.0)' # 'PGA' # 'SA(5.0)' # 'SA(3.0)' 'SA(1.0)'
 imt = 'PGA'
@@ -19,7 +19,7 @@ diff_type = 'ratio' #'sub'
 # MAP PARAMETERS
 # climits = [-0.4, 0.4] # None # [0.6,1.1]
 # climits = None
-climits = [0.7,1.3]
+climits = [0.95,1.05]
 plot_faults = False
 region = "165/180/-48/-34"
 plot_width = 10

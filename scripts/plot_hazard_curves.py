@@ -25,7 +25,7 @@ def plot_diff(model0, model1, loc, imt, ax):
     x = m0['level'].to_numpy()
     y0 = m0['apoe'].to_numpy()
     y1 = m1['apoe'].to_numpy()
-
+    breakpoint()
     ax.plot(x,(y1-y0)/y0)
     ax.grid(color='lightgray')
     ax.set_xscale('log')
@@ -68,7 +68,7 @@ hazard_models = [
     dict(id='NSHM_v1.0.4', name='v1.0.4'),
 ]
 
-location_keys = ['srg_135']
+location_keys = ['WLG']
 # location_keys = LOCATION_LISTS['NZ']['locations'].copy()
 # if 'WRE' in location_keys:
 #     location_keys.remove('WRE')
@@ -79,10 +79,10 @@ locations = [key_2_location(k) for k in location_keys]
 imts = ['SA(1.5)']
 # imts = ['SA(3.0)']
 poes = [0.1, 0.02]
-vs30 = 275 
+vs30 = 175 
 
 for model in hazard_models:
-    model['hcurves'] = get_hazard(model['id'], vs30, locations, imts, aggs, no_archive=True)
+    model['hcurves'] = get_hazard(model['id'], vs30, locations, imts, aggs)
 
 for loc_key in location_keys:
     loc = key_2_location(loc_key)
