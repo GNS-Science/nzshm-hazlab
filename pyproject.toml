@@ -14,12 +14,9 @@ ipython = {version = "^8.7.0", optional = true}
 pyqt5 = {version = "^5.15.7", optional = true}
 markdown = "^3.4.1"
 pygmt = "^0.8.0"
-nzshm-common = {git = "https://github.com/GNS-Science/nzshm-common-py.git", rev = "feature/20-backarc-v2"}
-nzshm-runzi = {git = "https://github.com/GNS-Science/nzshm-runzi.git", rev = "feature/148-disagg-error-handling", optional = true}
 notebook = {version = "^6.5.3", optional = true}
-openquake-engine = {git = "https://github.com/gem/oq-engine.git", rev = "v3.16.1", optional = true}
 geopandas = "^0.12.2"
-toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "feature/34_hazard_curve_cache"}
+toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "feature/36_site_vs30"}
 
 [tool.poetry.extras]
 ipython = ["ipython", "pyqt5"]
