@@ -22,6 +22,11 @@ RESOLUTION = 0.001
 
 RecordIdentifier = namedtuple('RecordIdentifier', 'location imt agg')
 
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
 def lat_lon(id):
     return location_by_id(id)['latitude'], location_by_id(id)['longitude']
 
@@ -53,7 +58,8 @@ def get_hazard(
         vs30: int,
         locs: List[CodedLocation],
         imts: List[str],
-        aggs: List[str]
+        aggs: List[str],
+        chunk_size: int=100,
 ) -> DataFrame:
     """download all locations, imts and aggs for a particular hazard_id and vs30."""
 
@@ -68,17 +74,18 @@ def get_hazard(
     print(f'retrieving {total_records} records from THS')
     print_step = math.ceil(total_records / 10) 
     # for i,res in enumerate(toshi_hazard_store.query_v3.get_hazard_curves(loc_strs, [vs30], [hazard_id], imts, aggs)):
-    for i,res in enumerate(query.get_hazard_curves(loc_strs, [vs30], [hazard_id], imts, aggs)):
-        print(f'retrieved {i / total_records * 100:.0f}% of records from THS') if i%print_step == 0 else None
-        lat = f'{res.lat:0.3f}'
-        lon = f'{res.lon:0.3f}'
-        hazard_curves.loc[ind,'lat'] = lat
-        hazard_curves.loc[ind,'lon'] = lon
-        hazard_curves.loc[ind,'imt'] = res.imt
-        hazard_curves.loc[ind,'agg'] = res.agg
-        hazard_curves.loc[ind,'level'] = np.array([item.lvl for item in res.values])
-        hazard_curves.loc[ind,'apoe'] = np.array([item.val for item in res.values])
-        ind += 1
+    for loc_chunks in chunks(loc_strs, chunk_size):
+        for i,res in enumerate(query.get_hazard_curves(loc_strs, [vs30], [hazard_id], imts, aggs)):
+            print(f'retrieved {i / total_records * 100:.0f}% of records from THS') if i%print_step == 0 else None
+            lat = f'{res.lat:0.3f}'
+            lon = f'{res.lon:0.3f}'
+            hazard_curves.loc[ind,'lat'] = lat
+            hazard_curves.loc[ind,'lon'] = lon
+            hazard_curves.loc[ind,'imt'] = res.imt
+            hazard_curves.loc[ind,'agg'] = res.agg
+            hazard_curves.loc[ind,'level'] = np.array([float(item.lvl) for item in res.values])
+            hazard_curves.loc[ind,'apoe'] = np.array([float(item.val) for item in res.values])
+            ind += 1
 
     return hazard_curves
 
@@ -106,3 +113,7 @@ if __name__ == "__main__":
     
     for vs30 in vs30s:
         hazard = get_hazard(hazard_id, vs30, locations, imts, aggs)
+        print(hazard)
+        hazard = clean_df(hazard)
+        print(hazard)
+        break

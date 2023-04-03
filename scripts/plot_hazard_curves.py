@@ -64,29 +64,34 @@ error_bounds = {'lower2':'0.01','lower1':'0.1','upper1':'0.9','upper2':'0.99'}
 aggs = list(error_bounds.values()) + ['mean']
 
 hazard_models = [
-    dict(id='NSHM_v1.0.2', name='v1.0.2'),
+    # dict(id='NSHM_v1.0.2', name='v1.0.2'),
     dict(id='NSHM_v1.0.4', name='v1.0.4'),
 ]
 
-location_keys = ['WLG']
-# location_keys = LOCATION_LISTS['NZ']['locations'].copy()
+# location_keys = ['WLG']
+# location_keys = ['hb_0', 'hb_1']
 # if 'WRE' in location_keys:
 #     location_keys.remove('WRE')
-locations = [key_2_location(k) for k in location_keys]
+gisbourne =  CodedLocation(-38.65,178.0,0.001)
+napier = CodedLocation(-39.5,176.9,0.001)
+locations = [gisbourne, napier]
+# locations = [key_2_location(k) for k in location_keys]
 
 # imts = ['PGA', 'SA(3.0)','SA(5.0)', 'SA(10.0)']
 # imts = ['PGA','SA(0.5)', 'SA(1.5)', 'SA(3.0)', 'SA(5.0)', 'SA(10.0)']
-imts = ['SA(1.5)']
+imts = ['PGA']
 # imts = ['SA(3.0)']
 poes = [0.1, 0.02]
-vs30 = 175 
+vs30 = 300
 
 for model in hazard_models:
     model['hcurves'] = get_hazard(model['id'], vs30, locations, imts, aggs)
 
-for loc_key in location_keys:
-    loc = key_2_location(loc_key)
-    location_name = location_by_id(loc_key)['name'] if location_by_id(loc_key) else loc_key
+# for loc_key in location_keys:
+for loc in locations:
+    # loc = key_2_location(loc_key)
+    # location_name = location_by_id(loc_key)['name'] if location_by_id(loc_key) else loc_key
+    location_name = loc.code
     for imt in imts:
         fig, ax = plt.subplots(1,1)
         fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
@@ -104,10 +109,10 @@ for loc_key in location_keys:
             )
 
         fname = f'{location_name}_{imt}_{vs30}.png' 
-        fig.savefig(Path(fig_dir, fname))
+        # fig.savefig(Path(fig_dir, fname))
         # plt.close()
 
-        fix, ax = plt.subplots(1,1)
-        plot_diff(hazard_models[0]['hcurves'], hazard_models[1]['hcurves'], loc, imt, ax)
+        # fix, ax = plt.subplots(1,1)
+        # plot_diff(hazard_models[0]['hcurves'], hazard_models[1]['hcurves'], loc, imt, ax)
 
         plt.show()

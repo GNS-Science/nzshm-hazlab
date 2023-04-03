@@ -40,8 +40,8 @@ def plot_hazard_curve(
 
     hd_filt = hazard_data.loc[ (hazard_data['imt'] == imt) & (hazard_data['lat'] == lat) & (hazard_data['lon'] == lon)]
 
-    levels = hd_filt.loc[ hazard_data['agg'] == central]['level'].to_numpy(dtype='float64')
-    values = hd_filt.loc[ hazard_data['agg'] == central]['apoe'].to_numpy(dtype='float64')
+    levels = hd_filt.loc[ hazard_data['agg'] == central]['level'].iloc[0]
+    values = hd_filt.loc[ hazard_data['agg'] == central]['apoe'].iloc[0]
 
     clr = color if color else 'k'
 
@@ -53,7 +53,7 @@ def plot_hazard_curve(
         
         bandw_data = {}
         for k,v in bandw.items():
-            values = hd_filt.loc[ hazard_data['agg'] == v]['apoe'].to_numpy(dtype='float64')
+            values = hd_filt.loc[ hazard_data['agg'] == v]['apoe'].iloc[0]
             bandw_data[k] = values
         
         ax.fill_between(levels, bandw_data['upper1'], bandw_data['lower1'],alpha = 0.5, color=clr)
@@ -65,8 +65,8 @@ def plot_hazard_curve(
         # ax.plot(levels, bandw_data['lower1'],color=clr,lw=2)
     if quants:
         for quant in quants:
-            levels = hd_filt.loc[ hazard_data['agg'] == quant]['level'].to_numpy()
-            values = hd_filt.loc[ hazard_data['agg'] == quant]['apoe'].to_numpy()
+            levels = hd_filt.loc[ hazard_data['agg'] == quant]['level'].iloc[0]
+            values = hd_filt.loc[ hazard_data['agg'] == quant]['apoe'].iloc[0]
             ax.plot(levels,values,'b',alpha=.8,lw=1,label=quant)
 
 
