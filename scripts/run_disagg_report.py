@@ -1,17 +1,21 @@
 import argparse
+import itertools
 import json
 from pathlib import Path, PurePath
 import os
+from typing import List, Tuple
 
-from nzshm_common.location.location import LOCATIONS_BY_ID
+from nzshm_common.grids.region_grid import load_grid
+from nzshm_common.location.code_location import CodedLocation
+from nzshm_common.location.location import LOCATION_LISTS, location_by_id, LOCATIONS_BY_ID
 from nzshm_hazlab.hazard_report.disagg_report_builder import DisaggReportBuilder
 from runzi.automation.scaling.local_config import (WORK_PATH, API_KEY, API_URL, S3_REPORT_BUCKET)
 from runzi.util.aws.s3_folder_upload import upload_to_bucket
+from toshi_hazard_store import model, query
 
 ROOT_PATH = 'openquake/DATA'
-MODEL_ID = 'SLT_v8_gmm_v2_FINAL'
-S3_URL = 'nshm-static-reports.gns.cri.nz'
 DISAGG_INFO_FILEPATH = Path(os.environ['NZSHM22_DISAGG_REPORT_LIST'])
+hazard_agg = model.AggregationEnum.MEAN
 
 def list_entry(model_id, report_folder, location_key, vs30, imt, poe):
     return dict(
@@ -21,67 +25,120 @@ def list_entry(model_id, report_folder, location_key, vs30, imt, poe):
         vs30=vs30,
         poe = int(poe)/100,
         inv_time = 50,
-        report_url = S3_URL + '/' + '/'.join( (ROOT_PATH,model_id,str(report_folder.name)) )
+        report_url = S3_REPORT_BUCKET.replace('nzshm22','nshm') +\
+            '.gns.cri.nz' + '/' + '/'.join( (ROOT_PATH,model_id,str(report_folder.name)) )
         )
 
 
-def main(disagg_filepaths, dry_run=False, local=False):
+def lat_lon(id):
+    return (location_by_id(id)['latitude'], location_by_id(id)['longitude'])
+
+location_lookup = {CodedLocation(*lat_lon(lid), 0.001).code: lid for lid in LOCATIONS_BY_ID.keys()}
+
+def get_locations(location_names: List[str]) -> List[str]:
+    """Get list of locations.
+
+    Parameters
+    ----------
+    config : AggregationConfig
+        job configuration
+
+    Returns
+    -------
+    locations : List[(float,float)]
+        list of (latitude, longitude)
+    """
+
+
+    locations: List[Tuple[float, float]] = []
+    for location_spec in location_names:
+        if '~' in location_spec:
+            locations.append(location_spec)
+        elif '_intersect_' in location_spec:
+            spec0, spec1 = location_spec.split('_intersect_')
+            loc0 = set(load_grid(spec0))
+            loc1 = set(load_grid(spec1))
+            loc01 = list(loc0.intersection(loc1))
+            loc01.sort()
+            locations += [CodedLocation(*loc, 0.001).code for loc in loc01]
+        elif '_diff_' in location_spec:
+            spec0, spec1 = location_spec.split('_diff_')
+            loc0 = set(load_grid(spec0))
+            loc1 = set(load_grid(spec1))
+            loc01 = list(loc0.difference(loc1))
+            loc01.sort()
+            locations += [CodedLocation(*loc, 0.001).code for loc in loc01]
+        elif location_by_id(location_spec):
+            locations.append(
+                CodedLocation(*lat_lon(location_spec), 0.001).code
+                )
+        elif LOCATION_LISTS.get(location_spec):
+            location_ids = LOCATION_LISTS[location_spec]["locations"]
+            locations += [CodedLocation(*lat_lon(id),0.001).code for id in location_ids]
+        else:
+            locations += [CodedLocation(*loc, 0.001).code for loc in load_grid(location_spec)]
+    return locations
+
+
+def main(hazard_model_id, vs30s, location_names, imts, poes, upload=False):
 
     print(S3_REPORT_BUCKET)
-    disagg_filepaths = list(disagg_filepaths)
-    ndisaggs = len(disagg_filepaths)
-
-    # disagg_info_filepath = Path('/home/chrisdc/NSHM/Disaggs/THP_Output/disaggs.json')
 
     if DISAGG_INFO_FILEPATH.exists():
         with DISAGG_INFO_FILEPATH.open() as ojf:
-            old_disaggs = json.load(ojf)
+            disagg_entries_old = json.load(ojf)
     else:
-        old_disaggs = []
+        disagg_entries_old = []
+    
+    locations = get_locations(location_names)
     
     disaggs = []
-    for i, disagg_filepath in enumerate(disagg_filepaths):
+    for vs30, location, imt, poe in itertools.product(
+        vs30s, locations, imts, poes
+    ): 
 
-        print(f'generating report for disagg {i} of {ndisaggs}')
-        bin_filepath = Path(disagg_filepath.parent, 'bins' + disagg_filepath.name[5:]) 
-        model_id = MODEL_ID
-
-        # disagg_filepath = Path(disagg_filepath)
-        j0,j1,j2,j3,j4,j5, latlon, vs30, imt, poe, j6 = disagg_filepath.stem.split('_')
-        lat,lon = latlon.split('~')
-        location_key = [key for key,loc in LOCATIONS_BY_ID.items() if (loc['latitude'] == float(lat)) & (loc['longitude'] == float(lon))]
-        if not location_key:
-            site_name = location_key.replace('~',',') #TODO: this won't work
-            location_key = latlon.replace('~','')
+        poe_string = poe.name.split('_')[1]
+        site_id = location_lookup.get(location)
+        if site_id:
+            site_name = location_by_id(site_id)['name']
         else:
-            location_key = location_key[0]
-            site_name = LOCATIONS_BY_ID[location_key]['name']
+            site_id = location
+            site_name = location
 
-        title = f'{site_name}, Vs30={vs30}m/s, {imt}, {poe}% in 50 years'
+        title = f'{site_name}, Vs30={vs30}m/s, {imt}, {poe_string}% in 50 years'
         imt_tmp = imt.replace('(','').replace(')','').replace('.','')
 
-        report_folder = Path(WORK_PATH, model_id, f'{location_key}-{vs30}-{imt_tmp}-{poe}'.lower())
+        report_folder = Path(WORK_PATH, hazard_model_id, f'{site_id}-{vs30}-{imt_tmp}-{poe_string}'.lower())
 
-        disagg = list_entry(model_id, report_folder, location_key, vs30, imt, poe)
-        if not local and disagg in old_disaggs:
-            print(f'skipping {location_key}-{vs30}-{imt_tmp}-{poe}')
+        disagg_entry = list_entry(hazard_model_id, report_folder, site_id, vs30, imt, poe_string)
+        if upload and disagg_entry in disagg_entries_old:
+            print(f'skipping {site_id}-{vs30}-{imt_tmp}-{poe_string}')
             continue
         
-        print(f'generating report for {location_key}-{vs30}-{imt_tmp}-{poe}')
+        print(f'generating report for {site_id}-{vs30}-{imt_tmp}-{poe_string}')
 
-        if not dry_run:
-            report_folder.mkdir(parents=True, exist_ok=True)
-            drb = DisaggReportBuilder(title, disagg_filepath, bin_filepath, report_folder)
-            drb.run()
+        disagg = next(
+            query.get_disagg_aggregates(
+                [hazard_model_id],
+                [hazard_agg],
+                [hazard_agg],
+                [location],
+                [vs30],
+                [imt],
+                [poe],
+            )
+        )
 
-            if not local:
-                breakpoint()
-                upload_to_bucket(model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
-                disaggs.append(disagg)
+        report_folder.mkdir(parents=True, exist_ok=True)
+        drb = DisaggReportBuilder(title, disagg.shaking_level, disagg.disaggs, disagg.bins, report_folder)
+        drb.run()
 
-    if not dry_run and not local:
-        breakpoint() 
-        disaggs = old_disaggs + disaggs
+        if upload:
+            upload_to_bucket(hazard_model_id, S3_REPORT_BUCKET,root_path=ROOT_PATH, force_upload=True)
+            disaggs.append(disagg_entry)
+
+    if upload:
+        disaggs = disagg_entries_old + disaggs
 
         with DISAGG_INFO_FILEPATH.open(mode='w') as jf: 
             json.dump(disaggs, jf, indent=2)
@@ -90,16 +147,21 @@ def main(disagg_filepaths, dry_run=False, local=False):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="run disagg report generation and upload to S3")
-    parser.add_argument('-d', '--dry-run', action='store_true') 
-    parser.add_argument('-l', '--local', action='store_true', help="don't upload to S3, keep reports on local machine" )
-    args = parser.parse_args()
-
-    # disagg_dir = Path('/home/chrisdc/mnt/glacier/NZSHM-WORKING/PROD/deaggs')
-    disagg_dir = Path('/home/chrisdc/mnt/glacier/NZSHM-WORKING/PROD/deaggs-v1.0.2')
-    disaggs = disagg_dir.glob('deagg*npy')
-    # disaggs = disagg_dir.glob('deagg_SLT_v8_gmm_v2_FINAL_-43.530~172.630_750_SA(0.5)_2_eps-dist-mag-trt.npy')
-
-    main(disaggs, args.dry_run, args.local)
+    upload = False
+    hazard_model_id = 'NSHM_v1.0.4'
+    vs30s = [750]
+    # locations = ["NZ", "srg_164"]
+    locations = ["AKL"]
+    imts = ["SA(5.0)", "SA(10.0)"]
+    poes = [
+        model.ProbabilityEnum._2_PCT_IN_50YRS,
+        model.ProbabilityEnum._5_PCT_IN_50YRS,
+        model.ProbabilityEnum._10_PCT_IN_50YRS,
+        model.ProbabilityEnum._18_PCT_IN_50YRS,
+        model.ProbabilityEnum._39_PCT_IN_50YRS,
+        model.ProbabilityEnum._63_PCT_IN_50YRS,
+        model.ProbabilityEnum._86_PCT_IN_50YRS,
+    ]
+    main(hazard_model_id, vs30s, locations, imts, poes, upload)
 
     

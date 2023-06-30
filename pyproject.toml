@@ -19,14 +19,15 @@ geopandas = "^0.12.2"
 toml = "^0.10.2"
 toshi-hazard-store = "^0.7.2"
 nzshm-runzi = {git = "https://github.com/GNS-Science/nzshm-runzi.git", rev = "feature/148-disagg-error-handling", optional = true}
-openquake-engine = {path = "/home/chrisdc/NSHM/DEV/CALCULATION/oq-engine", optional = true, develop = true}
 xmltodict = "^0.13.0"
+toshi-hazard-post = {path = "/home/chrisdc/NSHM/DEV/CALCULATION/toshi-hazard-post", optional = true}
 
 [tool.poetry.extras]
 ipython = ["ipython", "pyqt5"]
 runzi = ["nzshm-runzi"]
 jupyter = ["notebook"]
 openquake = ["openquake-engine"]
+thp = ["toshi-hazard-post"]
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"

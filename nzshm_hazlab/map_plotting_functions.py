@@ -9,7 +9,10 @@ import geopandas as gp
 from xarray.core.dataarray import DataArray
 from shapely.geometry import Polygon
 
+from nzshm_common.location.location import location_by_id
+
 from nzshm_hazlab.store.levels import get_hazard_at_poe
+from nzshm_hazlab.data_functions import compute_hazard_at_poe
 
 CPT_FILEPATH = Path('/tmp/tmp.cpt')
 
@@ -55,6 +58,7 @@ def plot_map(
         plot_width,
         legend_text,
         region = None,
+        plot_cities=None,
         plot_faults=False
 ):
 
@@ -65,12 +69,33 @@ def plot_map(
         region = "165/180/-48/-34"
 
     fig = pygmt.Figure()
+
+    if grid is None:
+        fig.coast(shorelines = True, water="white", frame = "a", projection=projection, region=region)
+        faults, backarc, hikurangi, puysegur = load_polygons()
+        fig.plot(data=hikurangi,fill="220/220/220",transparency=30,pen="black")
+        fig.plot(data=puysegur,fill="220/220/220",transparency=30,pen="black")
+        fig.plot(data=faults, pen="red")
+        fig.basemap(frame=["a"])
+
+        if plot_cities:
+            names = [location_by_id(city)['name'] for city in plot_cities] 
+            lats = [location_by_id(city)['latitude'] for city in plot_cities] 
+            lons = [location_by_id(city)['longitude'] for city in plot_cities] 
+            lats_txt = [lat + 0.15 for lat in lats]
+            lons_txt = [lon + 0.2 for lon in lons]
+            fig.plot(x=lons, y=lats, style="c0.2c", fill="white", pen="black")
+            fig.text(text=names, x=lons_txt, y=lats_txt, justify="BL", fill="211", font="8p", clearance="20%/20%+tO")
+
+        fig.show()
+        return fig
             
     fig.grdimage(grid=grid, region=region, projection=projection, cmap = '/tmp/tmp.cpt', dpi = dpi, frame = "a")
     # fig.coast(shorelines = True, water="white", region=region, projection=projection, frame = "a")
     fig.coast(shorelines = True, water="white")
     # fig.basemap(frame=["a", f"+t{vs30}m/s {imt} {poe*100:.0f}% in 50 yrs"])
     fig.basemap(frame=["a"])
+
     if plot_faults:
         faults, backarc, hikurangi, puysegur = load_polygons()
         fig.plot(data=hikurangi,fill="220/220/220",transparency=60,pen="black")
@@ -79,9 +104,22 @@ def plot_map(
         # fig.plot(data=backarc, pen="1p,red")
         # filepath = Path(full_dir,f'{hazard_model["id"]}-{vs30}-{imt}-{poe}_faults.{filetype}')
         # filepath = Path(full_dir,f'{hazard_model["id"]}-{vs30}-{imt}-{poe}.{filetype}')
+    
+    if plot_cities:
+        names = [location_by_id(city)['name'] for city in plot_cities] 
+        lats = [location_by_id(city)['latitude'] for city in plot_cities] 
+        lons = [location_by_id(city)['longitude'] for city in plot_cities] 
+        lats_txt = [lat + 0.15 for lat in lats]
+        lons_txt = [lon + 0.2 for lon in lons]
+        fig.plot(x=lons, y=lats, style="c0.2c", fill="white", pen="black")
+        fig.text(text=names, x=lons_txt, y=lats_txt, justify="BL", fill="211", font="8p", clearance="20%/20%+tO")
             
     # fig.colorbar(xshift='40c', yshift='10c', position='+w27c/3c+h', frame=f'af+l"{imt} ({poe*100:.0f}% PoE in 50)"')#,position='+ef')
-    fig.colorbar(frame=f'af+l"{legend_text}"')
+    # fig.colorbar(frame=f'af+l"{legend_text}"')
+    font = f'{int(int(font[:-1])*0.8)}p'
+    font_annot = font
+    pygmt.config(FONT_LABEL=font, FONT_ANNOT_PRIMARY=font_annot)
+    fig.colorbar(frame=f'af+l"{legend_text}"', projection=projection, region=region, position="n0.5/0.07+w4.5c/6%+h+ml")
             
     # fig.savefig(filepath)
     fig.show()
@@ -99,12 +137,14 @@ def plot_hazard_map(
         plot_width,
         legend_text,
         region=None,
+        plot_cities=None,
         plot_faults=False
 ):
 
     clear_cpt()
-    pygmt.makecpt(cmap = colormap, log=True, series=[log10(climits[0]), log10(climits[1]), 0.1], output=str(CPT_FILEPATH))
-    return plot_map(grid, dpi, font, font_annot, plot_width, legend_text, region, plot_faults)
+    if grid is not None:
+        pygmt.makecpt(cmap = colormap, log=True, series=[log10(climits[0]), log10(climits[1]), 0.1], output=str(CPT_FILEPATH))
+    return plot_map(grid, dpi, font, font_annot, plot_width, legend_text, region, plot_cities, plot_faults)
 
 
 def plot_hazard_diff_map(

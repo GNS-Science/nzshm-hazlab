@@ -1,0 +1,59 @@
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true});</script>
+<style>
+    .cluster-label span {
+      display: block;
+      margin-right: 120px;
+      margin-top: 3px;
+    }
+  </style>
+<div class="mermaid">
+    ---
+title: Processing flow diagram
+---
+%%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
+flowchart 
+    classDef node fill: #d6eaf8 , stroke:gray,stroke-width:2px;
+    classDef box fill:white, stroke:black,stroke-width:2px;
+    classDef box2 fill:white, stroke:gray,stroke-width:2px;
+    classDef doc fill:#ffcfc4;
+
+    subgraph K["`**AWS cloud services**`"]
+        direction TB
+        batch[[Batch EC2]]
+        dynamoDB[(DynamoDB)]
+        s3[("AWS S3")]
+        class batch,s3,dynamoDB AWS;
+        classDef AWS fill:  #d5f5e3 , stroke:gray,stroke-width:1px;
+    end
+
+    subgraph J["`**NSHM Services**`"]
+        ths[toshi-hazard-store]
+        tapi[toshi-api] 
+    end        
+
+    %% subgraph P["`**Processing stages**`"]
+        slt[/SRM logic tree/]:::doc
+        
+        subgraph S1["`**Stage 1**`"]
+         roh[runzi-oq_hazard]
+         oq[openquake]
+         roh ==> oq
+         %% style slt fill:cyan
+        end
+        subgraph S2["`**Stage  2**`"]
+         thp[toshi-hazard-post]
+        end
+    %%end
+    %% apply styles to subgraphs
+    class K,J,P box
+    class S1,S2 box2
+
+    %% links
+    slt ==> roh & thp
+    tapi --> dynamoDB & s3
+    ths --> dynamoDB
+    oq -- runs on --> batch
+    roh --> J
+    thp --> J 
+    </div>

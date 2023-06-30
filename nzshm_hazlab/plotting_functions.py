@@ -7,7 +7,7 @@ from nzshm_common.location import CodedLocation
 from nzshm_hazlab.base_functions import period_from_imt, imt_from_period
 from nzshm_hazlab.data_functions import ( 
 
-    calculate_agg,
+    # calculate_agg,
     compute_hazard_at_poe,
     rp_from_poe,
     poe_from_rp,
@@ -187,8 +187,16 @@ def plot_hazard_curve_wunc(hazard_data, location, imt, ax, xlim, ylim, bandw=Fal
     _ = ax.grid(color='lightgray')
 
 
-def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax, 
-                            central='mean',bandw=False, color='b'):
+def plot_spectrum(
+        hazard_data: DataFrame,
+        location: CodedLocation,
+        poe: float,
+        inv_time: float,
+        ax: Axes,
+        central: str='mean',
+        bandw: bool=False,
+        color: str='b'
+):
     #TODO: this is slow!
 
     lat, lon = location.split('~')
@@ -217,6 +225,7 @@ def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax,
             haz = []
             for imt in imts:
                 # vals = calculate_agg(hazard_data,location,imt,quant)
+                breakpoint()
                 vals = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'apoe']
                 lvls = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'level']
                 haz.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
@@ -224,25 +233,28 @@ def plot_spectrum_fromdf(hazard_data, location, poe, inv_time, ax,
         ax.fill_between(periods,hazard['upper1'],hazard['lower1'],alpha = 0.5, color=color)
         ax.plot(periods, hazard['upper2'],color=color,lw=1)
         ax.plot(periods, hazard['lower2'],color=color,lw=1)
-    else:
-        da = 0.01
-        aggs = np.arange(0,1.0+da,da)
-        for i,agg in enumerate(aggs):
-            # alpha = min(1.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)+0.25)
-            # alpha = min(1.0,-(2.0/len(aggs))**2 * (i-len(aggs)/2.0)**2  + 1.2)
-            # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)-0.1)
-            alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0))
-            hazard = []
-            for imt in imts:
-                vals = calculate_agg(hazard_data,location,imt,agg)
-                hazard.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
-            ax.plot(periods,hazard,color=str(alpha),alpha=0.6,lw=1)
+    # else:
+    #     da = 0.01
+    #     aggs = np.arange(0,1.0+da,da)
+    #     for i,agg in enumerate(aggs):
+    #         # alpha = min(1.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)+0.25)
+    #         # alpha = min(1.0,-(2.0/len(aggs))**2 * (i-len(aggs)/2.0)**2  + 1.2)
+    #         # alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0)-0.1)
+    #         alpha = max(0.0,(len(aggs)/2.0 - np.abs(len(aggs)/2.0 - i)) / (len(aggs)/2.0))
+    #         hazard = []
+    #         for imt in imts:
+    #             breakpoint()
+    #             lvls = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'level']
+    #             lvls = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'level']
+    #             # vals = calculate_agg(hazard_data,location,imt,agg)
+    #             hazard.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
+    #         ax.plot(periods,hazard,color=str(alpha),alpha=0.6,lw=1)
 
 
     hazard = []
     for imt in imts:
-        values = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'apoe']
-        levels = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'level']
+        values = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'apoe'].item()
+        levels = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'level'].item()
         hazard.append(compute_hazard_at_poe(levels,values,poe,inv_time))
 
     lh = ax.plot(periods, hazard, color=color, alpha=0.8,lw=2)
@@ -389,95 +401,95 @@ def plot_rfactor_curve(ax,site_list,imt,ref_rps,xlim,ylim,results,mean=False,med
     _ = ax.set_ylabel('Probability of Exceedance')
 
 
-def plot_spectrum(ax,site,rp,results,inv_time,legend_type='site',color='C0',mean=False,median=True,quant=False,show_rlz=True,intensity_type='acc'):
+# def plot_spectrum(ax,site,rp,results,inv_time,legend_type='site',color='C0',mean=False,median=True,quant=False,show_rlz=True,intensity_type='acc'):
     
-    sites = pd.DataFrame(results['metadata']['sites'])
-    imtls = results['metadata'][f'{intensity_type}_imtls']
-    quantiles = results['metadata']['quantiles']
+#     sites = pd.DataFrame(results['metadata']['sites'])
+#     imtls = results['metadata'][f'{intensity_type}_imtls']
+#     quantiles = results['metadata']['quantiles']
     
-    hazard_rps = np.array(results['hazard_design']['hazard_rps'])
-    im_hazard = np.array(results['hazard_design'][intensity_type]['im_hazard'])
-    stats_im_hazard = np.array(results['hazard_design'][intensity_type]['stats_im_hazard'])
+#     hazard_rps = np.array(results['hazard_design']['hazard_rps'])
+#     im_hazard = np.array(results['hazard_design'][intensity_type]['im_hazard'])
+#     stats_im_hazard = np.array(results['hazard_design'][intensity_type]['stats_im_hazard'])
     
-    site_idx = sites.loc[site,'sids']
-    rp_idx = np.where(hazard_rps==rp)[0]
+#     site_idx = sites.loc[site,'sids']
+#     rp_idx = np.where(hazard_rps==rp)[0]
 
-    poe = 1-np.exp(-inv_time/rp)
-    tmp = f'{poe*100:.0f}_in_{inv_time:.0f}'
+#     poe = 1-np.exp(-inv_time/rp)
+#     tmp = f'{poe*100:.0f}_in_{inv_time:.0f}'
 
-    if legend_type=='site':
-        label = site
-        color_m = color
-    elif legend_type=='quant':
-        color_m = 'r'
+#     if legend_type=='site':
+#         label = site
+#         color_m = color
+#     elif legend_type=='quant':
+#         color_m = 'r'
     
-    periods = [period_from_imt(imt) for imt in imtls.keys()]
+#     periods = [period_from_imt(imt) for imt in imtls.keys()]
     
-    if mean:
-        if legend_type == 'quant':
-            label = 'mean'
+#     if mean:
+#         if legend_type == 'quant':
+#             label = 'mean'
 
-        ls = '-'
-        lw = '5'
-        _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,0]),color='k',lw=lw,ls=ls)
-        ls = '-.'
-        lw = 3
-        _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,0]),color=color_m,lw=lw,ls=ls,label=label)
+#         ls = '-'
+#         lw = '5'
+#         _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,0]),color='k',lw=lw,ls=ls)
+#         ls = '-.'
+#         lw = 3
+#         _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,0]),color=color_m,lw=lw,ls=ls,label=label)
 
-    if median:
-        if legend_type == 'quant':
-            label = 'median (p50)'
+#     if median:
+#         if legend_type == 'quant':
+#             label = 'median (p50)'
 
-        q_idx = quantiles.index(0.5)+1
-        ls = '-'
-        lw = 5
-        _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color='k',lw=lw,ls=ls)
-        ls = '-'
-        lw = 3
-        _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color=color_m,lw=lw,ls=ls,label=label)
+#         q_idx = quantiles.index(0.5)+1
+#         ls = '-'
+#         lw = 5
+#         _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color='k',lw=lw,ls=ls)
+#         ls = '-'
+#         lw = 3
+#         _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color=color_m,lw=lw,ls=ls,label=label)
 
-    if quant:
-            if legend_type == 'quant':
-                label10 = 'p10'
-                label90 = 'p90'
-            elif legend_type == 'site':
-                label10 = ''
-                label90 = ''
+#     if quant:
+#             if legend_type == 'quant':
+#                 label10 = 'p10'
+#                 label90 = 'p90'
+#             elif legend_type == 'site':
+#                 label10 = ''
+#                 label90 = ''
 
-            ls = '--'
-            lw = 2
+#             ls = '--'
+#             lw = 2
 
-            q_idx = quantiles.index(0.1)+1
-            _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color=color_m,lw=lw,ls=ls,label=label10)
-            q_idx = quantiles.index(0.9)+1
-            _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color=color_m,lw=lw,ls=ls,label=label90)
+#             q_idx = quantiles.index(0.1)+1
+#             _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color=color_m,lw=lw,ls=ls,label=label10)
+#             q_idx = quantiles.index(0.9)+1
+#             _ = ax.plot(periods,np.squeeze(stats_im_hazard[site_idx,:,rp_idx,q_idx]),color=color_m,lw=lw,ls=ls,label=label90)
 
-    if show_rlz:
-        lw = 1
-        alpha = 0.25
-        [_,n_imts,n_rps,n_rlz,_] = im_hazard.shape
-        segs = np.zeros([n_rlz, n_imts, 2])
-        segs[:, :, 0] = periods
-        segs[:, :, 1] = np.transpose(np.squeeze(im_hazard[site_idx,:,rp_idx,:,0]))
-        line_segments = LineCollection(segs, color=color, alpha=alpha, lw=lw)
-        _ = ax.add_collection(line_segments)
+#     if show_rlz:
+#         lw = 1
+#         alpha = 0.25
+#         [_,n_imts,n_rps,n_rlz,_] = im_hazard.shape
+#         segs = np.zeros([n_rlz, n_imts, 2])
+#         segs[:, :, 0] = periods
+#         segs[:, :, 1] = np.transpose(np.squeeze(im_hazard[site_idx,:,rp_idx,:,0]))
+#         line_segments = LineCollection(segs, color=color, alpha=alpha, lw=lw)
+#         _ = ax.add_collection(line_segments)
 
-    if mean or median:
-        _ = ax.legend(handlelength=2)
+#     if mean or median:
+#         _ = ax.legend(handlelength=2)
     
-    _ = ax.grid(color='lightgray')
+#     _ = ax.grid(color='lightgray')
         
-    _ = ax.set_xlabel('Period [s]')
-    if intensity_type=='acc':
-        _ = ax.set_ylabel('Shaking Intensity [g]')
-    elif intensity_type=='disp':
-        _ = ax.set_ylabel('Displacement [m]')
+#     _ = ax.set_xlabel('Period [s]')
+#     if intensity_type=='acc':
+#         _ = ax.set_ylabel('Shaking Intensity [g]')
+#     elif intensity_type=='disp':
+#         _ = ax.set_ylabel('Displacement [m]')
 
-    xlim = [0, max(periods)]
-    ylim = ax.get_ylim()
-    ylim = [0, ylim[1]]
-    _ = ax.set_ylim(ylim)
-    _ = ax.set_xlim(xlim)
+#     xlim = [0, max(periods)]
+#     ylim = ax.get_ylim()
+#     ylim = [0, ylim[1]]
+#     _ = ax.set_ylim(ylim)
+#     _ = ax.set_xlim(xlim)
 
 
 def retrieve_design_intensities(results,intensity_type,design_type,imt,rp=500):
