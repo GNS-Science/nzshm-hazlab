@@ -174,7 +174,7 @@ def plot_hazard_sens(hazard_sens, hazard_model_groups, ax, imt, imtl, metric, xl
 
 if __name__ == "__main__":
 
-    reload_data = False
+    reload_data = True
 
     vs30 = 400
     # location_names = ["NZ", "NZ_0_1_NB_1_1_intersect_NZ_0_2_NB_1_1"]

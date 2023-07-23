@@ -2,6 +2,7 @@
   .cluster-label span {
     display: block;
     margin-right: 120px;
+    margin-left: 10px;
     margin-top: 1px;
   }
 </style>
@@ -34,7 +35,7 @@ flowchart
         slt[/SRM logic tree/]:::doc
         
         subgraph S1["`**Stage 1**`"]
-         roh[runzi-oq_hazard]
+         roh[runzi]
          oq[openquake]
          roh ==> oq
          %% style slt fill:cyan
@@ -52,6 +53,6 @@ flowchart
     tapi --> dynamoDB & s3
     ths --> dynamoDB
     oq -- runs on --> batch
-    roh --> J
-    thp --> J 
+    roh ---> J
+    thp ---> J 
 ```
