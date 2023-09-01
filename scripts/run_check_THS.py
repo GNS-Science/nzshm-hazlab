@@ -8,42 +8,9 @@ from nzshm_common.location.location import location_by_id, LOCATION_LISTS
 from nzshm_common.location.code_location import CodedLocation
 from nzshm_common.grids.region_grid import load_grid
 
+from nzshm_hazlab.locations import get_locations
+
 HazardEntry = namedtuple("HazardEntry", "hazard_id location vs30 imt agg")
-
-def lat_lon(id):
-    return (location_by_id(id)['latitude'], location_by_id(id)['longitude'])
-
-
-def get_locations(location_names: List[str]) -> List[str]:
-
-    locations: List[Tuple[float, float]] = []
-    for location_spec in location_names:
-        if '~' in location_spec:
-            locations.append(location_spec)
-        elif '_intersect_' in location_spec:
-            spec0, spec1 = location_spec.split('_intersect_')
-            loc0 = set(load_grid(spec0))
-            loc1 = set(load_grid(spec1))
-            loc01 = list(loc0.intersection(loc1))
-            loc01.sort()
-            locations += [CodedLocation(*loc, 0.001).code for loc in loc01]
-        elif '_diff_' in location_spec:
-            spec0, spec1 = location_spec.split('_diff_')
-            loc0 = set(load_grid(spec0))
-            loc1 = set(load_grid(spec1))
-            loc01 = list(loc0.difference(loc1))
-            loc01.sort()
-            locations += [CodedLocation(*loc, 0.001).code for loc in loc01]
-        elif location_by_id(location_spec):
-            locations.append(
-                CodedLocation(*lat_lon(location_spec), 0.001).code
-                )
-        elif LOCATION_LISTS.get(location_spec):
-            location_ids = LOCATION_LISTS[location_spec]["locations"]
-            locations += [CodedLocation(*lat_lon(id),0.001).code for id in location_ids]
-        else:
-            locations += [CodedLocation(*loc, 0.001).code for loc in load_grid(location_spec)]
-    return locations
 
 def check_db(hazard_ids, vs30s, locations, imts, aggs):
 

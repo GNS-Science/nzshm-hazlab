@@ -127,27 +127,25 @@ def get_hazard(
 
     index = range(len(locs) * nimts * naggs)
     hazard_curves = pd.DataFrame({c: pd.Series(dtype=t) for c, t in DTYPE.items()}, index=index)
-    ind = 0
     total_records = len(locs) * len(imts) * len(aggs)
     print(f'retrieving {total_records} records from THS')
     print_step = math.ceil(total_records / 10) 
     # for i,res in enumerate(toshi_hazard_store.query_v3.get_hazard_curves(loc_strs, [vs30], [hazard_id], imts, aggs)):
     tic = time.perf_counter()
-    for loc_chunks in chunks(loc_strs, chunk_size):
-        for res in query.get_hazard_curves(loc_chunks, [vs30], [hazard_id], imts, aggs):
-            if ind%print_step == 0:
-                toc = time.perf_counter()
-                print(f'retrieved {ind / total_records * 100:.0f}% of records from THS in {toc-tic:.1f} seconds') 
-                tic = time.perf_counter()
-            lat = f'{res.lat:0.3f}'
-            lon = f'{res.lon:0.3f}'
-            hazard_curves.loc[ind,'lat'] = lat
-            hazard_curves.loc[ind,'lon'] = lon
-            hazard_curves.loc[ind,'imt'] = res.imt
-            hazard_curves.loc[ind,'agg'] = res.agg
-            hazard_curves.loc[ind,'level'] = np.array([float(item.lvl) for item in res.values])
-            hazard_curves.loc[ind,'apoe'] = np.array([float(item.val) for item in res.values])
-            ind += 1
+    # for loc_chunks in chunks(loc_strs, chunk_size):
+    for i, res in enumerate(query.get_hazard_curves(loc_strs, [vs30], [hazard_id], imts, aggs)):
+        if i%print_step == 0:
+            toc = time.perf_counter()
+            print(f'retrieved {i / total_records * 100:.0f}% of records from THS in {toc-tic:.1f} seconds') 
+            tic = time.perf_counter()
+        lat = f'{res.lat:0.3f}'
+        lon = f'{res.lon:0.3f}'
+        hazard_curves.loc[i,'lat'] = lat
+        hazard_curves.loc[i,'lon'] = lon
+        hazard_curves.loc[i,'imt'] = res.imt
+        hazard_curves.loc[i,'agg'] = res.agg
+        hazard_curves.loc[i,'level'] = np.array([float(item.lvl) for item in res.values])
+        hazard_curves.loc[i,'apoe'] = np.array([float(item.val) for item in res.values])
 
     return hazard_curves
 

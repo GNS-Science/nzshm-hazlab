@@ -13,6 +13,8 @@ from runzi.automation.scaling.local_config import (WORK_PATH, API_KEY, API_URL, 
 from runzi.util.aws.s3_folder_upload import upload_to_bucket
 from toshi_hazard_store import model, query
 
+from nzshm_hazlab.locations import get_locations, lat_lon
+
 ROOT_PATH = 'openquake/DATA'
 DISAGG_INFO_FILEPATH = Path(os.environ['NZSHM22_DISAGG_REPORT_LIST'])
 hazard_agg = model.AggregationEnum.MEAN
@@ -30,55 +32,7 @@ def list_entry(model_id, report_folder, location_key, vs30, imt, poe):
         )
 
 
-def lat_lon(id):
-    return (location_by_id(id)['latitude'], location_by_id(id)['longitude'])
-
 location_lookup = {CodedLocation(*lat_lon(lid), 0.001).code: lid for lid in LOCATIONS_BY_ID.keys()}
-
-def get_locations(location_names: List[str]) -> List[str]:
-    """Get list of locations.
-
-    Parameters
-    ----------
-    config : AggregationConfig
-        job configuration
-
-    Returns
-    -------
-    locations : List[(float,float)]
-        list of (latitude, longitude)
-    """
-
-
-    locations: List[Tuple[float, float]] = []
-    for location_spec in location_names:
-        if '~' in location_spec:
-            locations.append(location_spec)
-        elif '_intersect_' in location_spec:
-            spec0, spec1 = location_spec.split('_intersect_')
-            loc0 = set(load_grid(spec0))
-            loc1 = set(load_grid(spec1))
-            loc01 = list(loc0.intersection(loc1))
-            loc01.sort()
-            locations += [CodedLocation(*loc, 0.001).code for loc in loc01]
-        elif '_diff_' in location_spec:
-            spec0, spec1 = location_spec.split('_diff_')
-            loc0 = set(load_grid(spec0))
-            loc1 = set(load_grid(spec1))
-            loc01 = list(loc0.difference(loc1))
-            loc01.sort()
-            locations += [CodedLocation(*loc, 0.001).code for loc in loc01]
-        elif location_by_id(location_spec):
-            locations.append(
-                CodedLocation(*lat_lon(location_spec), 0.001).code
-                )
-        elif LOCATION_LISTS.get(location_spec):
-            location_ids = LOCATION_LISTS[location_spec]["locations"]
-            locations += [CodedLocation(*lat_lon(id),0.001).code for id in location_ids]
-        else:
-            locations += [CodedLocation(*loc, 0.001).code for loc in load_grid(location_spec)]
-    return locations
-
 
 def main(hazard_model_id, vs30s, location_names, imts, poes, upload=False):
 
@@ -149,10 +103,10 @@ if __name__ == "__main__":
 
     upload = False
     hazard_model_id = 'NSHM_v1.0.4'
-    vs30s = [750]
+    vs30s = [1000]
     # locations = ["NZ", "srg_164"]
-    locations = ["AKL"]
-    imts = ["SA(5.0)", "SA(10.0)"]
+    locations = ["-45.400~170.400"]
+    imts = ['PGA', "SA(0.2)", "SA(0.5)", "SA(1.5)", "SA(3.0)"]
     poes = [
         model.ProbabilityEnum._2_PCT_IN_50YRS,
         model.ProbabilityEnum._5_PCT_IN_50YRS,

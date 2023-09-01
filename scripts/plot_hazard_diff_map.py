@@ -28,9 +28,11 @@ hazard_model1 = dict(id='NSHM_2010',name='2010')
 hazard_model2 = dict(id='NSHM_v1.0.4',name='v1.0.4')
 vs30 = 250
 # imt =  'SA(5.0)' # 'PGA' # 'SA(5.0)' # 'SA(3.0)' 'SA(1.0)'
-imts = ['PGA', 'SA(0.5)', 'SA(1.0)', 'SA(3.0)']
+# imts = ['PGA', 'SA(0.5)', 'SA(1.0)', 'SA(3.0)']
+imts = ['PGA']
 agg = 'mean'
-poes = [0.02, 0.1]
+# poes = [0.02, 0.1]
+poes = [0.1]
 
 # DIFFERRENCE PARAMETERS
 diff_type = 'ratio' #'sub' 
@@ -42,6 +44,12 @@ diff_type = 'ratio' #'sub'
 # climits = [0.95,1.05]
 climits = [0.5, 5.0]
 plot_faults = False
+# contours = {'interval': 0.2, 'annotation': "0.2+f8p+v"}
+contours = {'interval': 0.2, 'annotation': "0.2+f5p", 'label_placement':"d1.5c"}
+
+# tics = ','.join([f'{0.1*x:0.1f}' for x in range(5,51)])
+# contours = {'interval': tics,
+            # 'annotation': tics + "+f8p+v"}
 region = "165/180/-48/-34"
 ## region = "173/177/-43/-39"
 plot_width = 10
@@ -75,7 +83,7 @@ for imt in imts:
             legend_text = f'{imt} ({poe*100:.0f}% PoE in 50 years) - difference in g'
         elif diff_type == 'ratio':
             legend_text = f'{imt} ({poe*100:.0f}% PoE in 50 years) - ratio'
-        fig = plot_hazard_diff_map(grids['model1'], grids['model2'],diff_type, dpi, climits, font, font_annot, plot_width, legend_text, region, plot_faults=plot_faults)
+        fig = plot_hazard_diff_map(grids['model1'], grids['model2'],diff_type, dpi, climits, font, font_annot, plot_width, legend_text, region, plot_faults=plot_faults, contours=contours)
         # fig.savefig(str(filepath))
 
                     

@@ -59,10 +59,12 @@ def plot_map(
         legend_text,
         region = None,
         plot_cities=None,
-        plot_faults=False
+        plot_faults=False,
+        contours=None,
 ):
 
     pygmt.config(FONT_LABEL=font, FONT_ANNOT_PRIMARY=font_annot)
+    # pygmt.config()
 
     projection = f'M{plot_width}c'
     if not region:
@@ -91,6 +93,8 @@ def plot_map(
         return fig
             
     fig.grdimage(grid=grid, region=region, projection=projection, cmap = '/tmp/tmp.cpt', dpi = dpi, frame = "a")
+    if contours:
+        fig.grdcontour(grid=grid, annotation=contours['annotation'], interval=contours['interval'], label_placement=contours['label_placement'])
     # fig.coast(shorelines = True, water="white", region=region, projection=projection, frame = "a")
     fig.coast(shorelines = True, water="white")
     # fig.basemap(frame=["a", f"+t{vs30}m/s {imt} {poe*100:.0f}% in 50 yrs"])
@@ -158,7 +162,8 @@ def plot_hazard_diff_map(
         plot_width,
         legend_text,
         region=None,
-        plot_faults=False
+        plot_faults=False,
+        contours=None,
 ):
 
 
@@ -176,5 +181,5 @@ def plot_hazard_diff_map(
     else:
         raise Exception('diff type %s not recognized' % diff_type)
 
-    return plot_map(dgrid, dpi, font, font_annot, plot_width, legend_text, region, plot_faults)  
+    return plot_map(dgrid, dpi, font, font_annot, plot_width, legend_text, region, plot_faults, contours=contours)  
     

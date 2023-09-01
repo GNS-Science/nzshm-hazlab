@@ -9,26 +9,28 @@ from toshi_hazard_store import model, query
 
 hazard_model_id = 'NSHM_v1.0.4'
 loc_key = 'AKL'
-imt = 'PGA'
+imt = 'SA(0.5)'
 vs30 = 400
 poe = model.ProbabilityEnum._10_PCT_IN_50YRS
 hazard_agg = model.AggregationEnum.MEAN
 xlim = (5, 10)
-ylim = (0, 120)
+ylim = (0, 350)
 xlim = None
 ylim = None
 title = f"{location_by_id(loc_key)['name']}, {imt}, {poe.name.split('_')[1]}% in 50 years, $V_{{s30}}$={vs30}m/s"
+# title = ""
 
 location = CodedLocation(location_by_id(loc_key)['latitude'], location_by_id(loc_key)['longitude'], 0.001).code
+# location = "-45.400~170.400"
 
 disagg = next(query.get_disagg_aggregates([hazard_model_id],[hazard_agg],[hazard_agg],[location],[vs30],[imt],[poe]))
 
-# fig, ax = plt.subplots(1,1)
-# fig.set_size_inches(8,6)    
-# fig.set_facecolor('white')
+fig, ax = plt.subplots(1,1)
+fig.set_size_inches(8,6)    
+fig.set_facecolor('white')
 
-# dpf.plot_mag_dist_2d(fig, ax, disagg.disaggs, disagg.bins, xlim, ylim)
-# ax.set_title(title)
+dpf.plot_mag_dist_2d(fig, ax, disagg.disaggs, disagg.bins, xlim, ylim)
+ax.set_title(title)
 
 # fig, ax = plt.subplots(2,3)
 fig = plt.figure()

@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{include = "nzshm_hazlab"}]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.9,<3.13"
 matplotlib = "^3.6.2"
 ipython = {version = "^8.7.0", optional = true}
 pyqt5 = {version = "^5.15.7", optional = true}
@@ -17,10 +17,9 @@ pygmt = "^0.8.0"
 notebook = {version = "^6.5.3", optional = true}
 geopandas = "^0.12.2"
 toml = "^0.10.2"
-toshi-hazard-store = "^0.7.2"
 nzshm-runzi = {git = "https://github.com/GNS-Science/nzshm-runzi.git", rev = "feature/148-disagg-error-handling", optional = true}
 xmltodict = "^0.13.0"
-toshi-hazard-post = {path = "/home/chrisdc/NSHM/DEV/CALCULATION/toshi-hazard-post", optional = true}
+toshi-hazard-store = "^0.7.5"
 
 [tool.poetry.extras]
 ipython = ["ipython", "pyqt5"]

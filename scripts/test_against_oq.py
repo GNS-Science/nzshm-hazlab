@@ -13,7 +13,7 @@ PLOT_HEIGHT = 8.625
 fonts_axis_label = 14 
 fonts_title = 12
 
-xlim = [1e-2,5]
+xlim = [1e-4,5]
 xlim_res = [1e-4,5]
 ylim = [1e-6,1]
 # ylim_res = [-1, 1]
@@ -28,26 +28,30 @@ def read_csv(csv_path, location):
         reader = csv.reader(csvfile)
         junk = next(reader)
         header = next(reader)
-        levels_OQ = np.array([float(l[4:]) for l in header[4:]])
+        levels_OQ = np.array([float(l[4:]) for l in header[3:]])
         for row in reader:
-            longitude = float(row[1])
-            latitude = float(row[2])
+            longitude = float(row[0])
+            latitude = float(row[1])
             if (longitude==lon) & (latitude==lat):
-                hazard_OQ = np.array(list(map(float,row[4:]) ))
-
+                hazard_OQ = np.array(list(map(float,row[3:]) ))
     return levels_OQ, hazard_OQ
 
-def load_oq_hazard(oq_output_path, location):
-    oq_hazard_mean_filepath = Path(oq_output_path, 'hazard_curve-mean-PGA_13.csv')
-    oq_hazard_10_filepath = Path(oq_output_path, 'quantile_curve-0.1-PGA_13.csv')
-    oq_hazard_90_filepath = Path(oq_output_path, 'quantile_curve-0.9-PGA_13.csv')
+def load_oq_hazard(oq_output_path, location, imt):
+    oq_id = sorted(Path(oq_output_path).glob("*csv"))[0].name.split('_')[-1][0:-4]
+
+    oq_hazard_mean_filepath = Path(oq_output_path, f'hazard_curve-mean-{imt}_{oq_id}.csv')
+    oq_hazard_10_filepath = Path(oq_output_path, f'quantile_curve-0.1-{imt}_{oq_id}.csv')
+    oq_hazard_50_filepath = Path(oq_output_path, f'quantile_curve-0.5-{imt}_{oq_id}.csv')
+    oq_hazard_90_filepath = Path(oq_output_path, f'quantile_curve-0.9-{imt}_{oq_id}.csv')
     levels_OQ, hazard_OQ_mean = read_csv(oq_hazard_mean_filepath, location)
     junk, hazard_OQ_10 = read_csv(oq_hazard_10_filepath, location)
+    junk, hazard_OQ_50 = read_csv(oq_hazard_50_filepath, location)
     junk, hazard_OQ_90 = read_csv(oq_hazard_90_filepath, location)
     oq_hazard = {
         'levels': levels_OQ,
         'mean': hazard_OQ_mean,
         '0.1': hazard_OQ_10,
+        '0.5': hazard_OQ_50,
         '0.9': hazard_OQ_90,
     }
     return oq_hazard
@@ -57,25 +61,27 @@ def load_ths_hazard(model_id, location, vs30, imt, aggs):
     levels_THS = hazard_THS[hazard_THS['agg'] == 'mean']['level'].iloc[0]
     hazard_THS_mean = hazard_THS[hazard_THS['agg'] == 'mean']['apoe'].iloc[0]
     hazard_THS_10 = hazard_THS[hazard_THS['agg'] == '0.1']['apoe'].iloc[0]
+    hazard_THS_50 = hazard_THS[hazard_THS['agg'] == '0.5']['apoe'].iloc[0]
     hazard_THS_90 = hazard_THS[hazard_THS['agg'] == '0.9']['apoe'].iloc[0]
 
     ths_hazard = { 
         'levels': levels_THS,
         'mean': hazard_THS_mean,
         '0.1': hazard_THS_10,
+        '0.5': hazard_THS_50,
         '0.9': hazard_THS_90,
     }
 
     return ths_hazard
 
-def plot_hcurves(fig, ax, ths_hazard, oq_hazard, location_name, labels):
+def plot_hcurves(fig, ax, ths_hazard, oq_hazard, location_name, labels, legend=False):
 
     fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
     fig.set_facecolor('white')
     # ax.plot(oq_hazard['levels'], oq_hazard['mean'], lw=7, color=color_oq, label='OpenQuake')
     # breakpoint()
-    ax.plot(ths_hazard['levels'], ths_hazard['mean'], lw=4, color=color_ths, label='This Study (THS)')
-    ax.plot(oq_hazard['levels'], oq_hazard['mean'], lw=6, linestyle='--', color=color_oq, label='OpenQuake')
+    ax.plot(ths_hazard['levels'], ths_hazard['mean'], lw=4, color=color_ths, label='New')
+    ax.plot(oq_hazard['levels'], oq_hazard['mean'], lw=6, linestyle='--', color=color_oq, label='Traditional')
 
     ax.plot(ths_hazard['levels'], ths_hazard['0.1'], lw=2, color=color_ths)
     ax.plot(oq_hazard['levels'], oq_hazard['0.1'], linestyle='--', lw=4, color=color_oq)
@@ -88,7 +94,9 @@ def plot_hcurves(fig, ax, ths_hazard, oq_hazard, location_name, labels):
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
     ax.grid(color='lightgray')
-    ax.legend(handlelength=5)
+
+    if legend:
+        ax.legend(handlelength=5)
 
     if labels:
         ax.set_xlabel('Shaking Intensity, %s [g]'%imt, fontsize=fonts_axis_label)
@@ -126,7 +134,7 @@ def plot_residuals(fig, ax, levels, residuals, title, label, labels):
     ax.plot(levels, residuals, linestyle='none', marker='o', markersize = 7, label=label)
     if labels:
         ax.set_xlabel('Shaking Intensity, %s [g]'%imt, fontsize=fonts_axis_label)
-        ax.set_ylabel('apoe ratio [OQ / THS]', fontsize=fonts_axis_label)
+        ax.set_ylabel('APOE ratio [traditional / new]', fontsize=fonts_axis_label)
     ax.grid(color='lightgray')
     ax.set_title(title, fontsize=fonts_title, loc='left')
 
@@ -142,16 +150,16 @@ def plot_residuals(fig, ax, levels, residuals, title, label, labels):
 # ██      ██ ██   ██ ██ ██   ████ 
 
 location_ids = ['AKL', 'WLG', 'CHC', 'DUD']
-model_id = 'TEST_AGAINST_OQ'
+model_id = 'TEST_AGAINST_OQ_V2'
 vs30 = 400
 # lon = 174.78
 # lat = -41.3
-imt = 'PGA'
-aggs = ['0.1', 'mean', '0.9']
+imt = 'SA(0.5)'
+aggs = ['0.1', 'mean', '0.5', '0.9']
 color_oq = 'tab:blue'
 color_ths = 'tab:orange'
 
-oq_output_path = Path("/home/chrisdc/NSHM/oqruns/Test_Against_OQ/output")
+oq_output_path = Path("/home/chrisdc/NSHM/oqruns/Test_Against_OQ_v2/output_userates")
 
 ths_hazard = {}
 oq_hazard = {}
@@ -161,17 +169,20 @@ for c, location_id in enumerate(location_ids):
     j = int(c/2)
     location = CodedLocation(*lat_lon(location_id), 0.001)
     ths_hazard[location_id] = load_ths_hazard(model_id, location, vs30, imt, aggs)
-    oq_hazard[location_id] = load_oq_hazard(oq_output_path, location)
+    oq_hazard[location_id] = load_oq_hazard(oq_output_path, location, imt)
 
     # labels = True if (i==1) & (j==0) else False
     labels = False
-    plot_hcurves(fig, ax[i,j], ths_hazard=ths_hazard[location_id], oq_hazard=oq_hazard[location_id], location_name=location_by_id(location_id)['name'], labels=labels)
+    legend = True if c==0 else False
+    plot_hcurves(fig, ax[i,j], ths_hazard=ths_hazard[location_id],
+                 oq_hazard=oq_hazard[location_id],
+                 location_name=location_by_id(location_id)['name'],
+                 labels=labels, legend=legend)
 fig.supxlabel(f'Shaking Intensity, %s [g]'%imt, fontsize=fonts_axis_label)
 fig.supylabel('Annual Probability of Exceedance', fontsize=fonts_axis_label)
 
 
 fig, ax = plt.subplots(2,2)
-# aggs = ['mean', '0.1', '0.9']
 aggs = ['mean']
 oq_hazard_ = {'AKL': oq_hazard['AKL']}
 for c, k in enumerate(oq_hazard.keys()):
@@ -187,7 +198,7 @@ for c, k in enumerate(oq_hazard.keys()):
         label = agg
         plot_residuals(fig, ax[i,j], levels=residuals['levels'], residuals=residuals['residuals'], title=title, label=label, labels=labels)
 fig.supxlabel('Shaking Intensity, %s [g]'%imt, fontsize=fonts_axis_label)
-fig.supylabel('apoe ratio [OQ / THS]', fontsize=fonts_axis_label)
+fig.supylabel('APOE ratio [traditional / new]', fontsize=fonts_axis_label)
 # ax.set_title('Probability Residuals')
 # ax.legend()
 plt.show()
