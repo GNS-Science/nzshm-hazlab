@@ -44,7 +44,7 @@ def main(hazard_model_id, vs30s, location_names, imts, poes, upload=False):
     else:
         disagg_entries_old = []
     
-    locations = get_locations(location_names)
+    locations = [loc.code for loc in get_locations(location_names)]
     
     disaggs = []
     for vs30, location, imt, poe in itertools.product(
@@ -101,12 +101,15 @@ def main(hazard_model_id, vs30s, location_names, imts, poes, upload=False):
 
 if __name__ == "__main__":
 
-    upload = False
+    upload = True
     hazard_model_id = 'NSHM_v1.0.4'
-    vs30s = [1000]
+    vs30s = [275]
     # locations = ["NZ", "srg_164"]
-    locations = ["-45.400~170.400"]
-    imts = ['PGA', "SA(0.2)", "SA(0.5)", "SA(1.5)", "SA(3.0)"]
+    # locations = ["-45.400~170.400"]
+    locations = ["srg_182", "srg_185"]
+
+    # imts = ['PGA', "SA(0.2)", "SA(0.5)", "SA(1.5)", "SA(3.0)"]
+    imts = ["PGA"]
     poes = [
         model.ProbabilityEnum._2_PCT_IN_50YRS,
         model.ProbabilityEnum._5_PCT_IN_50YRS,

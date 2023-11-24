@@ -22,12 +22,17 @@ filetype = 'pdf'
 plot_width = 10
 font_size = 10 #12 
 plot_faults = True
+plot_trenches = True
 colormap = 'inferno' # 'viridis', 'jet', 'plasma', 'imola', 'hawaii'
 ## region = None
-region = "165/180/-50/-34"
+# region = "165/180/-48/-34"
+region = "163/190/-50/-22"
 fig_dir = Path('/home/chrisdc/Documents/My Papers/2022_NSHM_NZ_Overview')
 # cities = ["AKL", "WLG", "CHC", "srg_164", "DUD"]
-cities = ["AKL", "HLZ", "NPL", "WLG", "NPE", "CHC", "DUD", "TEU"]
+# cities = ["AKL", "HLZ", "NPL", "WLG", "NPE", "CHC", "DUD", "TEU"]
+cities = []
+# text = {"text":"a)", "x":165.5, "y":-33.5}
+text = None
 # cities = [loc for loc in LOCATION_LISTS['NZ']['locations']]
 # cities = []
 
@@ -48,5 +53,5 @@ for vs30, imt, poe in itertools.product(vs30s, imts, poes):
 
     legend_text = f'{imt} ({poe*100:.0f}% PoE in 50 years)'
     fig = plot_hazard_map(grid, colormap, dpi, climits, font, font_annot, plot_width, legend_text,
-                          region, plot_cities=cities, plot_faults=plot_faults)
+                          region, plot_cities=cities, plot_faults=plot_faults, plot_trenches=plot_trenches, text=text)
     # fig.savefig(str(filename))

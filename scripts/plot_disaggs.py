@@ -8,10 +8,11 @@ from toshi_hazard_store import model, query
 
 
 hazard_model_id = 'NSHM_v1.0.4'
-loc_key = 'AKL'
-imt = 'SA(0.5)'
-vs30 = 400
-poe = model.ProbabilityEnum._10_PCT_IN_50YRS
+loc_key = 'srg_182'
+# loc_key = 'srg_163'
+imt = 'PGA'
+vs30 = 275
+poe = model.ProbabilityEnum._2_PCT_IN_50YRS
 hazard_agg = model.AggregationEnum.MEAN
 xlim = (5, 10)
 ylim = (0, 350)

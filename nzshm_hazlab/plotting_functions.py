@@ -256,6 +256,8 @@ def plot_spectrum(
         values = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'apoe'].item()
         levels = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == central),'level'].item()
         hazard.append(compute_hazard_at_poe(levels,values,poe,inv_time))
+    print(periods)
+    print(hazard)
 
     lh = ax.plot(periods, hazard, color=color, alpha=0.8,lw=2)
     lh = lh[0]

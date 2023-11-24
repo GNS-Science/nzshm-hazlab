@@ -15,11 +15,11 @@ pyqt5 = {version = "^5.15.7", optional = true}
 markdown = "^3.4.1"
 pygmt = "^0.8.0"
 notebook = {version = "^6.5.3", optional = true}
-geopandas = "^0.12.2"
 toml = "^0.10.2"
-nzshm-runzi = {git = "https://github.com/GNS-Science/nzshm-runzi.git", rev = "feature/148-disagg-error-handling", optional = true}
 xmltodict = "^0.13.0"
 toshi-hazard-store = "^0.7.5"
+pandas = "1.5.2"
+solvis = {git = "https://github.com/GNS-Science/solvis.git", rev = "fix/rates"}
 
 [tool.poetry.extras]
 ipython = ["ipython", "pyqt5"]

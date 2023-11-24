@@ -12,31 +12,13 @@ from nzshm_hazlab.data_functions import compute_hazard_at_poe
 from nzshm_hazlab.base_functions import period_from_imt, imt_from_period
 
 
-location_list = ["TP"]
+location_list = ["-42.311~172.218"]
 locations = get_locations(location_list)
 hazard_model_id = "NSHM_v1.0.4"
-vs30s = [
-    250,
-    150,
-    175,
-    200,
-    225,
-    275,
-    300,
-    350,
-    375,
-    400,
-    450,
-    500,
-    600,
-    750,
-    900,
-    1000,
-    1500,
-]
+vs30s = [ 1000 ]
 imts = ['PGA', 'SA(0.1)', 'SA(0.2)', 'SA(0.3)', 'SA(0.4)', 'SA(0.5)', 'SA(0.7)',
         'SA(1.0)', 'SA(1.5)', 'SA(2.0)', 'SA(3.0)', 'SA(4.0)', 'SA(5.0)', 'SA(6.0)','SA(7.5)', 'SA(10.0)']
-aggs = ["0.05", "0.1", "mean", "0.9", "0.95"]
+aggs = ["mean", "0.005", "0.01", "0.025", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "0.95", "0.975", "0.99", "0.995"]
 poes = [0.02, 0.1]
 INV_TIME = 50
 DTYPE = {'lat':'str', 'lon':'str', 'poe': 'str', 'agg':'str', 'imt':'str', 'acc':'str'}

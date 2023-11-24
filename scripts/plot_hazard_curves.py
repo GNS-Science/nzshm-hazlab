@@ -62,25 +62,28 @@ def ref_lines(poes):
 
 
 
-fig_dir = Path('/home/chrisdc/NSHM/oqresults/v1.0.3')
+fig_dir = Path('/home/chrisdc/NSHM/oqresults/min_mag')
 
-# error_bounds = {'lower2':'0.01','lower1':'0.1','upper1':'0.9','upper2':'0.99'}
-error_bounds = {}
+error_bounds = {'lower2':'0.01','lower1':'0.1','upper1':'0.9','upper2':'0.99'}
+# error_bounds = {}
 aggs = list(error_bounds.values()) + ['mean']
 
 hazard_models = [
     # dict(id='NSHM_v1.0.4_ST_crubhi_iso', name='CRU b high'),
     # dict(id='NSHM_v1.0.4_ST_geologic_iso', name='Geologic'),
     # dict(id='NSHM_v1.0.4_ST_geodetic_iso', name='Geodetic'),
-    dict(id='NSHM_v1.0.4', name='NSHM v1.0.4'),
+    dict(id='NSHM_v1.0.4', name='NZSHM v1.0.4'),
 ]
 
-location_codes = ["TP"]
-locations = get_locations(location_codes)[0:1] + get_locations(["-44.3~170.8"])
+# location_codes = ["TP"]
+# locations = get_locations(location_codes)[0:1] + get_locations(["-44.3~170.8"])
+location_codes = ["WLG", "DUD", "CHC", "AKL"]
+location_codes = ["-42.311~172.218", "-38.826~177.536", "-38.262~175.010"]
+locations = get_locations(location_codes)
 
-imts = ["PGA"]
+imts = ["PGA", "SA(1.0)"]
 poes = [0.1, 0.02]
-vs30s = [150]
+vs30s = [1000]
 no_cache = False
 
 if no_cache and os.environ.get('NZSHM22_HAZARD_STORE_LOCAL_CACHE'):
@@ -114,8 +117,8 @@ for loc in locations:
             # fname = f'{location_name}_{imt}_{vs30}.png' 
             fname = f'{loc_key}_{imt}_{vs30}.png' 
 
-        # fig.savefig(Path(fig_dir, fname))
-        # plt.close()
+            # fig.savefig(Path(fig_dir, fname))
+            # plt.close()
 
         # fix, ax = plt.subplots(1,1)
         # plot_diff(hazard_models[0]['hcurves'], hazard_models[1]['hcurves'], loc, imt, ax)

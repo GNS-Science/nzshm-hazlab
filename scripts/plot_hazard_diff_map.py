@@ -24,9 +24,10 @@ def load_2010(vs30, poe, imt):
 # MODEL PARAMETERS
 # hazard_model1 = dict(id='NSHM_v1.0.3',name='v1.0.3')
 # hazard_model1 = dict(id='SLT_v8_gmm_v2_FINAL',name='v1.0.0')
-hazard_model1 = dict(id='NSHM_2010',name='2010')
+# hazard_model1 = dict(id='NSHM_2010',name='2010')
 hazard_model2 = dict(id='NSHM_v1.0.4',name='v1.0.4')
-vs30 = 250
+hazard_model1 = dict(id='NSHM_v1.0.4_IFMonly',name='v1.0.4')
+vs30 = 400
 # imt =  'SA(5.0)' # 'PGA' # 'SA(5.0)' # 'SA(3.0)' 'SA(1.0)'
 # imts = ['PGA', 'SA(0.5)', 'SA(1.0)', 'SA(3.0)']
 imts = ['PGA']
