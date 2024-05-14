@@ -19,19 +19,19 @@ climits_small = (0.1, 2.5)
 climits_large = (0.5, 5)
 dpi = None # 100
 filetype = 'pdf'
-plot_width = 10
-font_size = 10 #12 
+plot_width =  80 
+font_size = 56 #12 
 plot_faults = True
 plot_trenches = True
 colormap = 'inferno' # 'viridis', 'jet', 'plasma', 'imola', 'hawaii'
 ## region = None
-# region = "165/180/-48/-34"
-region = "163/190/-50/-22"
-fig_dir = Path('/home/chrisdc/Documents/My Papers/2022_NSHM_NZ_Overview')
+region = "165/180/-48/-34"
+# region = "163/190/-50/-22"
+fig_dir = Path('/home/chrisdc/NSHM/maps/')
 # cities = ["AKL", "WLG", "CHC", "srg_164", "DUD"]
 # cities = ["AKL", "HLZ", "NPL", "WLG", "NPE", "CHC", "DUD", "TEU"]
 cities = []
-# text = {"text":"a)", "x":165.5, "y":-33.5}
+# text = {"text":"2022 Aotearoa New Zealand National Seismic Hazard Model", "x":165.5, "y":-33.5}
 text = None
 # cities = [loc for loc in LOCATION_LISTS['NZ']['locations']]
 # cities = []
@@ -39,13 +39,18 @@ text = None
 projection = f'M{plot_width}c'
 font = f'{font_size}p'
 font_annot = f'{int(0.8*font_size)}p'
+title = ''
 
 for vs30, imt, poe in itertools.product(vs30s, imts, poes):
     grid = get_poe_grid(hazard_model['id'], vs30, imt, agg, poe)
-    if float(grid.max()) < 2.5:
-        climits = climits_small
+    # grid = None
+    if grid is not None:
+        if float(grid.max()) < 2.5:
+            climits = climits_small
+        else:
+            climits = climits_large
     else:
-        climits = climits_large
+        climits = []
 
     # grid = None
     #============================================================================================================
@@ -54,4 +59,4 @@ for vs30, imt, poe in itertools.product(vs30s, imts, poes):
     legend_text = f'{imt} ({poe*100:.0f}% PoE in 50 years)'
     fig = plot_hazard_map(grid, colormap, dpi, climits, font, font_annot, plot_width, legend_text,
                           region, plot_cities=cities, plot_faults=plot_faults, plot_trenches=plot_trenches, text=text)
-    # fig.savefig(str(filename))
+    fig.savefig(str(filename))

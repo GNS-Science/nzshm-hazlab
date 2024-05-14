@@ -12,20 +12,23 @@ DisaggDef = namedtuple("DisaggDef", "vs30 imt poe location")
 
 hazard_model_id = 'NSHM_v1.0.4'
 hazard_agg = model.AggregationEnum.MEAN
-vs30s = [750]
-# imts = ["PGA", "SA(0.2)", "SA(0.5)", "SA(1.5)", "SA(3.0)"]
-imts = ['SA(3.0)']
+vs30s = [200, 300]
+imts = ["PGA", "SA(0.2)", "SA(0.5)", "SA(1.5)", "SA(3.0)"]
+# imts = ["PGA", "SA(0.2)", "SA(0.5)", "SA(1.5)"]
+# imts = ["SA(3.0)"]
 poes = [
-    # model.ProbabilityEnum._2_PCT_IN_50YRS,
-    # model.ProbabilityEnum._5_PCT_IN_50YRS,
-    # model.ProbabilityEnum._10_PCT_IN_50YRS,
-    # model.ProbabilityEnum._18_PCT_IN_50YRS,
+    # model.ProbabilityEnum._05_PCT_IN_50YRS,
+    model.ProbabilityEnum._2_PCT_IN_50YRS,
+    model.ProbabilityEnum._5_PCT_IN_50YRS,
+    model.ProbabilityEnum._10_PCT_IN_50YRS,
+    model.ProbabilityEnum._18_PCT_IN_50YRS,
     model.ProbabilityEnum._39_PCT_IN_50YRS,
-    # model.ProbabilityEnum._63_PCT_IN_50YRS,
-    # model.ProbabilityEnum._86_PCT_IN_50YRS,
+    model.ProbabilityEnum._63_PCT_IN_50YRS,
+    model.ProbabilityEnum._86_PCT_IN_50YRS,
 ]
 
 location_ids = LOCATION_LISTS['NZ']['locations'] + ['srg_164']
+# location_ids = ['srg_164']
 locations = [CodedLocation(location_by_id(lid)['latitude'], location_by_id(lid)['longitude'],0.001) for lid in location_ids]
 
 disaggs = query.get_disagg_aggregates(

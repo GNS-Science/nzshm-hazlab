@@ -92,17 +92,18 @@ def plot_map(
         region = "165/180/-48/-34"
 
     fig = pygmt.Figure()
-    # fig.basemap(frame=["WSne+toriginal grid", "xa5f1", "ya2f1"],region=region, projection=projection )
+    fig.basemap(frame=["WSne", "xa5f1", "ya2f1"],region=region, projection=projection )
 
     if grid is None:
-        fig.coast(shorelines = True, water="white", frame = "a", projection=projection, region=region)
+        # fig.coast(shorelines = True, water="white", frame = "a", projection=projection, region=region)
+        fig.coast(shorelines = True, water="white", projection=projection, region=region)
         faults, backarc, hikurangi, puysegur = load_polygons()
         fig.plot(data=hikurangi,fill="220/220/220",transparency=30,pen="black")
         fig.plot(data=puysegur,fill="220/220/220",transparency=30,pen="black")
         fig.plot(data=faults, pen="red")
         if text:
             fig.text(text=text["text"], x=text["x"], y=text["y"], font="10p,Helvetica-Bold")
-        fig.basemap(frame=["a"])
+        # fig.basemap(frame=["a"])
 
         if plot_cities:
             names = [location_by_id(city)['name'] for city in plot_cities] 
@@ -146,14 +147,21 @@ def plot_map(
             
     if text:
         fig.text(text=text["text"], x=text["x"], y=text["y"], font="10p,Helvetica-Bold")
-    font = f'{int(int(font[:-1])*0.8)}p'
+    font = f'{int(int(font[:-1])*0.8)}p,Helvetica-Bold'
     font_annot = font
     pygmt.config(FONT_LABEL=font, FONT_ANNOT_PRIMARY=font_annot)
-    fig.colorbar(frame=f'af+l"{legend_text}"', position="n0.5/0.07+w4.5c/6%+h+ml")
-    fig.basemap(frame="a")
-            
+    clength = (4.5/10) * plot_width
+    fig.colorbar(frame=f'af+l"{legend_text}"', position=f"n0.5/0.07+w{clength}c/6%+h+ml", )
+    image_width= (3/10) * plot_width
+    # position = f"g167/-35+w{image_width}c+jCM"
+    position = f"n0.1/0.85/+w{image_width}c"
+    imagefile = "/home/chrisdc/NSHM/DEV/nzshm-hazlab/images/NSHM_logo_blue.png"
+    # imagefile = "/home/chrisdc/Downloads/gmt-logo.png"
+    # fig.image(imagefile=imagefile, position=position)
+    # fig.basemap(frame="a")
+
     # fig.savefig(filepath)
-    fig.show()
+    # fig.show()
 
     return fig
 

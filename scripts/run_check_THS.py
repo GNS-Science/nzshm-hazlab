@@ -1,4 +1,5 @@
 import itertools
+import os
 
 from typing import List, Tuple
 from collections import namedtuple
@@ -12,7 +13,10 @@ from nzshm_hazlab.locations import get_locations
 
 HazardEntry = namedtuple("HazardEntry", "hazard_id location vs30 imt agg")
 
-def check_db(hazard_ids, vs30s, locations, imts, aggs):
+def check_db(hazard_ids, vs30s, locations, imts, aggs, force=True):
+
+    if force and os.environ.get('NZSHM22_HAZARD_STORE_LOCAL_CACHE'):
+        del os.environ['NZSHM22_HAZARD_STORE_LOCAL_CACHE']
 
     hazard_entries = []
     i = 0
@@ -37,23 +41,13 @@ def get_expected(hazard_ids, vs30s, locations, imts, aggs):
                 
 if __name__ == "__main__":
     hazard_ids = [
-        "NSHM_v1.0.4_ST_cruNhi_iso",
-        "NSHM_v1.0.4_ST_cruNlo_iso",
-        "NSHM_v1.0.4_ST_crublo_iso",
-        "NSHM_v1.0.4_ST_crubmid_iso",
-        "NSHM_v1.0.4_ST_crubhi_iso",
-        "NSHM_v1.0.4_ST_geologic_iso",
-        "NSHM_v1.0.4_ST_geodetic_iso",
-        "NSHM_v1.0.4_ST_TD_iso",
-        "NSHM_v1.0.4_ST_HikNhi_iso",
-        "NSHM_v1.0.4_ST_HikNmed_iso",
-        "NSHM_v1.0.4_ST_HikNlo_iso",
-        "NSHM_v1.0.4_ST_Hikblo_iso",
-        "NSHM_v1.0.4_ST_Hikbmid_iso",
-        "NSHM_v1.0.4_ST_Hikbhi_iso",
+        "NSHM_v1.0.4",
     ]
-    vs30s = [400]
-    location_names = ["NZ", "NZ_0_1_NB_1_1_intersect_NZ_0_2_NB_1_1"]
+    vs30s = [250, 400, 750]
+    location_names = ["/home/chrisdc/NSHM/oqruns/RUNZI-MAIN-HAZARD/WeakMotionSiteLocs_SHORT.csv"]
+    force = True
+    print_missing = False
+  
     # location_names = ["NZ"]
     # imts = ['PGA',
     #     'SA(0.2)',
@@ -69,24 +63,23 @@ if __name__ == "__main__":
     locations = get_locations(location_names)
 
     entries_expected = get_expected(hazard_ids, vs30s, locations, imts, aggs)
-    entries_found = check_db(hazard_ids, vs30s, locations, imts, aggs)
+    entries_found = check_db(hazard_ids, vs30s, locations, imts, aggs, force)
     entries_missing = set(entries_expected).difference(set(entries_found))
-    print(f"there are {len(entries_missing)} entries missing from the database")
-    print("====MISSING ENTRIES====")
-    for entry in entries_missing:
-        print(entry)
+    print(f"there are {len(entries_missing)} entries of {len(entries_expected)} missing from the database")
 
-    locations_missing = {hazard_id:[] for hazard_id in hazard_ids}
-    for entry in entries_missing:
-        locations_missing[entry.hazard_id].append(entry.location)
-    for hazard_id in hazard_ids:
-        locations_missing[hazard_id] = list(set(locations_missing[hazard_id]))
+    if print_missing:
+        print("====MISSING ENTRIES====")
+        for entry in entries_missing:
+            print(entry)
 
-    for k,v in locations_missing.items():
-        print(f'======== {k} =======')
-        for loc in v:
-            print(loc)
-        junk = input('press any key to continue')
+        locations_missing = {hazard_id:[] for hazard_id in hazard_ids}
+        for entry in entries_missing:
+            locations_missing[entry.hazard_id].append(entry.location)
+        for hazard_id in hazard_ids:
+            locations_missing[hazard_id] = list(set(locations_missing[hazard_id]))
 
-    "NSHM_v1.0.4_ST_HikNmed_iso"
-    "NSHM_v1.0.4_ST_HikNlo_iso"
+        for k,v in locations_missing.items():
+            print(f'======== {k} =======')
+            for loc in v:
+                print(loc)
+            junk = input('press any key to continue')

@@ -3,6 +3,7 @@ from zipfile import ZIP_BZIP2, ZipFile
 from pandas import DataFrame
 from pathlib import Path
 import math
+import csv
 from typing import List, Any
 import os
 from collections import namedtuple
@@ -108,6 +109,39 @@ def get_hazard_v1(
 
     hazard_curves = clean_df(hazard_curves)
 
+    return hazard_curves
+
+def get_hazard_from_oqcsv(filepath_pattern: str, imts: List[str]):
+    """assumes loading individual realizations (could be used for aggregates, but the 'agg' column will be inccorect)"""
+    
+    def count_lines(filepath):
+        return sum(1 for _ in filepath.open())
+
+    filepath = Path(filepath_pattern.replace('IMT', imts[0]))
+    nsites = count_lines(filepath) - 2
+    nimts = len(imts)
+    index = range(nsites * nimts)
+    hazard_curves = pd.DataFrame({c: pd.Series(dtype=t) for c, t in DTYPE.items()}, index=index)
+    filepath_head = filepath.name[:filepath.name.index(imts[0])]
+    agg = filepath_head.replace('hazard_curve', '').replace('-', '')
+
+    i_row = 0
+    for imt in imts:
+        filepath = Path(filepath_pattern.replace('IMT', imt))
+        oq_output = pd.read_csv(filepath, skiprows=1)
+        columns = oq_output.columns
+        hazard_idxs = [i for i in range(len(columns)) if 'poe-' in columns[i]]
+        levels = np.array([float(columns[idx].replace('poe-', '')) for idx in hazard_idxs])
+        for index, row in oq_output.iterrows():
+            apoe = row[hazard_idxs].to_numpy()
+            loc_code = CodedLocation(row['lat'], row['lon'], 0.001).code
+            hazard_curves.loc[i_row, 'lat'] = loc_code.split('~')[0]
+            hazard_curves.loc[i_row, 'lon'] = loc_code.split('~')[1]
+            hazard_curves.loc[i_row, 'imt'] = imt
+            hazard_curves.loc[i_row, 'agg'] = agg
+            hazard_curves.loc[i_row, 'level'] = levels
+            hazard_curves.loc[i_row, 'apoe'] = apoe
+            i_row += 1
     return hazard_curves
 
 

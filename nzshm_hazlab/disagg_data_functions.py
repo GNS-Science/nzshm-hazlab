@@ -4,6 +4,7 @@ import io
 from collections import namedtuple
 import csv
 import numpy as np
+import numpy.typing as npt
 
 AXIS_MAG = 0
 AXIS_DIST = 1
@@ -19,11 +20,11 @@ AXIS_NUMS = dict(
 
 INV_TIME = 1.0
 
-def prob_to_rate(prob):
+def prob_to_rate(prob: npt.ArrayLike) -> npt.ArrayLike:
 
-    return -np.log(1 - prob) / INV_TIME
+    return -np.log(1.0 - prob) / INV_TIME
 
-def rate_to_prob(rate):
+def rate_to_prob(rate: npt.ArrayLike) -> npt.ArrayLike:
 
     return 1.0 - np.exp(-INV_TIME * rate)
 

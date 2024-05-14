@@ -19,6 +19,9 @@ from matplotlib.collections import LineCollection
 
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
+AXIS_FONTSIZE = 28
+TICK_FONTSIZE = 22
+
 def plot_hazard_curve(
         hazard_data: DataFrame,
         location: CodedLocation,
@@ -33,7 +36,8 @@ def plot_hazard_curve(
         xscale: str ='log',
         custom_label: str = '',
         color: str = '',
-        title: str = ''
+        title: str = '',
+        linestyle: str = '-'
 ) -> List[Line2D]:
     
     lat, lon = location.code.split('~')
@@ -46,9 +50,11 @@ def plot_hazard_curve(
     clr = color if color else 'k'
 
     label = custom_label if custom_label else central
-    lh, = ax.plot(levels,values,color=clr,lw=3,label=label)
+    lh, = ax.plot(levels,values,color=clr,lw=3,label=label, linestyle=linestyle)
 
     clr = color if color else 'b'
+    alpha1 = 0.25
+    alpha2 = 0.8
     if bandw: #{'u1':'0.8,'u2':'0.95', ...}
         
         bandw_data = {}
@@ -56,7 +62,7 @@ def plot_hazard_curve(
             values = hd_filt.loc[ hazard_data['agg'] == v]['apoe'].iloc[0]
             bandw_data[k] = values
         
-        ax.fill_between(levels, bandw_data['upper1'], bandw_data['lower1'],alpha = 0.5, color=clr)
+        ax.fill_between(levels, bandw_data['upper1'], bandw_data['lower1'],alpha = alpha1, color=clr)
         ax.plot(levels, bandw_data['upper2'],color=clr,lw=1)
         ax.plot(levels, bandw_data['lower2'],color=clr,lw=1)
         # ax.plot(levels, bandw_data['upper2'],linestyle='--',color=clr,lw=1)
@@ -67,7 +73,7 @@ def plot_hazard_curve(
         for quant in quants:
             levels = hd_filt.loc[ hazard_data['agg'] == quant]['level'].iloc[0]
             values = hd_filt.loc[ hazard_data['agg'] == quant]['apoe'].iloc[0]
-            ax.plot(levels,values,'b',alpha=.8,lw=1,label=quant)
+            ax.plot(levels,values,'b',alpha=alpha2,lw=1,label=quant)
 
 
     for ref_line in ref_lines:
@@ -84,7 +90,10 @@ def plot_hazard_curve(
         
         _ = ax.plot(xlim,[1/rp]*2,ls='--',color='dimgray',zorder=-1)
         # _ = ax.annotate(text, [xlim[1],1/rp], ha='right',va='bottom')
-        _ = ax.annotate(text, [xlim[1],1/rp], ha='right',va='bottom')
+        if xscale == 'log':
+            _ = ax.annotate(text, [xlim[0],1/rp], ha='left',va='bottom', fontsize=TICK_FONTSIZE*0.8)
+        else:
+            _ = ax.annotate(text, [xlim[1],1/rp], ha='right',va='bottom', fontsize=TICK_FONTSIZE*0.8)
 
     # if not bandw:
     _ = ax.legend(handlelength=2)
@@ -94,14 +103,15 @@ def plot_hazard_curve(
     _ = ax.set_yscale('log')
     _ = ax.set_ylim(ylim)
     _ = ax.set_xlim(xlim)
-    _ = ax.set_xlabel('Shaking Intensity, %s [g]'%imt)
-    _ = ax.set_ylabel('Annual Probability of Exceedance')
+    _ = ax.set_xlabel('Shaking Intensity, %s [g]'%imt, fontsize=AXIS_FONTSIZE)
+    _ = ax.set_ylabel('Annual Probability of Exceedance', fontsize=AXIS_FONTSIZE)
+    _ = ax.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
     _ = ax.grid(color='lightgray')  
 
     if title:
         ax.set_title(title)
 
-    return lh
+    return lh, levels
 
             
 
@@ -215,8 +225,8 @@ def plot_spectrum(
 
     if bandw:
         quantiles = dict(
-                        upper1 = 0.8,
-                        lower1 = 0.2,
+                        upper1 = 0.9,
+                        lower1 = 0.1,
                         upper2 = 0.975,
                         lower2 = 0.025,
                         )
@@ -225,9 +235,8 @@ def plot_spectrum(
             haz = []
             for imt in imts:
                 # vals = calculate_agg(hazard_data,location,imt,quant)
-                breakpoint()
-                vals = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'apoe']
-                lvls = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'level']
+                vals = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'apoe'].to_numpy()[0]
+                lvls = hd_filt.loc[(hd_filt['imt'] == imt) & (hd_filt['agg'] == str(quant)),'level'].to_numpy()[0]
                 haz.append(compute_hazard_at_poe(lvls,vals,poe,inv_time))
             hazard[k] = haz
         ax.fill_between(periods,hazard['upper1'],hazard['lower1'],alpha = 0.5, color=color)
@@ -267,8 +276,9 @@ def plot_spectrum(
     ylim = [0, ylim[1]]
     _ = ax.set_ylim(ylim)
     _ = ax.set_xlim(xlim)
-    _ = ax.set_xlabel('Period [s]')
-    _ = ax.set_ylabel('Shaking Intensity [g]')
+    _ = ax.set_xlabel('Period [s]', fontsize=AXIS_FONTSIZE)
+    _ = ax.set_ylabel('Shaking Intensity [g]', fontsize=AXIS_FONTSIZE)
+    _ = ax.tick_params(axis='both', which='major', labelsize=TICK_FONTSIZE)
     _ = ax.grid(color='lightgray')
 
 

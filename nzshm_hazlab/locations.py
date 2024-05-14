@@ -1,4 +1,7 @@
+import csv
 from typing import List, Tuple
+from pathlib import Path
+from collections import namedtuple
 
 from nzshm_common.location.code_location import CodedLocation
 from nzshm_common.grids.region_grid import load_grid
@@ -205,10 +208,30 @@ def transpower_locs() -> List[Tuple[float, float]]:
         (-44.083322, 171.310844),
     ]
 
+
+def locations_from_csv(locations_filepath) -> List[CodedLocation]:
+
+    locations = []
+    locations_filepath = Path(locations_filepath)
+    with locations_filepath.open('r') as locations_file:
+        reader = csv.reader(locations_file)
+        Location = namedtuple("Location", next(reader), rename=True)
+        for row in reader:
+            location = Location(*row)
+            locations.append(
+                CodedLocation(lat=float(location.lat), lon=float(location.lon), resolution=0.001)
+            )
+    return locations
+
+
 def lat_lon(id):
     return (location_by_id(id)['latitude'], location_by_id(id)['longitude'])
 
 def get_locations(location_names: List[str]) -> List[CodedLocation]:
+    """
+    given a list of location keys return a list of coded locations. Keys can be any combination of valid
+    location_by_id() keys, grid strings, or `lat~lon` location codes.
+    """
 
     locations: List[Tuple[float, float]] = []
     for location_spec in location_names:
@@ -238,6 +261,8 @@ def get_locations(location_names: List[str]) -> List[CodedLocation]:
             locations += [CodedLocation(*lat_lon(id),0.001) for id in location_ids]
         elif location_spec == 'TP':
             locations += [CodedLocation(*loc, 0.001,) for loc in transpower_locs()]
+        elif Path(location_spec).exists():
+            locations += locations_from_csv(location_spec)
         else:
             locations += [CodedLocation(*loc, 0.001) for loc in load_grid(location_spec)]
     return locations

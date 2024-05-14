@@ -219,7 +219,7 @@ if __name__ == "__main__":
     # upload = True
     upload = True
     hazard_model_id = 'NSHM_v1.0.4'
-    vs30s = [200]
+    vs30s = [300]
     locations = ["NZ", "srg_164"]
     imts = ["PGA", "SA(0.2)", "SA(0.5)", "SA(1.5)", "SA(3.0)"]
     poes = [
