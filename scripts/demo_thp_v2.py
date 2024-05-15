@@ -1,13 +1,8 @@
-import os
-from pathlib import Path
 from nzshm_common.location.location import LOCATION_LISTS, location_by_id
 from nzshm_common.location import CodedLocation
-from nzshm_hazlab.store.curves import get_hazard
 from nzshm_hazlab.store.curves_v4 import get_hazard as get_hazard_v4, ArrowFS
 from nzshm_hazlab.plotting_functions import plot_hazard_curve
 import matplotlib.pyplot as plt
-import numpy as np
-from typing import Any
 
 from nzshm_hazlab.locations import get_locations, lat_lon
 
