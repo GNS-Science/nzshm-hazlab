@@ -12,7 +12,7 @@ resolution = 0.001
 INVESTIGATION_TIME = 50
 PLOT_WIDTH = 12
 PLOT_HEIGHT = 8.625
-colors = ['#1b9e77', '#d95f02', '#7570b3','k']
+colors = ['k', '#1b9e77', '#d95f02', '#7570b3']
 xscale = 'log'
 xlim = [1e-2,1e1]
 # xlim = [0,3]
@@ -45,10 +45,10 @@ def ref_lines(poes):
 error_bounds = {'lower2':'0.01','lower1':'0.1','upper1':'0.9','upper2':'0.99'}
 aggs = list(error_bounds.values()) + ['mean']
 
-location_codes = ["-34.500~173.000"]
+location_codes = ["WLG"]
 locations = get_locations(location_codes)
 
-imts = ["SA(2.0)"]
+imts = ["PGA"]
 poes = [0.1, 0.02]
 fs_specs = dict(
     arrow_fs=ArrowFS.LOCAL,
@@ -56,7 +56,7 @@ fs_specs = dict(
 )
 
 # model_ids = ['NSHM_v1.0.4', 'DEMO_A']
-model_ids = ['NSHM_v1.0.4']
+model_ids = ['NSHM_2022_DEMO', 'HIGHEST_WEIGHT', 'CRUSTAL_ONLY']
 vs30 = 275
 
 hazard_models = dict()
@@ -80,6 +80,6 @@ for loc in locations:
                 color=colors[i],
                 custom_label=model_id,
                 title=title,
-                bandw=error_bounds
+                # bandw=error_bounds
             )
         plt.show()
