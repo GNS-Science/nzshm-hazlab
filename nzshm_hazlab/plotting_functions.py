@@ -22,6 +22,28 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 AXIS_FONTSIZE = 28
 TICK_FONTSIZE = 22
 
+def extract_hazard_curve(
+        hazard_data: DataFrame,
+        location: CodedLocation,
+        imt: str,
+        agg: str,
+):
+    lat, lon = location.code.split('~')
+
+    hd_filt = hazard_data.loc[
+        (hazard_data['imt'] == imt) &\
+        (hazard_data['lat'] == lat) &\
+        (hazard_data['lon'] == lon) &\
+        (hazard_data['agg'] == agg)
+    ]
+    try:
+        a,b = hd_filt['level'].item(), hd_filt['apoe'].item()
+    except ValueError:
+        breakpoint()
+
+    return hd_filt['level'].item(), hd_filt['apoe'].item()
+
+
 def plot_hazard_curve(
         hazard_data: DataFrame,
         location: CodedLocation,
