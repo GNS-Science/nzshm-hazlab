@@ -1,37 +1,47 @@
 from pathlib import Path
 
-import numpy as np
 import matplotlib.pyplot as plt
+from nzshm_model import get_model_version, CURRENT_VERSION
+import shapely
 
-from solvis import InversionSolution, mfd_hist
-
-def get_mfd_for_fault(soln, fault_names):
-    rups = soln.get_ruptures_for_parent_fault(fault_name)
-    rr = soln.ruptures_with_rates
-    mfd = mfd_hist(rr[rr["Rupture Index"].isin(list(rups))])
-    rate = np.asarray(mfd)
-    mag = [a.mid for a in mfd.index]
-
-    return mag, rate
+from solvis import CompositeSolution, mfd_hist, InversionSolution
+from solvis.filter.rupture_id_filter import FilterRuptureIds
 
 
-xlim = [5,9]
-ylim = [1e-10, 1e-1] 
 
-sol_dir = Path("/home/chrisdc/Downloads")
-sol_old_filepath = Path(sol_dir, "NZSHM22_InversionSolution-QXV0b21hdGlvblRhc2s6MTA3MDEz_old.zip")
-sol_new_filepath = Path(sol_dir, "NZSHM22_InversionSolution-QXV0b21hdGlvblRhc2s6NjUzOTY2Mg==_new.zip")
+comp_soln_path = Path('/home/chrisdc/NSHM/DEV/APP/solvis-jupyterlab/WORKDIR/NSHM_v1.0.4_CompositeSolution.zip')
+nz_poly_path = Path('/home/chrisdc/NSHM/DEV/nzshm-hazlab/scripts/NZ_poly.geojson')
+slt = get_model_version(CURRENT_VERSION).source_logic_tree
+comp_soln = CompositeSolution.from_archive(comp_soln_path, slt)
 
-sol_old = InversionSolution.from_archive(sol_old_filepath)
-sol_new = InversionSolution.from_archive(sol_new_filepath)
+hik = comp_soln.get_fault_system_solution('HIK')
+cru = comp_soln.get_fault_system_solution('CRU')
+puy = comp_soln.get_fault_system_solution('PUY')
 
-mag_old, rate_old = get_mfd_for_fault(sol_old, 'Paeroa')
-mag_new, rate_new = get_mfd_for_fault(sol_new, 'Paeroa')
+with nz_poly_path.open() as f:
+    nz_poly = shapely.from_geojson(f.read())
+print(nz_poly)
 
-fig, ax = plt.subplots(1,1)
-ax.semilogy(mag_old, rate_old, linewidth=3)
-ax.semilogy(mag_new, rate_new, linewidth=3)
-ax.set_xlim(xlim)
-ax.set_ylim(ylim)
-ax.grid()
-plt.show()
+
+# useful function but requires users to pass a dataframe. maybe take an inversion (or model) as arg?
+# Also, would be nice to be able to specify bins or bin spacing
+mfd = mfd_hist(cru.model.ruptures_with_rupture_rates, "rate_weighted_mean")  
+rate = mfd.to_numpy()
+mag = [a.mid for a in mfd.index]
+import numpy as np
+crate = np.flip(np.flip(rate).cumsum())
+for m, r in zip(mag, crate):
+    print(m, r)
+assert 0
+
+rupture_ids = FilterRuptureIds(hik).for_polygon(nz_poly).for_magnitude(0, 8.0)
+# rupture_ids = FilterRuptureIds(hik).for_polygon(nz_poly)
+print(rupture_ids)
+
+# returns a very usefule DataFrame with info about a rupture, but buried deep in API
+# maybe the repr of an inversion (or model) should be a dataframe repr
+print(hik.model.ruptures_with_rupture_rates)  
+# doc states function not often used, but I think quite useful for creating new OQ input or ploting
+# MFD. Also, could be non-static and use instace of inversion
+hik_filt = InversionSolution.filter_solution(hik, rupture_ids) 
+print(hik_filt.model.ruptures_with_rupture_rates)

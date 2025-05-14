@@ -52,11 +52,14 @@ imts = ["PGA"]
 poes = [0.1, 0.02]
 fs_specs = dict(
     arrow_fs=ArrowFS.LOCAL,
-    arrow_dir='/home/chrisdc/NSHM/DATA/toshi-hazard-store/AGG',
+    arrow_dir='/home/chrisdc/NSHM/DATA/toshi-hazard-store/AGG_BKUP',
+    # arrow_dir='/home/chrisdc/mnt/glacier_data/toshi_hazard_store/AGG_FROM_F64'
 )
 
 # model_ids = ['NSHM_v1.0.4', 'DEMO_A']
-model_ids = ['NSHM_2022_DEMO', 'HIGHEST_WEIGHT', 'CRUSTAL_ONLY']
+# model_ids = ['NSHM_v1.0.4']
+# model_ids = ['NSHM_2022_DEMO', 'HIGHEST_WEIGHT', 'CRUSTAL_ONLY']
+model_ids = ['NSHM_2022_DEMO']
 vs30 = 275
 
 hazard_models = dict()

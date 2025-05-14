@@ -111,19 +111,27 @@ def get_hazard_v1(
 
     return hazard_curves
 
-def get_hazard_from_oqcsv(filepath_pattern: str, imts: List[str]):
+def get_hazard_from_oqcsv(oqdir: str, imts: List[str], agg: str, run_num: int):
     """assumes loading individual realizations (could be used for aggregates, but the 'agg' column will be inccorect)"""
     
     def count_lines(filepath):
         return sum(1 for _ in filepath.open())
 
+    if agg == 'mean':
+        filepath_pattern = str(
+            Path(oqdir) / f'hazard_curve-mean-IMT_{run_num}.csv'
+        )
+    else:
+        filepath_pattern = str(
+            Path(oqdir) / f'quantile_curve-{agg}-IMT_{run_num}.csv'
+        )
     filepath = Path(filepath_pattern.replace('IMT', imts[0]))
+
     nsites = count_lines(filepath) - 2
     nimts = len(imts)
     index = range(nsites * nimts)
     hazard_curves = pd.DataFrame({c: pd.Series(dtype=t) for c, t in DTYPE.items()}, index=index)
     filepath_head = filepath.name[:filepath.name.index(imts[0])]
-    agg = filepath_head.replace('hazard_curve', '').replace('-', '')
 
     i_row = 0
     for imt in imts:

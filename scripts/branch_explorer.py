@@ -1,9 +1,16 @@
 import json
+from pathlib import Path
 import numpy as np
+from nzshm_common.location import get_locations
 
-weight_filepath = '/home/chrisdc/NSHM/branch_explorer/weights_PGA--41.300~174.780-250.npy'
-hazcurves_filepath = '/home/chrisdc/NSHM/branch_explorer/branches_PGA--41.300~174.780-250.npy'
-branch_data_filepath = '/home/chrisdc/NSHM/branch_explorer/source_branches_PGA--41.300~174.780-250.json'
+imt = "PGA"
+vs30 = 275
+location_id = "WLG"
+location_code = get_locations([location_id])[0].code
+root_dir = Path('/home/chrisdc/mnt/glacier_data/branch_rlz')
+weight_filepath = root_dir / f'weights_{imt}-{location_code}-{vs30}.npy'
+hazcurves_filepath = root_dir / f'branches_{imt}-{location_code}-{vs30}.npy'
+branch_data_filepath = root_dir / f'source_branches_{imt}-{location_code}-{vs30}.json'
 
 weights = np.load(weight_filepath)
 hazcurves = np.load(hazcurves_filepath)

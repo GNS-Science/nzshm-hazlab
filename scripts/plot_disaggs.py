@@ -7,10 +7,10 @@ import nzshm_hazlab.disagg_data_functions as ddf
 from toshi_hazard_store import model, query
 
 
-hazard_model_id = 'TEST'
+hazard_model_id = 'NSHM_v1.0.4'
 loc_key = 'WLG'
 # loc_key = 'srg_163'
-imt = 'PGA'
+imt = 'SA(0.2)'
 vs30 = 200
 poe = model.ProbabilityEnum._2_PCT_IN_50YRS
 hazard_agg = model.AggregationEnum.MEAN

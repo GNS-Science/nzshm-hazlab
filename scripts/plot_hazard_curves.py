@@ -19,10 +19,10 @@ PLOT_HEIGHT = 8.625
 colors = ['black', 'tab:orange', 'tab:green', 'tab:red', 'tab:blue']
 
 xscale = 'log'
-xlim = [1e-2,5]
+xlim = [1e-2,10]
 # xlim = [0, 3.5]
 # xlim = [0,3]
-ylim = [1e-4,1]
+ylim = [1e-11, 1]
 
 def plot_diff(model0, model1, loc, imt, ax):
 
@@ -68,20 +68,23 @@ def ref_lines(poes):
 
 error_bounds = {'lower2':'0.025','lower1':'0.1','upper1':'0.9','upper2':'0.975'}
 # error_bounds = {}
-aggs = list(error_bounds.values()) + ['mean']
+# aggs = list(error_bounds.values()) + ['mean']
+aggs = ['0.1', '0.5', '0.9', 'mean']
+agg = 'mean'
 
 hazard_models = [
-    # dict(id='NSHM_v1.0.4_ST_crubhi_iso', name='CRU b high'),
-    # dict(id='NSHM_v1.0.4_ST_geologic_iso', name='Geologic'),
-    # dict(id='NSHM_v1.0.4_ST_geodetic_iso', name='Geodetic'),
-    # dict(id='TEST_ARRAY_COUNT', name='new array counting'),
-    # dict(id='TEST_32BIT_FIX', name='32bit storage'),
-    dict(id='NSHM_v1.0.4', name='v1.0.4'),
-    dict(id='TEST', name='TEST'),
-    # dict(id='oq_output-/home/chrisdc/NSHM/DATA/WEL_250_Matt/hazard_curve-rlz-000-IMT_739.csv', name='rlz0', agg='rlz000'),
-    # dict(id='oq_output-/home/chrisdc/NSHM/DATA/WEL_250_Matt/hazard_curve-rlz-001-IMT_739.csv', name='rlz0', agg='rlz001'),
-    # dict(id='oq_output-/home/chrisdc/NSHM/DATA/WEL_250_Matt/hazard_curve-rlz-002-IMT_739.csv', name='rlz0', agg='rlz002'),
-    # dict(id='oq_output-/home/chrisdc/NSHM/DATA/WEL_250_Matt/hazard_curve-rlz-003-IMT_739.csv', name='single model branch', agg='rlz003'),
+    dict(id='NSHM_v1.0.4', name='NZ NSHM 2022 Official', type='thp'),
+    # dict(id='/home/chrisdc/mnt/glacier_work/oqruns/otago/outputs/geodetic/', name='Otago IFM Geodetic', type='oq', run_num=12),
+    # dict(id='/home/chrisdc/mnt/glacier_work/oqruns/otago/outputs/geologic/', name='Otago IFM Geologic', type='oq', run_num=13),
+    # dict(id='/home/chrisdc/mnt/glacier_work/oqruns/otago/outputs/full_model/', name='NZ NSHM 2022', type='oq', run_num=19),
+    dict(id='/home/chrisdc/mnt/glacier_work/oqruns/aecom_mismatch/output_prob/', name='Aecom files OQ v3.20.1', type='oq', run_num=25),
+    # dict(id='/home/chrisdc/mnt/glacier_work/oqruns/aecom_mismatch/output_no_round_ref/', name='Aecom files OQ v3.20.1', type='oq', run_num=26),
+    # dict(id='/home/chrisdc/mnt/glacier_work/oqruns/aecom_mismatch/output/', name='Aecom files OQ v3.20.1', type='oq', run_num=27),
+    # dict(id='/home/chrisdc/mnt/glacier_work/oqruns/aecom_mismatch/output_400/', name='Aecom files OQ v3.20.1', type='oq', run_num=27),
+    # dict(id='/home/chrisdc/mnt/glacier_work/oqruns/test-oq-versions/v3.20.1/', name='OQ-v3.20.1', type='oq', run_num=1),
+    # dict(id='/home/chrisdc/mnt/glacier_work/oqruns/test-oq-versions/v3.21.0/', name='OQ-v3.21.0', type='oq', run_num=1),
+    # dict(id='/home/chrisdc/mnt/glacier_work/oqruns/test-oq-versions/v3.22.1/', name='OQ-v3.22.1', type='oq', run_num=1),
+    # dict(id='/home/chrisdc/mnt/glacier_work/oqruns/test-oq-versions/v3.23.1/', name='OQ-v3.23.1', type='oq', run_num=1),
 ]
 
 # location_codes = ["TP"]
@@ -90,12 +93,15 @@ hazard_models = [
 # location_codes = ["/home/chrisdc/NSHM/oqruns/RUNZI-MAIN-HAZARD/WeakMotionSiteLocs_SHORT.csv"]
 # location_codes = ["-42.311~172.218", "-38.826~177.536", "-38.262~175.010"]
 # location_codes = ["WLG"]
-location_codes = ["-34.500~173.000"]
+# location_codes = ["-34.500~173.000"]
+# location_codes = ["DUD"]
+# location_codes = ["-43.000~172.8"]
+location_codes = ["-38.000~175.600"]
 locations = get_locations(location_codes)
 
-imts = ["PGA", "SA(1.0)"]
+imts = ["PGA"]
 poes = [0.1, 0.02]
-vs30s = [275]
+vs30s = [500]
 no_cache = True
 fig_dir = Path('/home/chrisdc/NSHM/oqresults/32bit')
 save_figs = False
@@ -106,13 +112,13 @@ if no_cache and os.environ.get('NZSHM22_HAZARD_STORE_LOCAL_CACHE'):
 for model in hazard_models:
     model['hcurves'] = {}
     for vs30 in vs30s:
-        if 'oq_output' in model['id']:
-            model['hcurves'][vs30] = get_hazard_from_oqcsv(model['id'].replace('oq_output-', ''), imts)
+        if model['type'] == 'oq':
+            model['hcurves'][vs30] = get_hazard_from_oqcsv(model['id'], imts, agg, model['run_num'])
         else:
             model['hcurves'][vs30] = get_hazard(model['id'], vs30, locations, imts, aggs)
 
 
-for loc in locations[0:3]:
+for loc in locations:
     loc_dict = location_2_dict(loc)
     loc_key, loc_name = loc_dict["id"], loc_dict["name"]
     for imt in imts:
@@ -123,13 +129,12 @@ for loc in locations[0:3]:
             # title = f'{loc_name} {imt}, Vs30 = {vs30}m/s'
             title = ''
             for i, model in enumerate(hazard_models):
-                if 'oq_output' in model['id']:
+                if model['type'] == 'oq':
                     error_bounds_tmp = dict()
-                    agg = model['agg']
-                    linestyle = '-'
+                    linestyle = '--'
                 else:
                     error_bounds_tmp = error_bounds
-                    agg = 'mean'
+                    error_bounds_tmp = None
                     linestyle = '-'
                 plot_hazard_curve(
                     model['hcurves'][vs30], loc, imt, ax, xlim, ylim,
@@ -144,6 +149,7 @@ for loc in locations[0:3]:
                 )
 
             # fname = f'{location_name}_{imt}_{vs30}.png' 
+            ax.set_title(loc_name)
             if save_figs:
                 fname = f'{loc_key}_{imt}_{vs30}.png' 
                 fig.savefig(Path(fig_dir, fname))

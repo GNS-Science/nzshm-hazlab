@@ -7,7 +7,7 @@ from nzshm_common.location.code_location import CodedLocation
 from nzshm_common.grids import load_grid
 from toshi_hazard_store import model
 
-from nzshm_hazlab.misc.mean_mag import get_mean_mags, all_clocations
+from nzshm_hazlab.misc.mean_mag import get_mean_mags, all_clocations, all_locations
 
 
 def write_mean_mag_file(hazard_id, locations, vs30s, imts, poes, hazard_agg, filepath):
@@ -52,25 +52,27 @@ def get_expected(locations, poes):
 # ██      ██ ██   ██ ██ ██   ████ 
 
 # mean_mag_filepath= Path(Path.home(), 'NSHM', 'Disaggs', 'mean_mags_hb.csv')
-mean_mag_filepath = "./grid_mean_mag_86.csv"
+# mean_mag_filepath = "./grid_mean_mag_86.csv"
+mean_mag_filepath = "./SRWG214_mean_mag.csv"
 hazard_id = "NSHM_v1.0.4_mag"
 # hazard_id = "TEST"
 imts = ['PGA']
 vs30s = [275]
 poes = [
-    # model.ProbabilityEnum._2_PCT_IN_50YRS,
-    # model.ProbabilityEnum._5_PCT_IN_50YRS,
-    # model.ProbabilityEnum._10_PCT_IN_50YRS,
-    # model.ProbabilityEnum._18_PCT_IN_50YRS,
-    # model.ProbabilityEnum._39_PCT_IN_50YRS,
-    # model.ProbabilityEnum._63_PCT_IN_50YRS,
+    model.ProbabilityEnum._2_PCT_IN_50YRS,
+    model.ProbabilityEnum._5_PCT_IN_50YRS,
+    model.ProbabilityEnum._10_PCT_IN_50YRS,
+    model.ProbabilityEnum._18_PCT_IN_50YRS,
+    model.ProbabilityEnum._39_PCT_IN_50YRS,
+    model.ProbabilityEnum._63_PCT_IN_50YRS,
     model.ProbabilityEnum._86_PCT_IN_50YRS,
 ]
-grid_01 = set([CodedLocation(*pt, 0.001) for pt in load_grid('NZ_0_1_NB_1_1')])
-grid_02 = set([CodedLocation(*pt, 0.001) for pt in load_grid('NZ_0_2_NB_1_1')])
+# grid_01 = set([CodedLocation(*pt, 0.001) for pt in load_grid('NZ_0_1_NB_1_1')])
+# grid_02 = set([CodedLocation(*pt, 0.001) for pt in load_grid('NZ_0_2_NB_1_1')])
 # locations = list(grid_01.intersection(grid_02))
 # locations = list(grid_01.difference(grid_02))
-locations = list(grid_01)
+# locations = list(grid_01)
+locations = all_locations
 
 # hazard_agg = model.AggregationEnum._90
 hazard_agg = model.AggregationEnum.MEAN

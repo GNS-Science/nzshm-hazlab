@@ -27,7 +27,7 @@ def get_mean_mags(hazard_id, locations, vs30s, imts, poes, hazard_agg):
         locs = clocs,
         vs30s = vs30s,
         imts = imts,
-        poes = poes,
+        probabilities = poes,
     )
     for disagg in disaggs:
         mean_mag = get_mean_mag(disagg.disaggs, disagg.bins)
@@ -46,6 +46,6 @@ def get_mean_mags(hazard_id, locations, vs30s, imts, poes, hazard_agg):
             poe = disagg.probability.name.split('_')[1],
             imt = disagg.imt,
             imtl = f"{disagg.shaking_level:0.2e}",
-            mag = f"{mean_mag:0.2f}",
+            mag = mean_mag,
         )
         yield d

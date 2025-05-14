@@ -45,7 +45,7 @@ def plot_trt(fig, ax, disagg, bins):
     ax.set_ylabel('% Contribution to Hazard')
 
 
-def plot_mag_dist_2d(fig, ax, disagg, bins, xlim=None, ylim=None):
+def plot_mag_dist_2d(fig, ax, disagg, bins, xlim=None, ylim=None, cmin=None, cmax=None):
 
     disaggs_r = prob_to_rate(disagg)
 
@@ -109,7 +109,7 @@ def plot_mag_dist_trt_2d(fig, ax, disagg, bins, xlim=None, ylim=None):
     fig.supylabel('Distance (km)')
 
 
-def plot_mag_dist_trt_2d_v2(fig, ax, disagg, bins, xlim=None, ylim=None):
+def plot_mag_dist_trt_2d_v2(fig, ax, disagg, bins, xlim=None, ylim=None, cmin=None, cmax=None):
 
     xlim = XLIM if xlim is None else xlim
     ylim = YLIM if ylim is None else ylim
@@ -143,12 +143,15 @@ def plot_mag_dist_trt_2d_v2(fig, ax, disagg, bins, xlim=None, ylim=None):
     disagg_md_trt1_r = disagg_md_trt1_r/np.sum(disaggs_r) * 100
     disagg_md_trt2_r = disagg_md_trt2_r/np.sum(disaggs_r) * 100
 
-    vmax = max(np.max(disagg_md_trt0_r), np.max(disagg_md_trt1_r), np.max(disagg_md_trt2_r))
+    if cmax is None:
+        cmax = max(np.max(disagg_md_trt0_r), np.max(disagg_md_trt1_r), np.max(disagg_md_trt2_r))
+    if cmin is None:
+        cmin = 0
 
     x, y = np.meshgrid(bins[AXIS_MAG],bins[AXIS_DIST])
-    pcx = ax[1,0].pcolormesh(x,y,disagg_md_trt0_r.transpose(),vmin=0,vmax=vmax,shading='auto',cmap=newcmp)
-    pcx = ax[1,1].pcolormesh(x,y,disagg_md_trt1_r.transpose(),vmin=0,vmax=vmax,shading='auto',cmap=newcmp)
-    pcx = ax[1,2].pcolormesh(x,y,disagg_md_trt2_r.transpose(),vmin=0,vmax=vmax,shading='auto',cmap=newcmp)
+    pcx = ax[1,0].pcolormesh(x,y,disagg_md_trt0_r.transpose(),vmin=cmin,vmax=cmax,shading='auto',cmap=newcmp)
+    pcx = ax[1,1].pcolormesh(x,y,disagg_md_trt1_r.transpose(),vmin=cmin,vmax=cmax,shading='auto',cmap=newcmp)
+    pcx = ax[1,2].pcolormesh(x,y,disagg_md_trt2_r.transpose(),vmin=cmin,vmax=cmax,shading='auto',cmap=newcmp)
     fig.colorbar(pcx, ax=ax, label=f'% Contribution to Hazard')
 
     for axs in ax[1,1:]:

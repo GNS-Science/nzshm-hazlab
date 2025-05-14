@@ -216,20 +216,19 @@ def run_report(hazard_model_id, vs30, location, imt, poe):
 
 if __name__ == "__main__":
 
-    # upload = True
     upload = True
     hazard_model_id = 'NSHM_v1.0.4'
-    vs30s = [300]
-    locations = ["NZ", "srg_164"]
-    imts = ["PGA", "SA(0.2)", "SA(0.5)", "SA(1.5)", "SA(3.0)"]
+    vs30s = [200]
+    locations = ["WLG"]
+    imts = ["SA(0.2)"]
     poes = [
         model.ProbabilityEnum._2_PCT_IN_50YRS,
-        model.ProbabilityEnum._5_PCT_IN_50YRS,
-        model.ProbabilityEnum._10_PCT_IN_50YRS,
-        model.ProbabilityEnum._18_PCT_IN_50YRS,
-        model.ProbabilityEnum._39_PCT_IN_50YRS,
-        model.ProbabilityEnum._63_PCT_IN_50YRS,
-        model.ProbabilityEnum._86_PCT_IN_50YRS,
+        # model.ProbabilityEnum._5_PCT_IN_50YRS,
+        # model.ProbabilityEnum._10_PCT_IN_50YRS,
+        # model.ProbabilityEnum._18_PCT_IN_50YRS,
+        # model.ProbabilityEnum._39_PCT_IN_50YRS,
+        # model.ProbabilityEnum._63_PCT_IN_50YRS,
+        # model.ProbabilityEnum._86_PCT_IN_50YRS,
     ]
     main(hazard_model_id, vs30s, locations, imts, poes, upload)
 

@@ -59,7 +59,7 @@ def get_background(csv_path):
 coast_shape_fpath = '/home/chrisdc/NSHM/DATA/nz-coastlines-and-islands-polygons-topo-150k/nz-coastlines-and-islands-polygons-topo-150k.shp'
 nz = geopandas.read_file(coast_shape_fpath)
 
-grid_1346_path = '/home/chrisdc/NSHM/DEV/nz-oq-distrseis/components/spatial_distribution/files/Floor_AddoptiEEPAScomb_polygon-adjusted.csv'
+grid_1346_path = '/home/chrisdc/NSHM/DEV/COMPONENTS/nz-oq-distrseis/components/spatial_distribution/files/Floor_AddoptiEEPAScomb_polygon-adjusted.csv'
 # /home/chrisdc/NSHM/DATA/dist_seis/Gruenthalmod1346ConfDSMsss.csv'
 
 X_1346,Y_1346,Z_1346 = get_background(grid_1346_path)
@@ -81,7 +81,7 @@ fig.show()
 #----------------------------------------------------------#
 
 
-grid_hybrid_path = '/home/chrisdc/NSHM/DEV/nz-oq-distrseis/components/spatial_distribution/files/Floor_AddoptiEEPAScomb_polygon-adjusted.csv'
+grid_hybrid_path = '/home/chrisdc/NSHM/DEV/COMPONENTS/nz-oq-distrseis/components/spatial_distribution/files/Floor_AddoptiEEPAScomb_polygon-adjusted.csv'
 # '/home/chrisdc/NSHM/DATA/dist_seis/Floor_AddoptiEEPAScomb-CRU_pdf.csv'
 X_hybrid,Y_hybrid,Z_hybrid = get_background(grid_hybrid_path)
 # ax[1].contourf(X_hybrid, Y_hybrid, Z_hybrid,locator=ticker.LogLocator(),levels=10)
@@ -94,6 +94,6 @@ ax[1].set_xlim(xlim)
 ax[1].set_ylim(ylim)
 
 
-# fig.show()
-plt.savefig('spatial_seis_pdf.png')
+fig.show()
+# plt.savefig('spatial_seis_pdf.png')
 

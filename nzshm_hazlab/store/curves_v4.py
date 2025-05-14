@@ -105,8 +105,7 @@ def get_hazard(
     hazard_curves = table.to_pandas()
     hazard_curves[['lat', 'lon']] = hazard_curves[['lat', 'lon']].applymap(lambda x: '{0:.3f}'.format(x))
     hazard_curves['level'] = pd.NA
-    for i in range(len(hazard_curves)):
-        hazard_curves['level'].iloc[i] = imtls
+    hazard_curves['level'] = hazard_curves['level'].apply(lambda x: imtls)
     hazard_curves.rename({'values': 'apoe'}, axis='columns', inplace=True)
 
     return hazard_curves

@@ -12,7 +12,7 @@ DisaggDef = namedtuple("DisaggDef", "vs30 imt poe location")
 
 hazard_model_id = 'NSHM_v1.0.4'
 hazard_agg = model.AggregationEnum.MEAN
-vs30s = [200, 300]
+vs30s = [750]
 imts = ["PGA", "SA(0.2)", "SA(0.5)", "SA(1.5)", "SA(3.0)"]
 # imts = ["PGA", "SA(0.2)", "SA(0.5)", "SA(1.5)"]
 # imts = ["SA(3.0)"]
@@ -60,6 +60,11 @@ print(f'received: {len(disaggs_received)}')
 
 print('MISSING DISAGGS')
 disaggs_missing = set(disaggs_expected).difference(set(disaggs_received))
+locs_missing = []
 for d in disaggs_missing:
     location_id = location_ids[locations.index(d.location)]
+    locs_missing.append(location_id)
     print(location_id, d)
+
+locs_missing = set(locs_missing)
+print(locs_missing)

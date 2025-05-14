@@ -24,9 +24,9 @@ def load_2010(vs30, poe, imt):
 # MODEL PARAMETERS
 # hazard_model1 = dict(id='NSHM_v1.0.3',name='v1.0.3')
 # hazard_model1 = dict(id='SLT_v8_gmm_v2_FINAL',name='v1.0.0')
-# hazard_model1 = dict(id='NSHM_2010',name='2010')
+hazard_model1 = dict(id='NSHM_2010',name='2010')
 hazard_model2 = dict(id='NSHM_v1.0.4',name='v1.0.4')
-hazard_model1 = dict(id='NSHM_v1.0.4_IFMonly',name='v1.0.4')
+# hazard_model1 = dict(id='NSHM_v1.0.4_IFMonly',name='v1.0.4')
 vs30 = 400
 # imt =  'SA(5.0)' # 'PGA' # 'SA(5.0)' # 'SA(3.0)' 'SA(1.0)'
 # imts = ['PGA', 'SA(0.5)', 'SA(1.0)', 'SA(3.0)']
@@ -71,6 +71,8 @@ for imt in imts:
         else:
             grids['model1'] = get_poe_grid(hazard_model1['id'], vs30, imt, agg, poe)
         grids['model2'] = get_poe_grid(hazard_model2['id'], vs30, imt, agg, poe)
+        grids['model2'].to_netcdf('nshm22_hazard_map.grd', format='NETCDF4', engine='netcdf4')
+        assert 0
 
         font = f'{font_size}p'
         font_annot = f'{int(0.8*font_size)}p'
@@ -85,6 +87,7 @@ for imt in imts:
         elif diff_type == 'ratio':
             legend_text = f'{imt} ({poe*100:.0f}% PoE in 50 years) - ratio'
         fig = plot_hazard_diff_map(grids['model1'], grids['model2'],diff_type, dpi, climits, font, font_annot, plot_width, legend_text, region, plot_faults=plot_faults, contours=contours)
+        fig.show()
         # fig.savefig(str(filepath))
 
                     
