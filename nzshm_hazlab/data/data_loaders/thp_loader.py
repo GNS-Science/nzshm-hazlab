@@ -8,7 +8,7 @@ from nzshm_hazlab.constants import RESOLUTION
 import numpy as np
 
 if TYPE_CHECKING:
-    from nzshm_common.location import CodedLocation
+    from nzshm_common import CodedLocation
     # import numpy as np
 
 
@@ -23,11 +23,11 @@ class THPLoader:
         self._dataset = _get_realizations_dataset(Path(dataset_dir).expanduser())
         self._levels: None | np.ndarray = None
 
-    def get_probabilities(self, hazard_id: str, imt: str, location: 'CodedLocation', aggregate: str, vs30: int) -> 'np.ndarray':
+    def get_probabilities(self, hazard_id: str, imt: str, location: 'CodedLocation', agg: str, vs30: int) -> 'np.ndarray':
 
         nloc_001 = location.downsample(0.001).code
         flt = (
-            (pc.field('agg') == pc.scalar(aggregate))
+            (pc.field('agg') == pc.scalar(agg))
             & (pc.field('imt') == pc.scalar(imt))
             & (pc.field('nloc_001') == pc.scalar(nloc_001))
             & (pc.field('vs30') == pc.scalar(vs30))
@@ -37,13 +37,13 @@ class THPLoader:
         table = arrow_scanner.to_table()
         values = table.column('values').to_numpy()
         if len(values) != 1:
-            raise Exception("pyarrow filter on aggregate dataset did not result in a single entry")
+            raise Exception("pyarrow filter on agg dataset did not result in a single entry")
 
         return values[0]
 
 
     # TODO: get actual levels once they are stored by THS
-    def get_levels(self, hazard_id: str, imt: str, location: 'CodedLocation', aggregate: str, vs30: int) -> 'np.ndarray':
+    def get_levels(self, hazard_id: str, imt: str, location: 'CodedLocation', agg: str, vs30: int) -> 'np.ndarray':
         return np.array([
             0.0001, 0.0002, 0.0004, 0.0006, 0.0008,
             0.001, 0.002, 0.004, 0.006, 0.008,
