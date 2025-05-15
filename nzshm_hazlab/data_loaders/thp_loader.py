@@ -5,13 +5,14 @@ from pyarrow import fs
 from toshi_hazard_store.model.revision_4 import hazard_aggregate_curve, pyarrow_aggr_dataset, pyarrow_dataset
 from typing import TYPE_CHECKING
 from nzshm_hazlab.constants import RESOLUTION
+import numpy as np
 
 if TYPE_CHECKING:
     from nzshm_common.location import CodedLocation
-    import numpy as np
+    # import numpy as np
 
 
-def _get_realizations_dataset(dataset_dir: Path | str) -> ds.Dataset:
+def _get_realizations_dataset(dataset_dir: Path) -> ds.Dataset:
     rlz_dir, filesystem = pyarrow_dataset.configure_output(str(dataset_dir))
     dataset = ds.dataset(rlz_dir, format='parquet', filesystem=filesystem, partitioning='hive')
     return dataset
@@ -19,33 +20,35 @@ def _get_realizations_dataset(dataset_dir: Path | str) -> ds.Dataset:
 class THPLoader:
 
     def __init__(self, dataset_dir: Path | str):
-        self._dataset = _get_realizations_dataset(dataset_dir)
+        self._dataset = _get_realizations_dataset(Path(dataset_dir).expanduser())
+        self._levels: None | np.ndarray = None
 
-    def get_probabilities(self, hazard_id: str, imt: str, location: 'CodedLocation', aggregate: str, vs30: int) -> np.ndarray:
+    def get_probabilities(self, hazard_id: str, imt: str, location: 'CodedLocation', aggregate: str, vs30: int) -> 'np.ndarray':
 
-        loc_strs = [loc.downsample(RESOLUTION).code for loc in locs]
-        naggs = len(aggs)
-        nimts = len(imts)
-
-        location = locs[0]
-        imt = imts[0]
-        nloc_001s = [loc.downsample(0.001).code for loc in locs]
+        nloc_001 = location.downsample(0.001).code
         flt = (
-            (pc.is_in(pc.field('agg') == pc.scalar(aggregate)))
-            & (pc.is_in(pc.field('imt') == pc.scalar(imt)))
-            & (pc.is_in(pc.field('nloc_001') == pc.scalar(nloc_001)))
+            (pc.field('agg') == pc.scalar(aggregate))
+            & (pc.field('imt') == pc.scalar(imt))
+            & (pc.field('nloc_001') == pc.scalar(nloc_001))
             & (pc.field('vs30') == pc.scalar(vs30))
             & (pc.field('hazard_model_id') == pc.scalar(hazard_id))
         )
-        columns = ['agg', 'values', 'vs30', 'imt', 'lat', 'lon']
-        arrow_scanner = ds.Scanner.from_dataset(dataset, filter=flt, columns=columns)
+        arrow_scanner = ds.Scanner.from_dataset(self._dataset, filter=flt)
         table = arrow_scanner.to_table()
-        hazard_curves = table.to_pandas()
-        hazard_curves[['lat', 'lon']] = hazard_curves[['lat', 'lon']].applymap(lambda x: '{0:.3f}'.format(x))
-        hazard_curves['level'] = pd.NA
-        hazard_curves['level'] = hazard_curves['level'].apply(lambda x: imtls)
-        hazard_curves.rename({'values': 'apoe'}, axis='columns', inplace=True)
+        values = table.column('values').to_numpy()
+        if len(values) != 1:
+            raise Exception("pyarrow filter on aggregate dataset did not result in a single entry")
+
+        return values[0]
 
 
-    def get_levels(self, hazard_id: str, imt: str, location: 'CodedLocation', aggregate: str, vs30: int) -> np.ndarray:
-        ...
+    # TODO: get actual levels once they are stored by THS
+    def get_levels(self, hazard_id: str, imt: str, location: 'CodedLocation', aggregate: str, vs30: int) -> 'np.ndarray':
+        return np.array([
+            0.0001, 0.0002, 0.0004, 0.0006, 0.0008,
+            0.001, 0.002, 0.004, 0.006, 0.008,
+            0.01, 0.02, 0.04, 0.06, 0.08,
+            0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+            1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0
+        ])
+

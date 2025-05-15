@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from nzshm_common.location import CodedLocation
     from .data_loaders.data_loader import DataLoader
 
-_columns = ["imt", "location", "aggregate", "vs30", "probability"]
+_columns = ["hazard_model_id", "imt", "location", "aggregate", "vs30", "probability"]
 
 class HazardCurves:
 
@@ -16,23 +16,29 @@ class HazardCurves:
         self._data = pd.DataFrame(columns=_columns)
         self._levels: None | np.ndarray = None
 
-    def get_hcurve(self, imt: str, location: 'CodedLocation', aggregate: str, vs30: int) -> tuple[np.ndarray, np.ndarray]:
-        idx = self._data.loc[
-            self._data['imt'].eq(imt) \
-            & self._data['location'].eq(location) \
-            & self._data['aggregate'].eq(aggregate) \
-            & self._data['vs30'].eq(vs30)
-        ]
+    def get_hcurve(self, hazard_model_id: str, imt: str, location: 'CodedLocation', aggregate: str, vs30: int) -> tuple[np.ndarray, np.ndarray]:
 
-        if not idx:
-            self._load_data(imt, location, aggregate, vs30)
+        def filter_data(hmi, imt, loc, agg, vs30):
+            return self._data.loc[
+                self._data['imt'].eq(imt) \
+                & self._data['location'].eq(loc) \
+                & self._data['aggregate'].eq(agg) \
+                & self._data['vs30'].eq(vs30) \
+                & self._data['hazard_model_id'].eq(hmi)
+            ]
 
-        return self._levels, self._data[idx]['probability']
+        data = filter_data(hazard_model_id, imt, location, aggregate, vs30) 
 
-    def _load_data(self, imt: str, location: 'CodedLocation', aggregate: str, vs30: int) -> None:
-        values = self._loader.get_probabilities(imt, location, aggregate, vs30)
-        df = pd.df([[imt, location, aggregate, vs30, values]], columns=_columns)
+        if data.empty:
+            self._load_data(hazard_model_id, imt, location, aggregate, vs30)
+            data = filter_data(hazard_model_id, imt, location, aggregate, vs30) 
+
+        return self._levels, data['probability'].values[0]
+
+    def _load_data(self, hazard_model_id: str, imt: str, location: 'CodedLocation', aggregate: str, vs30: int) -> None:
+        values = self._loader.get_probabilities(hazard_model_id, imt, location, aggregate, vs30)
+        df = pd.DataFrame([[hazard_model_id, imt, location, aggregate, vs30, values]], columns=_columns)
         self._data = pd.concat([self._data, df])
 
-        if not self._levels:
-            self._levels = self._loader.get_levels(imt, location, aggregate, vs30)
+        if self._levels is None:
+            self._levels = self._loader.get_levels(hazard_model_id, imt, location, aggregate, vs30)
