@@ -1,2 +1,2 @@
-from .thp_loader import THPLoader
+from .ths_loader import THSLoader
 from .dynamo_loader import DynamoLoader

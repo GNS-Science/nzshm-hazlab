@@ -17,7 +17,7 @@ def _get_realizations_dataset(dataset_dir: Path) -> ds.Dataset:
     dataset = ds.dataset(rlz_dir, format='parquet', filesystem=filesystem, partitioning='hive')
     return dataset
 
-class THPLoader:
+class THSLoader:
 
     def __init__(self, dataset_dir: Path | str):
         self._dataset = _get_realizations_dataset(Path(dataset_dir).expanduser())
