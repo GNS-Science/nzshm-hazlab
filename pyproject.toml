@@ -13,6 +13,7 @@ toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.g
 nzshm-common = "^0.8.4"
 matplotlib = "^3.10.3"
 pyqt5 = "^5.15.11"
+pandas = "^2.2.3"
 
 [tool.poetry.extras]
 
