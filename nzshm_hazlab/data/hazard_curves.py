@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import pandas as pd
@@ -42,7 +42,7 @@ class HazardCurves:
             self._load_data(hazard_model_id, imt, location, agg, vs30)
             data = filter_data(hazard_model_id, imt, location, agg, vs30)
 
-        return self._levels, data["probability"].values[0]
+        return cast(np.ndarray, self._levels), data["probability"].values[0]
 
     def _load_data(
         self,
