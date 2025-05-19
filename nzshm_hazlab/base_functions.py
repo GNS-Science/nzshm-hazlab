@@ -1,6 +1,7 @@
 import re
 import math
 from enum import Enum
+import numpy as np
 
 class GMType(Enum):
     ACC = "A"
@@ -34,3 +35,7 @@ def poe_from_rp(rp: float, inv_time: float) -> float:
 
 def convert_poe(poe_in: float, inv_time_in: float, inv_time_out: float) -> float:
     return poe_from_rp(rp_from_poe(poe_in, inv_time_in), inv_time_out)
+
+
+def compute_hazard_at_poe(poe: float, poes: np.ndarray, imtls: np.ndarray) -> float:
+    return np.exp(np.interp(np.log(poe), np.flip(np.log(poes)), np.flip(np.log(imtls))))

@@ -31,14 +31,14 @@ def plot_hazard_curve(
     # if odd number of aggs, plot the centre as a thick line
     i_center = int(len(aggs) / 2)
     if len(aggs) % 2 == 1:
-        levels, probs = data.get_hcurve(hazard_model_id, imt, location, aggs[i_center], vs30)
+        levels, probs = data.get_hazard_curve(hazard_model_id, imt, location, aggs[i_center], vs30)
         lhs = axes.plot(levels, probs, lw=constants.LINE_WIDTH_CENTER, color=color, label=label, **kwargs)
         line_handles += lhs
 
     filled = False
     for i in range(1, i_center + 1):
-        levels_low, probs_low = data.get_hcurve(hazard_model_id, imt, location, aggs[i_center - i], vs30)
-        levels_high, probs_high = data.get_hcurve(hazard_model_id, imt, location, aggs[i_center + i], vs30)
+        levels_low, probs_low = data.get_hazard_curve(hazard_model_id, imt, location, aggs[i_center - i], vs30)
+        levels_high, probs_high = data.get_hazard_curve(hazard_model_id, imt, location, aggs[i_center + i], vs30)
         lhs = axes.plot(levels_low, probs_low, lw=constants.LINE_WIDTH_BOUNDS, color=color, **kwargs)
         line_handles += lhs
 
