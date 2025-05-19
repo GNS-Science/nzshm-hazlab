@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING, cast
-from nzshm_hazlab.base_functions import period_from_imt, compute_hazard_at_poe
 
 import numpy as np
 import pandas as pd
+
+from nzshm_hazlab.base_functions import compute_hazard_at_poe, period_from_imt
 
 if TYPE_CHECKING:
     from nzshm_common import CodedLocation
@@ -49,14 +50,13 @@ class HazardCurves:
         self, hazard_model_id: str, apoe: float, imts: list[str], location: 'CodedLocation', agg: str, vs30: int
     ) -> tuple[np.ndarray, np.ndarray]:
 
-        periods = [period_from_imt(imt) for imt in imts] # x
+        periods = [period_from_imt(imt) for imt in imts]  # x
         uhs = []
         for imt in imts:
             imtls, apoes = self.get_hazard_curve(hazard_model_id, imt, location, agg, vs30)
             uhs.append(compute_hazard_at_poe(apoe, apoes, imtls))
 
         return np.array(periods), np.array(uhs)
-
 
     def _load_data(
         self,

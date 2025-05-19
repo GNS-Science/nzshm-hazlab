@@ -4,16 +4,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
-from pyarrow import fs
-from toshi_hazard_store.model.revision_4 import hazard_aggregate_curve, pyarrow_aggr_dataset, pyarrow_dataset
-
-from nzshm_hazlab.constants import RESOLUTION
+from toshi_hazard_store.model.revision_4 import pyarrow_dataset
 
 if TYPE_CHECKING:
     from nzshm_common import CodedLocation
-
-    # import numpy as np
-
 
 def _get_realizations_dataset(dataset_dir: Path) -> ds.Dataset:
     rlz_dir, filesystem = pyarrow_dataset.configure_output(str(dataset_dir))
@@ -29,7 +23,7 @@ class THSLoader:
 
     def get_probabilities(
         self, hazard_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> "np.ndarray":
+    ) -> 'np.ndarray':
 
         nloc_001 = location.downsample(0.001).code
         flt = (
@@ -48,7 +42,7 @@ class THSLoader:
         return values[0]
 
     # TODO: get actual levels once they are stored by THS
-    def get_levels(self, hazard_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> "np.ndarray":
+    def get_levels(self, hazard_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> 'np.ndarray':
         return np.array(
             [
                 0.0001,

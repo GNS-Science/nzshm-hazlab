@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 PERIOD_MIN = 0.01
 
+
 def plot_hazard_curve(
     axes: "Axes",
     data: "HazardCurves",
@@ -72,6 +73,7 @@ def plot_hazard_curve(
 
     return line_handles
 
+
 def plot_uhs(
     axes: "Axes",
     data: "HazardCurves",
@@ -91,7 +93,7 @@ def plot_uhs(
     label = kwargs.pop("label", None)
 
     line_handles = []
-    
+
     apoe = convert_poe(poe, inv_time, 1.0)
 
     # if odd number of aggs, plot the centre as a thick line
@@ -127,10 +129,9 @@ def plot_uhs(
             )
             filled = True
 
-    axes.set_xlabel("Period, (s)",  fontsize=constants.AXIS_FONTSIZE)
+    axes.set_xlabel("Period, (s)", fontsize=constants.AXIS_FONTSIZE)
     axes.set_ylabel("Shaking Intensity (g)", fontsize=constants.AXIS_FONTSIZE)
     axes.tick_params(axis="both", which="major", labelsize=constants.TICK_FONTSIZE)
     axes.grid(color=constants.GRID_COLOR)
 
     return line_handles
-
