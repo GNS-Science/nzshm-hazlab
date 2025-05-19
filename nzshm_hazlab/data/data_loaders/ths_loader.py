@@ -5,11 +5,7 @@ import numpy as np
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow import fs
-from toshi_hazard_store.model.revision_4 import (
-    hazard_aggregate_curve,
-    pyarrow_aggr_dataset,
-    pyarrow_dataset,
-)
+from toshi_hazard_store.model.revision_4 import hazard_aggregate_curve, pyarrow_aggr_dataset, pyarrow_dataset
 
 from nzshm_hazlab.constants import RESOLUTION
 
@@ -21,9 +17,7 @@ if TYPE_CHECKING:
 
 def _get_realizations_dataset(dataset_dir: Path) -> ds.Dataset:
     rlz_dir, filesystem = pyarrow_dataset.configure_output(str(dataset_dir))
-    dataset = ds.dataset(
-        rlz_dir, format="parquet", filesystem=filesystem, partitioning="hive"
-    )
+    dataset = ds.dataset(rlz_dir, format="parquet", filesystem=filesystem, partitioning="hive")
     return dataset
 
 
@@ -49,16 +43,12 @@ class THSLoader:
         table = arrow_scanner.to_table()
         values = table.column("values").to_numpy()
         if len(values) != 1:
-            raise Exception(
-                "pyarrow filter on agg dataset did not result in a single entry"
-            )
+            raise Exception("pyarrow filter on agg dataset did not result in a single entry")
 
         return values[0]
 
     # TODO: get actual levels once they are stored by THS
-    def get_levels(
-        self, hazard_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> "np.ndarray":
+    def get_levels(self, hazard_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> "np.ndarray":
         return np.array(
             [
                 0.0001,

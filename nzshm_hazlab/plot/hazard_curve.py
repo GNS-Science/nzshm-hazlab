@@ -25,28 +25,21 @@ def plot_hazard_curve(
     color = color if color else constants.DEFAULT_COLOR
 
     label = kwargs.pop("label", None)
+
     line_handles = []
 
     # if odd number of aggs, plot the centre as a thick line
     i_center = int(len(aggs) / 2)
     if len(aggs) % 2 == 1:
-        levels, probs = data.get_hcurve(
-            hazard_model_id, imt, location, aggs[i_center], vs30
-        )
+        levels, probs = data.get_hcurve(hazard_model_id, imt, location, aggs[i_center], vs30)
         lhs = axes.plot(levels, probs, lw=constants.LINE_WIDTH_CENTER, color=color, label=label, **kwargs)
         line_handles += lhs
 
     filled = False
     for i in range(1, i_center + 1):
-        levels_low, probs_low = data.get_hcurve(
-            hazard_model_id, imt, location, aggs[i_center - i], vs30
-        )
-        levels_high, probs_high = data.get_hcurve(
-            hazard_model_id, imt, location, aggs[i_center + i], vs30
-        )
-        lhs = axes.plot(
-            levels_low, probs_low, lw=constants.LINE_WIDTH_BOUNDS, color=color, **kwargs
-        )
+        levels_low, probs_low = data.get_hcurve(hazard_model_id, imt, location, aggs[i_center - i], vs30)
+        levels_high, probs_high = data.get_hcurve(hazard_model_id, imt, location, aggs[i_center + i], vs30)
+        lhs = axes.plot(levels_low, probs_low, lw=constants.LINE_WIDTH_BOUNDS, color=color, **kwargs)
         line_handles += lhs
 
         lhs = axes.plot(
@@ -71,9 +64,7 @@ def plot_hazard_curve(
     axes.set_xscale("log")
     axes.set_yscale("log")
     axes.set_xlabel("Shaking Intensity, %s [g]" % imt, fontsize=constants.AXIS_FONTSIZE)
-    axes.set_ylabel(
-        "Annual Probability of Exceedance", fontsize=constants.AXIS_FONTSIZE
-    )
+    axes.set_ylabel("Annual Probability of Exceedance", fontsize=constants.AXIS_FONTSIZE)
     axes.tick_params(axis="both", which="major", labelsize=constants.TICK_FONTSIZE)
     axes.grid(color=constants.GRID_COLOR)
 

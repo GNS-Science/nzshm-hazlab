@@ -1,11 +1,12 @@
-import pytest
 from pathlib import Path
-from nzshm_hazlab.data.data_loaders import OQCSVLoader
-from nzshm_hazlab.data.hazard_curves import HazardCurves
+
+import pytest
 from nzshm_common import CodedLocation
 from nzshm_common.location.location import _lat_lon
-from nzshm_hazlab.constants import RESOLUTION
 
+from nzshm_hazlab.constants import RESOLUTION
+from nzshm_hazlab.data.data_loaders import OQCSVLoader
+from nzshm_hazlab.data.hazard_curves import HazardCurves
 
 oq_output_dir = Path(__file__).parent / "fixtures"
 hazard_model_oqcsv = "1"
@@ -19,6 +20,7 @@ location = CodedLocation(*_lat_lon(location_id), RESOLUTION)
 
 imts = ["PGA", "SA(1.0)"]
 aggs = ["0.1", "mean"]
+
 
 @pytest.mark.parametrize("imt", imts)
 @pytest.mark.parametrize("agg", aggs)

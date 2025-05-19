@@ -22,7 +22,7 @@ class HazardCurves:
         self,
         hazard_model_id: str,
         imt: str,
-        location: "CodedLocation",
+        location: 'CodedLocation',
         agg: str,
         vs30: int,
     ) -> tuple[np.ndarray, np.ndarray]:
@@ -44,6 +44,17 @@ class HazardCurves:
 
         return cast(np.ndarray, self._levels), data["probability"].values[0]
 
+    def get_uhs(
+        self, hazard_model_id: str, apoe: float, imts: list[str], location: 'CodedLocation', agg: str, vs30: int
+    ) -> tuple[np.ndarray, np.ndarray]:
+
+        x = np.empty()
+        y = np.empty()
+        z = np.empty()
+        for imt in imts:
+            y = np.append(y, self.get_hcurve(hazard_model_id, imt, location, agg, vs30)[1])
+            z = np.append(z, self.get_hcurve(hazard_model_id, imt, location, agg, vs30)[1])
+
     def _load_data(
         self,
         hazard_model_id: str,
@@ -52,15 +63,9 @@ class HazardCurves:
         agg: str,
         vs30: int,
     ) -> None:
-        values = self._loader.get_probabilities(
-            hazard_model_id, imt, location, agg, vs30
-        )
-        df = pd.DataFrame(
-            [[hazard_model_id, imt, location, agg, vs30, values]], columns=_columns
-        )
+        values = self._loader.get_probabilities(hazard_model_id, imt, location, agg, vs30)
+        df = pd.DataFrame([[hazard_model_id, imt, location, agg, vs30, values]], columns=_columns)
         self._data = pd.concat([self._data, df])
 
         if self._levels is None:
-            self._levels = self._loader.get_levels(
-                hazard_model_id, imt, location, agg, vs30
-            )
+            self._levels = self._loader.get_levels(hazard_model_id, imt, location, agg, vs30)
