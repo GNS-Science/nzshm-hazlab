@@ -3620,9 +3620,8 @@ propcache = ">=0.2.1"
 
 [extras]
 graphics = ["pyqt5"]
-interactive = []
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "2500c05bf2bf6558c276ffa29f4d21091deabb1e606cfd3de9a64e195cfd054b"
+content-hash = "4cf857709a0ed4d483c63690f03ade03d077e7b42fd458780a5e85e848f5313e"
