@@ -1,3 +1,5 @@
+"""This module provies the THSLoader class."""
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -9,6 +11,7 @@ from toshi_hazard_store.model.revision_4 import pyarrow_dataset
 if TYPE_CHECKING:
     from nzshm_common import CodedLocation
 
+
 def _get_realizations_dataset(dataset_dir: Path) -> ds.Dataset:
     rlz_dir, filesystem = pyarrow_dataset.configure_output(str(dataset_dir))
     dataset = ds.dataset(rlz_dir, format="parquet", filesystem=filesystem, partitioning="hive")
@@ -16,33 +19,68 @@ def _get_realizations_dataset(dataset_dir: Path) -> ds.Dataset:
 
 
 class THSLoader:
+    """A class for loading hazard curves from toshi-hazard-store."""
 
     def __init__(self, dataset_dir: Path | str):
+        """Initializes a THSLoader object.
+
+        Args:
+            dataset_dir: location of dataset (parquet) files. This can be a local filepath or S3 bucket URI.
+        """
         self._dataset = _get_realizations_dataset(Path(dataset_dir).expanduser())
         self._levels: None | np.ndarray = None
 
     def get_probabilities(
-        self, hazard_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
     ) -> 'np.ndarray':
+        """Get the probablity values for a hazard curve.
 
+        Args:
+            hazard_model_id: The identifier of the hazard model.
+            imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
+            location: The site location for the hazard curve.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
+            vs30: The vs30 of the site.
+
+        Returns:
+            The probability values.
+
+        Raises:
+            KeyError: If no records are found.
+        """
         nloc_001 = location.downsample(0.001).code
         flt = (
             (pc.field("agg") == pc.scalar(agg))
             & (pc.field("imt") == pc.scalar(imt))
             & (pc.field("nloc_001") == pc.scalar(nloc_001))
             & (pc.field("vs30") == pc.scalar(vs30))
-            & (pc.field("hazard_model_id") == pc.scalar(hazard_id))
+            & (pc.field("hazard_model_id") == pc.scalar(hazard_model_id))
         )
+        breakpoint()
         arrow_scanner = ds.Scanner.from_dataset(self._dataset, filter=flt)
         table = arrow_scanner.to_table()
         values = table.column("values").to_numpy()
         if len(values) != 1:
-            raise Exception("pyarrow filter on agg dataset did not result in a single entry")
+            raise KeyError("pyarrow filter on agg dataset did not result in a single entry")
 
         return values[0]
 
     # TODO: get actual levels once they are stored by THS
-    def get_levels(self, hazard_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> 'np.ndarray':
+    def get_levels(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
+    ) -> 'np.ndarray':
+        """Get the intensity measure levels for a hazard curve.
+
+        Args:
+            hazard_model_id: The identifier of the hazard model.
+            imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
+            location: The site location for the hazard curve.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
+            vs30: The vs30 of the site.
+
+        Returns:
+            The intensity measure values.
+        """
         return np.array(
             [
                 0.0001,

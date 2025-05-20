@@ -1,3 +1,5 @@
+"""This module provides functions for plotting hazard curves and derived products."""
+
 from typing import TYPE_CHECKING
 
 import nzshm_hazlab.plot.constants as constants
@@ -23,7 +25,50 @@ def plot_hazard_curve(
     aggs: list[str],
     **kwargs,  # color, linestyle, label, etc
 ) -> list['Line2D']:
+    """Plot hazard curves with optional error bound estimates.
 
+    Args:
+        axes: Handle of axes to plot to.
+        data: The hazard curve data.
+        hazard_model_id: The id of the hazard model to plot.
+        location: The site location.
+        imt: The intensity measure type to plot (e.g. "PGA", SA(1.0)")
+        vs30: The site vs30 to plot.
+        aggs: The aggregate statistics to plot (e.g. "mean", "0.1")
+        kwargs: Any additional arguments to pass to the matplotlib plot function.
+
+        If more than one item is passed to aggs they will be treated as error bound estimates. The
+        area between the inner values will be shaded and outer values will be plotted with a thin line.
+        If an odd number of aggs is provided, the centre value will be plotted as a thick line. See example.
+
+    Returns:
+        The handles of the plotted lines.
+
+    Example:
+        This will plot the mean hazard curve along with 60% and 80% confidence intervals as dashed
+        lines and label the curve "PGA vs30=400".
+        ```py
+        >>> from nzshm_hazlab.data.data_loaders import THSLoader
+        >>> from nzshm_hazlab.data.hazard_curves import HazardCurves
+        >>> from nzshm_hazlab.plot import plot_hazard_curve
+        >>> from nzshm_common import CodedLocation
+        >>> import matplotlib.pyplot as plt
+
+        >>> hazard_model_id = "NSHM_v1.0.4"
+        >>> dataset_dir = "~/toshi_hazard_store/AGG/"
+        >>> loader = THSLoader(dataset_dir=dataset_dir)
+        >>> hazard_curves = HazardCurves(loader=loader)
+        >>> location_id = "WLG"
+        >>> location = CodedLocation(-41.3, 174.78, 0.001)
+
+        >>> aggs = ["0.1", "0.2", "mean", "0.8", "0.9"]
+
+        >>> fig, ax = plt.subplots(1,1)
+        >>> line_handles = plot_hazard_curve(
+                ax, hazard_curves, hazard_model_id, location, "PGA", 400, aggs, label="PGA vs30=400", linestyle="--"
+            )
+        ```
+    """
     color = kwargs.pop("color", None)
     color = color if color else constants.DEFAULT_COLOR
 
@@ -86,7 +131,53 @@ def plot_uhs(
     aggs: list[str],
     **kwargs,  # color, linestyle, label, etc
 ) -> list['Line2D']:
+    """Plot uniform hazard spectra curves with optional error bound estimates.
 
+    Args:
+        axes: Handle of axes to plot to.
+        data: The hazard curve data.
+        hazard_model_id: The id of the hazard model to plot.
+        location: The site location.
+        imts: The periods as IMTs (e.g. ["PGA", SA(1.0)", "SA(2.0)"])
+        poe: The proability of exceedance at which to calculate the UHS.
+        inv_time: The investigation time for the poe.
+        vs30: The site vs30 to plot.
+        aggs: The aggregate statistics to plot (e.g. "mean", "0.1")
+        kwargs: Any additional arguments to pass to the matplotlib plot function.
+
+        If more than one item is passed to aggs they will be treated as error bound estimates. The
+        area between the inner values will be shaded and outer values will be plotted with a thin line.
+        If an odd number of aggs is provided, the centre value will be plotted as a thick line. See example.
+
+    Returns:
+        The handles of the plotted lines.
+
+    Example:
+        This will plot the mean UHS curve along with 60% and 80% confidence intervals as dashed lines
+        and label the curve "vs30=400".
+        ```py
+        >>> from nzshm_hazlab.data.data_loaders import THSLoader
+        >>> from nzshm_hazlab.data.hazard_curves import HazardCurves
+        >>> from nzshm_hazlab.plot import plot_uhs
+        >>> from nzshm_common import CodedLocation
+        >>> import matplotlib.pyplot as plt
+
+        >>> hazard_model_id = "NSHM_v1.0.4"
+        >>> dataset_dir = "~/toshi_hazard_store/AGG/"
+        >>> loader = THSLoader(dataset_dir=dataset_dir)
+        >>> hazard_curves = HazardCurves(loader=loader)
+        >>> location_id = "WLG"
+        >>> location = CodedLocation(-41.3, 174.78, 0.001)
+
+        >>> aggs = ["0.1", "0.2", "mean", "0.8", "0.9"]
+        >>> imts = ["PGA", "SA(0.2)", "SA(0.5)", "SA(1.0)", "SA(2.0)", "SA(3.0)", "SA(5.0)", "SA(10.0)"]
+
+        >>> fig, ax = plt.subplots(1,1)
+        >>> line_handles = plot_uhs(
+                ax, hazard_curves, hazard_model_id, location, imts, 400, aggs, label="vs30=400", linestyle="--"
+            )
+        ```
+    """
     color = kwargs.pop("color", None)
     color = color if color else constants.DEFAULT_COLOR
 

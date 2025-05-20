@@ -1,9 +1,15 @@
+"""This module provides the HazardCurves class.
+
+Classes:
+    HazardCurves: a class to retrive hazard curves and calculate derivative products.
+"""
+
 from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import pandas as pd
 
-from nzshm_hazlab.base_functions import compute_hazard_at_poe, period_from_imt
+from nzshm_hazlab.base_functions import calculate_hazard_at_poe, period_from_imt
 
 if TYPE_CHECKING:
     from nzshm_common import CodedLocation
@@ -14,8 +20,14 @@ _columns = ["hazard_model_id", "imt", "location", "agg", "vs30", "probability"]
 
 
 class HazardCurves:
+    """A class for retrieving and storing hazard curves and calculating derived products."""
 
     def __init__(self, loader: "DataLoader"):
+        """Initializes a new HazardCurves object.
+
+        Args:
+            loader: The data loader to use to retrive hazard curves.
+        """
         self._loader = loader
         self._data = pd.DataFrame(columns=_columns)
         self._levels: None | np.ndarray = None
@@ -28,6 +40,18 @@ class HazardCurves:
         agg: str,
         vs30: int,
     ) -> tuple[np.ndarray, np.ndarray]:
+        """Get a single hazard curve.
+
+        Args:
+            hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
+            imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
+            location: The site location for the hazard curve.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
+            vs30: The vs30 of the site.
+
+        Returns:
+            A tuple (imtls, poes) where imtls is the shaking levels and poes is the probability of exceedance values.
+        """
 
         def filter_data(hmi, imt, loc, agg, vs30):
             return self._data.loc[
@@ -47,14 +71,29 @@ class HazardCurves:
         return cast(np.ndarray, self._levels), data["probability"].values[0]
 
     def get_uhs(
-        self, hazard_model_id: str, apoe: float, imts: list[str], location: 'CodedLocation', agg: str, vs30: int
+        self, hazard_model_id: str, poe: float, imts: list[str], location: 'CodedLocation', agg: str, vs30: int
     ) -> tuple[np.ndarray, np.ndarray]:
+        """Get the uniform hazard spectrum (UHS) for a site.
 
+        The period for peak IMTs (e.g. "PGA", "PGV") is 0.
+
+        Args:
+            hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
+            poe: The probablity of exceedance at which to calculate the UHS.
+            imts: The intesity measure types / periods at which to caluclate the UHS curve (e.g. ["PGA", "SA(1.0)"]).
+            location: The site location for the UHS.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
+            vs30: The vs30 of the site.
+
+        Returns:
+            A tuple (periods, imtls) where periods is the shaking periods (from the imts) and imtls
+            is the shaking levels.
+        """
         periods = [period_from_imt(imt) for imt in imts]  # x
         uhs = []
         for imt in imts:
-            imtls, apoes = self.get_hazard_curve(hazard_model_id, imt, location, agg, vs30)
-            uhs.append(compute_hazard_at_poe(apoe, apoes, imtls))
+            imtls, poes = self.get_hazard_curve(hazard_model_id, imt, location, agg, vs30)
+            uhs.append(calculate_hazard_at_poe(poe, imtls, poes))
 
         return np.array(periods), np.array(uhs)
 
