@@ -1,10 +1,14 @@
-[tool.poetry]
+[project]
 name = "nzshm-hazlab"
 version = "0.1.0"
-description = "A laboratory for exploring hazard models"
-authors = ["chrisdicaprio <christopher.dicaprio@gmail.com>"]
-license = "AGPL-3.0"
 readme = "README.md"
+authors = [
+  {name = "Chris DiCaprio", email = "christopher.dicaprio@gmail.com"},
+]
+description = "A laboratory for exploring hazard models"
+license = "AGPL-3.0"
+
+[tool.poetry]
 packages = [{include = "nzshm_hazlab"}]
 
 [tool.poetry.dependencies]
