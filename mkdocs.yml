@@ -7,16 +7,20 @@ watch:
   - nzshm_hazlab
   - docs
 nav:
-  - Home:
-      - README: index.md
-      - Installation: installation.md
+  - Home: index.md
+  - Usage: usage.md
+  - Installation: installation.md
   - Contributing: contributing.md
   - Changelog: changelog.md
   - API Reference:
-    - nzshm-hazlab:
-      - api/index.md
-      - data: api/data/index.md
-      - plot: api/plot/index.md
+      - nzshm_hazlab:
+          - api/index.md
+          - api/base_functions.md
+      - data:
+          - data: api/data/index.md
+          - data_loaders: api/data/data_loaders/index.md
+      - plot:
+          - plot: api/plot/index.md
 
 theme:
   name: material
