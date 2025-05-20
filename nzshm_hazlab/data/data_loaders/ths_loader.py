@@ -22,7 +22,7 @@ class THSLoader:
     """A class for loading hazard curves from toshi-hazard-store."""
 
     def __init__(self, dataset_dir: Path | str):
-        """Initializes a THSLoader object.
+        """Initialize a THSLoader object.
 
         Args:
             dataset_dir: location of dataset (parquet) files. This can be a local filepath or S3 bucket URI.

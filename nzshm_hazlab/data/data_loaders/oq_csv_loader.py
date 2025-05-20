@@ -20,7 +20,7 @@ class OQCSVLoader:
     """A class for loading hazard curves from OpenQuake csv output."""
 
     def __init__(self, output_dir: Path | str):
-        """Initializes a new OQCSVLoader object.
+        """Initialize a new OQCSVLoader object.
 
         Args:
             output_dir: The path to the folder where the output csv files are stored.

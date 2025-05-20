@@ -23,7 +23,7 @@ class HazardCurves:
     """A class for retrieving and storing hazard curves and calculating derived products."""
 
     def __init__(self, loader: "DataLoader"):
-        """Initializes a new HazardCurves object.
+        """Initialize a new HazardCurves object.
 
         Args:
             loader: The data loader to use to retrive hazard curves.

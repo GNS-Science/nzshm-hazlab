@@ -9,12 +9,12 @@ packages = [{include = "nzshm_hazlab"}]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
-toshi-hazard-store = {git = "https://github.com/GNS-Science/toshi-hazard-store.git", rev = "pre-release-v1.0"}
 nzshm-common = "^0.8.4"
 matplotlib = "^3.10.3"
 pyqt5 = "^5.15.11"
 pandas = "^2.2.3"
 numpy = "<2"
+toshi-hazard-store = "^1.0.0"
 
 [tool.poetry.extras]
 

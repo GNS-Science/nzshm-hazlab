@@ -13,9 +13,7 @@ nav:
   - Contributing: contributing.md
   - Changelog: changelog.md
   - API Reference:
-      - nzshm_hazlab:
-          - api/index.md
-          - api/base_functions.md
+      - base_functions: api/base_functions.md
       - data:
           - data: api/data/index.md
           - data_loaders: api/data/data_loaders/index.md
@@ -73,10 +71,17 @@ plugins:
   - search:
       lang: en
   - mkdocstrings:
+      default_handler: python
       handlers:
         python:
           options:
-            show_submodules: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature_annotations: true
+            show_if_no_docstring: true
+            signature_crossrefs: true
+            annotations_path: source
+            show_source: false
 
 extra:
   social:

@@ -1,6 +1,6 @@
 """This module provides functions for plotting hazard curves and derived products."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import nzshm_hazlab.plot.constants as constants
 from nzshm_hazlab.base_functions import convert_poe
@@ -23,9 +23,13 @@ def plot_hazard_curve(
     imt: str,
     vs30: int,
     aggs: list[str],
-    **kwargs,  # color, linestyle, label, etc
+    **kwargs: Any,  # color, linestyle, label, etc
 ) -> list['Line2D']:
     """Plot hazard curves with optional error bound estimates.
+
+    If more than one item is passed to aggs they will be treated as error bound estimates. The
+    area between the inner values will be shaded and outer values will be plotted with a thin line.
+    If an odd number of aggs is provided, the centre value will be plotted as a thick line. See example.
 
     Args:
         axes: Handle of axes to plot to.
@@ -36,10 +40,6 @@ def plot_hazard_curve(
         vs30: The site vs30 to plot.
         aggs: The aggregate statistics to plot (e.g. "mean", "0.1")
         kwargs: Any additional arguments to pass to the matplotlib plot function.
-
-        If more than one item is passed to aggs they will be treated as error bound estimates. The
-        area between the inner values will be shaded and outer values will be plotted with a thin line.
-        If an odd number of aggs is provided, the centre value will be plotted as a thick line. See example.
 
     Returns:
         The handles of the plotted lines.
@@ -129,9 +129,13 @@ def plot_uhs(
     inv_time: float,
     vs30: int,
     aggs: list[str],
-    **kwargs,  # color, linestyle, label, etc
+    **kwargs: Any,  # color, linestyle, label, etc
 ) -> list['Line2D']:
     """Plot uniform hazard spectra curves with optional error bound estimates.
+
+    If more than one item is passed to aggs they will be treated as error bound estimates. The
+    area between the inner values will be shaded and outer values will be plotted with a thin line.
+    If an odd number of aggs is provided, the centre value will be plotted as a thick line. See example.
 
     Args:
         axes: Handle of axes to plot to.
@@ -144,10 +148,6 @@ def plot_uhs(
         vs30: The site vs30 to plot.
         aggs: The aggregate statistics to plot (e.g. "mean", "0.1")
         kwargs: Any additional arguments to pass to the matplotlib plot function.
-
-        If more than one item is passed to aggs they will be treated as error bound estimates. The
-        area between the inner values will be shaded and outer values will be plotted with a thin line.
-        If an odd number of aggs is provided, the centre value will be plotted as a thick line. See example.
 
     Returns:
         The handles of the plotted lines.

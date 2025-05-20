@@ -1,1 +1,1 @@
-::: nzshm_hazlab.data
+::: nzshm_hazlab.data.HazardCurves

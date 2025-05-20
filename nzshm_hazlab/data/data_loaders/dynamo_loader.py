@@ -16,7 +16,7 @@ class DynamoLoader:
     """
 
     def __init__(self):
-        """Initializes a DynamoLoader object."""
+        """Initialize a DynamoLoader object."""
         self._levels: np.ndarray | None = None
 
     def get_probabilities(
