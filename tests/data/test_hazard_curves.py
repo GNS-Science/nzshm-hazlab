@@ -17,7 +17,7 @@ hazard_model_oqcsv = "1"
 
 @pytest.fixture(scope='module')
 def hazard_curves():
-    oq_output_dir = Path(__file__).parent / "fixtures/csv_loader"
+    oq_output_dir = Path(__file__).parent.parent / "fixtures/data/csv_loader"
     csv_loader = OQCSVLoader(oq_output_dir)
     return HazardCurves(loader=csv_loader)
 
