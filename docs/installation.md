@@ -17,7 +17,7 @@ $ pip install nzshm-hazlab
 $ poetry add nzshm-hazlab
 ```
 
-These are the preferred method to install nzshm-hazlab, as they will always install the most recent stable release.
+These are the preferred methods to install nzshm-hazlab, as they will always install the most recent stable release.
 
 If you don't have [pip][] installed, this [Python installation guide][]
 can guide you through the process.
