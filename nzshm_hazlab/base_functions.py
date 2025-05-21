@@ -1,78 +1,126 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+"""This module provides basic functions for parsing intensity measure type strings and probability-rate conversions."""
 
-import os
-import json
-import glob
+import math
 import re
-# import h5py
+from enum import Enum
+from typing import Literal
 
-from pathlib import Path
-# from scipy import stats
-# from scipy.optimize import minimize
-
+import numpy as np
 
 
-
-g = 9.80665 # gravity in m/s^2
-
-def acc_to_disp(acc,t):
-    return (acc * g) * (t/(2*np.pi))**2
-
-
-def disp_to_acc(disp,t):
-    return disp / (t/(2*np.pi))**2 / g
+class _GMType(Enum):
+    acc = "A"
+    disp = "D"
+    vel = "V"
 
 
-def sigfig(x, p):
-    x = np.asarray(x)
-    x_positive = np.where(np.isfinite(x) & (x != 0), np.abs(x), 10**(p-1))
-    mags = 10 ** (p - 1 - np.floor(np.log10(x_positive)))
-    return np.round(x * mags) / mags
+def period_from_imt(imt: str) -> float:
+    """Convert intensity measure type string to a time period.
 
-def find_nearest(a0, a):
-    "Element in nd array `a` closest to the scalar value `a0`"
-    idx = np.abs(a - a0).argmin()
-    return a[idx]
+    Peak values (e.g. "PGA", "PGV") are converted to 0 seconds.
 
+    Args:
+        imt: The intensity measure type (e.g. "PGA", "SA(1.0)", "SD(5.0)").
 
-def period_from_imt(imt):
-    if imt in ['PGA','PGD']:
-        period = 0
+    Returns:
+        The period in seconds.
+    """
+    if imt[0:2] == "PG":
+        period = 0.0
     else:
-        period = float(re.split('\(|\)',imt)[1])
+        period = float(re.split('\\(|\\)', imt)[1])
     return period
 
-def imt_from_period(period):
+
+def imt_from_period(period: float, imt_type: Literal["acc", "vel", "disp"]) -> str:
+    """Convert shaking period to an intensity measure type string.
+
+    Valid values of the IMT type are "acc", "vel", and "disp".
+
+    Args:
+        period: The shaking period in seconds.
+        imt_type: The type of intensity measure ("acc", "vel", "disp").
+
+    Returns:
+        The intensity measure type string.
+    """
+    prefix = _GMType[imt_type.lower()].value
     if period == 0:
-        imt = 'PGA'
-    else:
-        imt = f'SA({period})'
-    return imt
+        return f"PG{prefix}"
+    imt = f"{period:.10g}"
+    if "." not in imt and "e" not in imt:
+        imt += ".0"
+    return f"S{prefix}({imt})"
 
 
-# def find_fragility_median(im_value, beta, design_prob):
-#     return minimize(median_based_on_p_collapse, im_value, args=(im_value, beta, design_prob), method='Nelder-Mead').x[0]
+def rp_from_poe(poe: float, inv_time: float) -> float:
+    """Convert a proability of exceedance to a return period using the Poison proability function.
+
+    Args:
+        poe: The fractional probability of exceedance.
+        inv_time: The investigation time.
+
+    Returns:
+        The repeat period in the same units as inv_time (e.g. years).
+
+    Example:
+        To find the return period for a 10% probability of exceedance in 50 years
+
+        ```py
+        >>> rp_from_poe(0.1, 50)
+        474.56107905149526
+        ```
+    """
+    return -inv_time / math.log(1 - poe)
 
 
-# def median_based_on_p_collapse(x, im, beta, target_prob):
-#     return np.abs(target_prob - stats.lognorm(beta, scale=x).cdf(im))[0]
+def poe_from_rp(rp: float, inv_time: float) -> float:
+    """Convert a return period to a propability of exceedance using the Poison probablity function.
+
+    Args:
+        rp: Return period.
+        inv_time: Inverstigation time.
+
+    Returns:
+        Fractional probability of exceedance.
+
+    Example:
+        To find the probability of exceedance in 50 years for a return period of 500 years
+        ```py
+        >>> poe_from_rp(500.0, 50.0)
+        0.09516258196404048
+        ```
+    """
+    return 1 - math.exp(-inv_time / rp)
 
 
-# def set_plot_formatting():
-#     # set up plot formatting
-#     SMALL_SIZE = 15
-#     MEDIUM_SIZE = 18
-#     BIGGER_SIZE = 25
+def convert_poe(poe_in: float, inv_time_in: float, inv_time_out: float) -> float:
+    """Convert probablity of exceedance from one investigation time to another.
 
-#     plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
-#     plt.rc('axes', titlesize=MEDIUM_SIZE)  # fontsize of the axes title
-#     plt.rc('axes', labelsize=MEDIUM_SIZE)  # fontsize of the x and y labels
-#     plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
-#     plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
-#     plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
-#     plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+    Args:
+        poe_in: Origional probability of exceedance.
+        inv_time_in: Origional investigation time.
+        inv_time_out: Desired investigation time.
+
+    Returns:
+        The probability of exceedance for inv_time_out.
+    """
+    return poe_from_rp(rp_from_poe(poe_in, inv_time_in), inv_time_out)
 
 
-# set_plot_formatting()
+def calculate_hazard_at_poe(poe: float, imtls: np.ndarray, poes: np.ndarray) -> float:
+    """Calculate the hazard at a given probability of exceedance using interpolation.
+
+    A hazard curve and a desired probablity at which to calculate hazard are provided.
+    No conversion of time is performed (e.g. if the hazard curve is in annual PoE, the desired poe must also be annual),
+    use the convert_poe function to convert probabilty investigation times.
+
+    Args:
+        poe: The probability of exceedance at which to calculate hazard.
+        imtls: The shaking values of the hazard curve.
+        poes: The probability values of the hazard curve.
+
+    Returns:
+        The hazard (shaking value) at the desired probablity of exceedance.
+    """
+    return math.exp(np.interp(np.log(poe), np.flip(np.log(poes)), np.flip(np.log(imtls))))

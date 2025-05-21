@@ -1,0 +1,92 @@
+site_name: nzshm-hazlab
+site_url: https://GNS-Science.github.io/nzshm-hazlab
+repo_url: https://github.com/GNS-Science/nzshm-hazlab
+repo_name: GNS-Science/nzshm-hazlab
+#strict: true
+watch:
+  - nzshm_hazlab
+  - docs
+nav:
+  - Home: index.md
+  - Usage: usage.md
+  - Installation: installation.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+  - API Reference:
+      - base_functions: api/base_functions.md
+      - data:
+          - data: api/data/index.md
+          - data_loaders: api/data/data_loaders/index.md
+      - plot:
+          - plot: api/plot/index.md
+
+theme:
+  name: material
+  language: en
+  #logo: assets/logo.png
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.indexes
+    - navigation.instant
+    - navigation.tabs
+  #   - navigation.tabs.sticky
+
+markdown_extensions:
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.tabbed
+  - attr_list
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      linenums: false
+  - pymdownx.inlinehilite
+  - pymdownx.details
+  - admonition
+  - toc:
+      baselevel: 1
+      permalink: true
+  - meta
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - include-markdown
+  - search:
+      lang: en
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature_annotations: true
+            show_if_no_docstring: true
+            signature_crossrefs: true
+            annotations_path: source
+            show_source: false
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/GNS-Science/nzshm-hazlab
+      name: Github
+    - icon: material/email
+      link: "mailto:nshm@gns.cri.nz"
