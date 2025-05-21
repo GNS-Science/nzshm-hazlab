@@ -15,6 +15,8 @@ Hazard curves can be retrieved from
 - OpenQuake output files
 - PLANNED FEATURE: plot aggregate curves generated on-the-fly with toshi-hazard-post
 
+![hazard curve](docs/figs/hazard_curve_example.png)
+
 ## Install
 
 See [Installation](docs/installation.md) instructions.
