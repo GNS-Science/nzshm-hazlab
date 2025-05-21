@@ -56,7 +56,6 @@ class THSLoader:
             & (pc.field("vs30") == pc.scalar(vs30))
             & (pc.field("hazard_model_id") == pc.scalar(hazard_model_id))
         )
-        breakpoint()
         arrow_scanner = ds.Scanner.from_dataset(self._dataset, filter=flt)
         table = arrow_scanner.to_table()
         values = table.column("values").to_numpy()
