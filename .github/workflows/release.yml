@@ -42,9 +42,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # run build using the minimum supported python version
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
+        id: pythonInstallStep
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Get Changelog Entry
         id: changelog_reader
@@ -57,7 +58,7 @@ jobs:
       - name: Install and configure Poetry
         uses: GNS-Science/install-poetry@main
         with:
-          version: 1.8.4
+          version: "latest"
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
@@ -67,10 +68,10 @@ jobs:
       #----------------------------------------------
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}-publish-static-docs
+          key: venv-${{ runner.os }}-${{ steps.pythonInstallStep.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}-publish-static-docs
 
       #----------------------------------------------
       # install dependencies if cache does not exist
