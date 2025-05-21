@@ -6,7 +6,7 @@ import numpy as np
 from toshi_hazard_store import query
 
 if TYPE_CHECKING:
-    from nzshm_common import CodedLocation
+    from nzshm_common import CodedLocation  # prgama: no cover
 
 
 class DynamoLoader:
