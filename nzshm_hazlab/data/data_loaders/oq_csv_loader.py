@@ -13,6 +13,8 @@ from nzshm_hazlab.constants import RESOLUTION
 def _get_df(hazard_id: str, imt: str, agg: str, output_dir: Path) -> pd.DataFrame:
     filename_prefix = "hazard" if agg == "mean" else "quantile"
     filepath = Path(output_dir) / f"{filename_prefix}_curve-{agg}-{imt}_{hazard_id}.csv"
+    if not filepath.exists():
+        raise KeyError(f"Hazard curve not found for {hazard_id}, {imt}, {agg}")
     return pd.read_csv(filepath, header=1)
 
 
@@ -25,6 +27,8 @@ class OQCSVLoader:
         Args:
             output_dir: The path to the folder where the output csv files are stored.
         """
+        if not Path(output_dir).is_dir():
+            raise FileNotFoundError(f"No such directory {output_dir}")
         self._output_dir = Path(output_dir)
         self._levels: np.ndarray | None = None
 
