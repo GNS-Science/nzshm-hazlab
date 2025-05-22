@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 import pandas as pd
 
-from nzshm_hazlab.base_functions import (calculate_hazard_at_poe,
-                                         period_from_imt)
+from nzshm_hazlab.base_functions import calculate_hazard_at_poe, period_from_imt
 
 if TYPE_CHECKING:
     from nzshm_common import CodedLocation  # pragma: no cover
