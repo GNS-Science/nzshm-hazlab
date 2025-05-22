@@ -6,30 +6,28 @@ import nzshm_hazlab.plot.constants as constants
 from nzshm_hazlab.base_functions import convert_poe
 
 if TYPE_CHECKING:
-    from matplotlib.axes import Axes
-    from matplotlib.lines import Line2D
-    from nzshm_common import CodedLocation
+    from matplotlib.axes import Axes  # pragma: no cover
+    from matplotlib.lines import Line2D  # pragma: no cover
+    from nzshm_common import CodedLocation  # pragma: no cover
 
-    from nzshm_hazlab.data import HazardCurves
+    from nzshm_hazlab.data import HazardCurves  # pragma: no cover
 
 PERIOD_MIN = 0.01
-    
-    
-    
+
+
 def _center_out(length):
 
     center = length // 2
-    left = center - 1 
+    left = center - 1
     if length % 2 == 1:
         right = center + 1
     else:
         right = center
-    
+
     for i in range(center):
         yield (left, right)
-        left-= 1
-        right+= 1
-
+        left -= 1
+        right += 1
 
 
 def plot_hazard_curve(
