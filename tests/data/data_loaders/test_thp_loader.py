@@ -37,7 +37,7 @@ location_imt_agg_err = [
 def test_probabilities(location, imt, agg, err, loader):
     with err:
         probabilities = loader.get_probabilities(hazard_model_oqcsv, imt, location, agg, vs30)
-        dir = Path("/home/chrisdc/NSHM/DEV/LIB/nzshm-hazlab/tests/fixtures/data/ths_loader/expected")
+        dir = Path(__file__).parent.parent.parent / "fixtures/data/ths_loader/expected"
         filepath = dir / f"{location.lat}_{location.lon}_{imt}_{agg}.json"
         expected = json.load(filepath.open())
         np.testing.assert_allclose(probabilities, expected)
