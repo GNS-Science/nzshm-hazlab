@@ -1,5 +1,5 @@
 path,size,format_version,num_columns,num_row_groups,num_rows
-nloc_0=-41.0~175.0/9c3fd4af-54c1-44b8-b866-d4b3b66d6446-part-0.parquet,8153,2.6,10,1,6
-nloc_0=-41.0~175.0/1aa855c9-57ae-4939-8e8d-f9e886b6e2ac-part-0.parquet,8302,2.6,10,1,6
-nloc_0=-41.0~175.0/4cac8555-67fc-454d-84f9-23b24de7763f-part-0.parquet,8255,2.6,10,1,6
-nloc_0=-41.0~175.0/2517684f-71bf-46aa-a934-d6cfc9b16ddf-part-0.parquet,8141,2.6,10,1,6
+nloc_0=-41.0~175.0/97dbc510-7f63-4e29-bd61-3923e9a054f2-part-0.parquet,9123,2.6,10,1,11
+nloc_0=-41.0~175.0/d7cf8993-6747-401c-9165-6ed9a13c9f0e-part-0.parquet,9538,2.6,10,1,11
+nloc_0=-41.0~175.0/cb0351a5-6561-4fd4-aec6-92c14d5595e9-part-0.parquet,9474,2.6,10,1,11
+nloc_0=-41.0~175.0/5500bd1e-f09a-48ed-8c08-3eea4739f6db-part-0.parquet,9114,2.6,10,1,11

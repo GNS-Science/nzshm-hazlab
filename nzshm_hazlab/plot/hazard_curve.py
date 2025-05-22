@@ -13,6 +13,23 @@ if TYPE_CHECKING:
     from nzshm_hazlab.data import HazardCurves
 
 PERIOD_MIN = 0.01
+    
+    
+    
+def _center_out(length):
+
+    center = length // 2
+    left = center - 1 
+    if length % 2 == 1:
+        right = center + 1
+    else:
+        right = center
+    
+    for i in range(center):
+        yield (left, right)
+        left-= 1
+        right+= 1
+
 
 
 def plot_hazard_curve(
@@ -84,9 +101,9 @@ def plot_hazard_curve(
         line_handles += lhs
 
     filled = False
-    for i in range(1, i_center + 1):
-        levels_low, probs_low = data.get_hazard_curve(hazard_model_id, imt, location, aggs[i_center - i], vs30)
-        levels_high, probs_high = data.get_hazard_curve(hazard_model_id, imt, location, aggs[i_center + i], vs30)
+    for left, right in _center_out(len(aggs)):
+        levels_low, probs_low = data.get_hazard_curve(hazard_model_id, imt, location, aggs[left], vs30)
+        levels_high, probs_high = data.get_hazard_curve(hazard_model_id, imt, location, aggs[right], vs30)
         lhs = axes.plot(levels_low, probs_low, lw=constants.LINE_WIDTH_BOUNDS, color=color, **kwargs)
         line_handles += lhs
 
@@ -195,9 +212,9 @@ def plot_uhs(
         line_handles += lhs
 
     filled = False
-    for i in range(1, i_center + 1):
-        periods_low, imtls_low = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[i_center - i], vs30)
-        periods_high, imtls_high = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[i_center + i], vs30)
+    for left, right in _center_out(len(aggs)):
+        periods_low, imtls_low = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[left], vs30)
+        periods_high, imtls_high = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[right], vs30)
         lhs = axes.plot(periods_low, imtls_low, lw=constants.LINE_WIDTH_BOUNDS, color=color, **kwargs)
         line_handles += lhs
 
