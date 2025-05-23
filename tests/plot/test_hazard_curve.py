@@ -25,24 +25,21 @@ def hazard_curves():
     return HazardCurves(loader=loader)
 
 
-figures_dir = Path(__file__).parent.parent / "fixtures/plot/hazard_curve"
-
-
-@image_comparison(baseline_images=[str(figures_dir / 'hazard_curve_mean')], extensions=['png'], style='mpl20')
+@image_comparison(baseline_images=['hazard_curve_mean'], extensions=['png'], style='mpl20')
 def test_plot_hazard_curve_single(hazard_curves):
     aggs = ["mean"]
     fig, ax = plt.subplots(1, 1)
     plot_hazard_curve(ax, hazard_curves, hazard_model, wlg, imt, vs30, aggs)
 
 
-@image_comparison(baseline_images=[str(figures_dir / 'hazard_curve_even')], extensions=['png'], style='mpl20')
+@image_comparison(baseline_images=['hazard_curve_even'], extensions=['png'], style='mpl20')
 def test_plot_hazard_curve_even(hazard_curves):
     aggs = ["0.1", "0.2", "0.8", "0.9"]
     fig, ax = plt.subplots(1, 1)
     plot_hazard_curve(ax, hazard_curves, hazard_model, wlg, imt, vs30, aggs)
 
 
-@image_comparison(baseline_images=[str(figures_dir / 'hazard_curve_odd')], extensions=['png'], style='mpl20')
+@image_comparison(baseline_images=['hazard_curve_odd'], extensions=['png'], style='mpl20')
 def test_plot_hazard_curve_odd(hazard_curves):
     aggs = ["0.1", "0.2", "mean", "0.8", "0.9"]
     fig, ax = plt.subplots(1, 1)
@@ -54,21 +51,22 @@ poe = 0.1
 inv_time = 50.0
 
 
-@image_comparison(baseline_images=[str(figures_dir / 'uhs_curve_mean')], extensions=['png'], style='mpl20')
+# @image_comparison(baseline_images=['uhs_curve_mean'], extensions=['png'], style='mpl20')
+@image_comparison(baseline_images=['uhs_curve_mean'], extensions=['png'], style='mpl20')
 def test_plot_uhs_curve_single(hazard_curves):
     aggs = ["mean"]
     fig, ax = plt.subplots(1, 1)
     plot_uhs(ax, hazard_curves, hazard_model, wlg, imts, poe, inv_time, vs30, aggs)
 
 
-@image_comparison(baseline_images=[str(figures_dir / 'uhs_curve_even')], extensions=['png'], style='mpl20')
+@image_comparison(baseline_images=['uhs_curve_even'], extensions=['png'], style='mpl20')
 def test_plot_uhs_curve_even(hazard_curves):
     aggs = ["0.1", "0.2", "0.8", "0.9"]
     fig, ax = plt.subplots(1, 1)
     plot_uhs(ax, hazard_curves, hazard_model, wlg, imts, poe, inv_time, vs30, aggs)
 
 
-@image_comparison(baseline_images=[str(figures_dir / 'uhs_curve_odd')], extensions=['png'], style='mpl20')
+@image_comparison(baseline_images=['uhs_curve_odd'], extensions=['png'], style='mpl20')
 def test_plot_uhs_curve_odd(hazard_curves):
     aggs = ["0.1", "0.2", "mean", "0.8", "0.9"]
     fig, ax = plt.subplots(1, 1)

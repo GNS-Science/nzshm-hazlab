@@ -126,10 +126,6 @@ def plot_hazard_curve(
 
     axes.set_xscale("log")
     axes.set_yscale("log")
-    axes.set_xlabel(f"Shaking Intensity, {imt} (g)", fontsize=constants.AXIS_FONTSIZE)
-    axes.set_ylabel("Annual Probability of Exceedance", fontsize=constants.AXIS_FONTSIZE)
-    axes.tick_params(axis="both", which="major", labelsize=constants.TICK_FONTSIZE)
-    axes.grid(color=constants.GRID_COLOR)
 
     return line_handles
 
@@ -234,10 +230,5 @@ def plot_uhs(
                 color=color,
             )
             filled = True
-
-    axes.set_xlabel("Period, (s)", fontsize=constants.AXIS_FONTSIZE)
-    axes.set_ylabel("Shaking Intensity (g)", fontsize=constants.AXIS_FONTSIZE)
-    axes.tick_params(axis="both", which="major", labelsize=constants.TICK_FONTSIZE)
-    axes.grid(color=constants.GRID_COLOR)
 
     return line_handles
