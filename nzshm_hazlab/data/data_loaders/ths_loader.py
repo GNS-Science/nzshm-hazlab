@@ -9,7 +9,7 @@ import pyarrow.dataset as ds
 from toshi_hazard_store.model.revision_4 import pyarrow_dataset
 
 if TYPE_CHECKING:
-    from nzshm_common import CodedLocation
+    from nzshm_common import CodedLocation  # pragma: no cover
 
 
 def _get_realizations_dataset(dataset_dir: Path) -> ds.Dataset:
