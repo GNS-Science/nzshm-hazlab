@@ -51,7 +51,6 @@ poe = 0.1
 inv_time = 50.0
 
 
-# @image_comparison(baseline_images=['uhs_curve_mean'], extensions=['png'], style='mpl20')
 @image_comparison(baseline_images=['uhs_curve_mean'], extensions=['png'], style='mpl20')
 def test_plot_uhs_curve_single(hazard_curves):
     aggs = ["mean"]
