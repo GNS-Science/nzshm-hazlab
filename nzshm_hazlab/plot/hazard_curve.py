@@ -16,7 +16,10 @@ PERIOD_MIN = 0.01
 
 
 def _center_out(length):
+    """Yield the indicies going out from the centre of a list of len length.
 
+    This is used to plot error bound estiamtes in the plotting functions.
+    """
     center = length // 2
     left = center - 1
     if length % 2 == 1:
@@ -44,7 +47,8 @@ def plot_hazard_curve(
 
     If more than one item is passed to aggs they will be treated as error bound estimates. The
     area between the inner values will be shaded and outer values will be plotted with a thin line.
-    If an odd number of aggs is provided, the centre value will be plotted as a thick line. See example.
+    If an odd number of aggs is provided, the centre value will be plotted as a thick line; this is
+    usually a central value such as the mean or 50th percentile aggregate. See example.
 
     Args:
         axes: Handle of axes to plot to.
@@ -146,7 +150,8 @@ def plot_uhs(
 
     If more than one item is passed to aggs they will be treated as error bound estimates. The
     area between the inner values will be shaded and outer values will be plotted with a thin line.
-    If an odd number of aggs is provided, the centre value will be plotted as a thick line. See example.
+    If an odd number of aggs is provided, the centre value will be plotted as a thick line; this is
+    usually a central value such as the mean or 50th percentile aggregate. See example.
 
     Args:
         axes: Handle of axes to plot to.
