@@ -16,7 +16,7 @@ PERIOD_MIN = 0.01
 
 
 def _center_out(length):
-    """Yield the indicies going out from the centre of a list of len length.
+    """Yield the indicies going out from the center of a list of len length.
 
     This is used to plot error bound estiamtes in the plotting functions.
     """

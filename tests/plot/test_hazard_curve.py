@@ -10,6 +10,7 @@ from nzshm_hazlab.constants import RESOLUTION
 from nzshm_hazlab.data.data_loaders import THSLoader
 from nzshm_hazlab.data.hazard_curves import HazardCurves
 from nzshm_hazlab.plot import plot_hazard_curve, plot_uhs
+from nzshm_hazlab.plot.hazard_curve import _center_out
 
 hazard_model = "TEST_RUNZI"
 vs30 = 400
@@ -23,6 +24,25 @@ def hazard_curves():
     dataset_dir = Path(__file__).parent.parent / "fixtures/data/ths_loader/dataset"
     loader = THSLoader(dataset_dir=dataset_dir)
     return HazardCurves(loader=loader)
+
+
+length_expected = [
+    (1, []),
+    (2, [[0, 1]]),
+    (3, [[0, 2]]),
+    (4, [[1, 2], [0, 3]]),
+    (5, [[1, 3], [0, 4]]),
+    (6, [[2, 3], [1, 4], [0, 5]]),
+    (7, [[2, 4], [1, 5], [0, 6]]),
+]
+
+
+@pytest.mark.parametrize("length,expected", length_expected)
+def test_center_out(length, expected):
+    returned = []
+    for left, right in _center_out(length):
+        returned.append([left, right])
+    assert returned == expected
 
 
 @image_comparison(baseline_images=['hazard_curve_mean'], extensions=['png'], style='mpl20')
