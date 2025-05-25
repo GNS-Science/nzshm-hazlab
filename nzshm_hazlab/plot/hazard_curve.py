@@ -6,13 +6,31 @@ import nzshm_hazlab.plot.constants as constants
 from nzshm_hazlab.base_functions import convert_poe
 
 if TYPE_CHECKING:
-    from matplotlib.axes import Axes
-    from matplotlib.lines import Line2D
-    from nzshm_common import CodedLocation
+    from matplotlib.axes import Axes  # pragma: no cover
+    from matplotlib.lines import Line2D  # pragma: no cover
+    from nzshm_common import CodedLocation  # pragma: no cover
 
-    from nzshm_hazlab.data import HazardCurves
+    from nzshm_hazlab.data import HazardCurves  # pragma: no cover
 
 PERIOD_MIN = 0.01
+
+
+def _center_out(length):
+    """Yield the indicies going out from the center of a list of len length.
+
+    This is used to plot error bound estimates in the plotting functions.
+    """
+    center = length // 2
+    left = center - 1
+    if length % 2 == 1:
+        right = center + 1
+    else:
+        right = center
+
+    for i in range(center):
+        yield (left, right)
+        left -= 1
+        right += 1
 
 
 def plot_hazard_curve(
@@ -29,7 +47,8 @@ def plot_hazard_curve(
 
     If more than one item is passed to aggs they will be treated as error bound estimates. The
     area between the inner values will be shaded and outer values will be plotted with a thin line.
-    If an odd number of aggs is provided, the centre value will be plotted as a thick line. See example.
+    If an odd number of aggs is provided, the centre value will be plotted as a thick line; this is
+    usually a central value such as the mean or 50th percentile aggregate. See example.
 
     Args:
         axes: Handle of axes to plot to.
@@ -84,9 +103,9 @@ def plot_hazard_curve(
         line_handles += lhs
 
     filled = False
-    for i in range(1, i_center + 1):
-        levels_low, probs_low = data.get_hazard_curve(hazard_model_id, imt, location, aggs[i_center - i], vs30)
-        levels_high, probs_high = data.get_hazard_curve(hazard_model_id, imt, location, aggs[i_center + i], vs30)
+    for left, right in _center_out(len(aggs)):
+        levels_low, probs_low = data.get_hazard_curve(hazard_model_id, imt, location, aggs[left], vs30)
+        levels_high, probs_high = data.get_hazard_curve(hazard_model_id, imt, location, aggs[right], vs30)
         lhs = axes.plot(levels_low, probs_low, lw=constants.LINE_WIDTH_BOUNDS, color=color, **kwargs)
         line_handles += lhs
 
@@ -111,10 +130,6 @@ def plot_hazard_curve(
 
     axes.set_xscale("log")
     axes.set_yscale("log")
-    axes.set_xlabel(f"Shaking Intensity, {imt} (g)", fontsize=constants.AXIS_FONTSIZE)
-    axes.set_ylabel("Annual Probability of Exceedance", fontsize=constants.AXIS_FONTSIZE)
-    axes.tick_params(axis="both", which="major", labelsize=constants.TICK_FONTSIZE)
-    axes.grid(color=constants.GRID_COLOR)
 
     return line_handles
 
@@ -135,7 +150,8 @@ def plot_uhs(
 
     If more than one item is passed to aggs they will be treated as error bound estimates. The
     area between the inner values will be shaded and outer values will be plotted with a thin line.
-    If an odd number of aggs is provided, the centre value will be plotted as a thick line. See example.
+    If an odd number of aggs is provided, the centre value will be plotted as a thick line; this is
+    usually a central value such as the mean or 50th percentile aggregate. See example.
 
     Args:
         axes: Handle of axes to plot to.
@@ -195,9 +211,9 @@ def plot_uhs(
         line_handles += lhs
 
     filled = False
-    for i in range(1, i_center + 1):
-        periods_low, imtls_low = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[i_center - i], vs30)
-        periods_high, imtls_high = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[i_center + i], vs30)
+    for left, right in _center_out(len(aggs)):
+        periods_low, imtls_low = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[left], vs30)
+        periods_high, imtls_high = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[right], vs30)
         lhs = axes.plot(periods_low, imtls_low, lw=constants.LINE_WIDTH_BOUNDS, color=color, **kwargs)
         line_handles += lhs
 
@@ -219,10 +235,5 @@ def plot_uhs(
                 color=color,
             )
             filled = True
-
-    axes.set_xlabel("Period, (s)", fontsize=constants.AXIS_FONTSIZE)
-    axes.set_ylabel("Shaking Intensity (g)", fontsize=constants.AXIS_FONTSIZE)
-    axes.tick_params(axis="both", which="major", labelsize=constants.TICK_FONTSIZE)
-    axes.grid(color=constants.GRID_COLOR)
 
     return line_handles
