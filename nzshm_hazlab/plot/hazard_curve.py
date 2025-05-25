@@ -67,7 +67,7 @@ def plot_hazard_curve(
         This will plot the mean hazard curve along with 60% and 80% confidence intervals as dashed
         lines and label the curve "PGA vs30=400".
         ```py
-        >>> from nzshm_hazlab.data.data_loaders import THSLoader
+        >>> from nzshm_hazlab.data.data_loaders import THSHazardLoader
         >>> from nzshm_hazlab.data.hazard_curves import HazardCurves
         >>> from nzshm_hazlab.plot import plot_hazard_curve
         >>> from nzshm_common import CodedLocation
@@ -75,7 +75,7 @@ def plot_hazard_curve(
 
         >>> hazard_model_id = "NSHM_v1.0.4"
         >>> dataset_dir = "~/toshi_hazard_store/AGG/"
-        >>> loader = THSLoader(dataset_dir=dataset_dir)
+        >>> loader = THSHazardLoader(dataset_dir=dataset_dir)
         >>> hazard_curves = HazardCurves(loader=loader)
         >>> location_id = "WLG"
         >>> location = CodedLocation(-41.3, 174.78, 0.001)
@@ -172,7 +172,7 @@ def plot_uhs(
         This will plot the mean UHS curve along with 60% and 80% confidence intervals as dashed lines
         and label the curve "vs30=400".
         ```py
-        >>> from nzshm_hazlab.data.data_loaders import THSLoader
+        >>> from nzshm_hazlab.data.data_loaders import THSHazardLoader
         >>> from nzshm_hazlab.data.hazard_curves import HazardCurves
         >>> from nzshm_hazlab.plot import plot_uhs
         >>> from nzshm_common import CodedLocation
@@ -180,7 +180,7 @@ def plot_uhs(
 
         >>> hazard_model_id = "NSHM_v1.0.4"
         >>> dataset_dir = "~/toshi_hazard_store/AGG/"
-        >>> loader = THSLoader(dataset_dir=dataset_dir)
+        >>> loader = THSHazardLoader(dataset_dir=dataset_dir)
         >>> hazard_curves = HazardCurves(loader=loader)
         >>> location_id = "WLG"
         >>> location = CodedLocation(-41.3, 174.78, 0.001)

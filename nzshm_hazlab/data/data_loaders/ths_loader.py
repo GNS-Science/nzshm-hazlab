@@ -1,4 +1,4 @@
-"""This module provies the THSLoader class."""
+"""This module provies the THSHazardLoader class."""
 
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -18,11 +18,11 @@ def _get_realizations_dataset(dataset_dir: Path) -> ds.Dataset:
     return dataset
 
 
-class THSLoader:
+class THSHazardLoader:
     """A class for loading hazard curves from toshi-hazard-store."""
 
     def __init__(self, dataset_dir: Path | str):
-        """Initialize a THSLoader object.
+        """Initialize a THSHazardLoader object.
 
         Args:
             dataset_dir: location of dataset (parquet) files. This can be a local filepath or S3 bucket URI.

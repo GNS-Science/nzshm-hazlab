@@ -1,4 +1,4 @@
-"""This module provies the DynamoLoader class."""
+"""This module provies the DynamoHazardLoader class."""
 
 from typing import TYPE_CHECKING
 
@@ -9,14 +9,14 @@ if TYPE_CHECKING:
     from nzshm_common import CodedLocation  # pragma: no cover
 
 
-class DynamoLoader:
+class DynamoHazardLoader:
     """A class for loading hazard curves from toshi-hazard-store DynamoDB.
 
     The use of DynamoDB for storing hazard curves is depricated and will be removed with v2 of toshi-hazard-store.
     """
 
     def __init__(self):
-        """Initialize a DynamoLoader object."""
+        """Initialize a DynamoHazardLoader object."""
         self._levels: np.ndarray | None = None
 
     def get_probabilities(

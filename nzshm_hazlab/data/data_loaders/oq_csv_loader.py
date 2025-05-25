@@ -1,4 +1,4 @@
-"""This module provides the OQCSVLoader class."""
+"""This module provides the OQCSVHazardLoader class."""
 
 from pathlib import Path
 from typing import cast
@@ -18,11 +18,11 @@ def _get_df(hazard_id: str, imt: str, agg: str, output_dir: Path) -> pd.DataFram
     return pd.read_csv(filepath, header=1)
 
 
-class OQCSVLoader:
+class OQCSVHazardLoader:
     """A class for loading hazard curves from OpenQuake csv output."""
 
     def __init__(self, output_dir: Path | str):
-        """Initialize a new OQCSVLoader object.
+        """Initialize a new OQCSVHazardLoader object.
 
         Args:
             output_dir: The path to the folder where the output csv files are stored.

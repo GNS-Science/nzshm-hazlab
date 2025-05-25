@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from nzshm_common import CodedLocation
 
 
-class DataLoader(Protocol):
+class HazardLoader(Protocol):
     """The Protocol class for a DataLoader.
 
     To plot a standard hazard curve you would plot the array from get_levels on the x axis the array

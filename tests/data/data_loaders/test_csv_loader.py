@@ -8,7 +8,7 @@ from nzshm_common import CodedLocation
 from nzshm_common.location.location import _lat_lon
 
 from nzshm_hazlab.constants import RESOLUTION
-from nzshm_hazlab.data.data_loaders import OQCSVLoader
+from nzshm_hazlab.data.data_loaders import OQCSVHazardLoader
 from tests.helpers import does_not_raise
 
 hazard_model_oqcsv = "1"
@@ -20,12 +20,12 @@ other_location = CodedLocation(lat=-41.75, lon=171.58, resolution=0.001)
 @pytest.fixture(scope='function')
 def csv_loader():
     oq_output_dir = Path(__file__).parent.parent.parent / "fixtures/data/csv_loader"
-    return OQCSVLoader(oq_output_dir)
+    return OQCSVHazardLoader(oq_output_dir)
 
 
 def test_no_dir():
     with pytest.raises(FileNotFoundError):
-        OQCSVLoader("/not/a/directory")
+        OQCSVHazardLoader("/not/a/directory")
 
 
 location_imt_agg_filepath_err = [

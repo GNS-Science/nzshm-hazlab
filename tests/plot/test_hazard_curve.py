@@ -7,7 +7,7 @@ from nzshm_common import CodedLocation
 from nzshm_common.location.location import _lat_lon
 
 from nzshm_hazlab.constants import RESOLUTION
-from nzshm_hazlab.data.data_loaders import THSLoader
+from nzshm_hazlab.data.data_loaders import THSHazardLoader
 from nzshm_hazlab.data.hazard_curves import HazardCurves
 from nzshm_hazlab.plot import plot_hazard_curve, plot_uhs
 from nzshm_hazlab.plot.hazard_curve import _center_out
@@ -22,7 +22,7 @@ other_location = CodedLocation(lat=-41.75, lon=171.58, resolution=0.001)
 @pytest.fixture(scope='module')
 def hazard_curves():
     dataset_dir = Path(__file__).parent.parent / "fixtures/data/ths_loader/dataset"
-    loader = THSLoader(dataset_dir=dataset_dir)
+    loader = THSHazardLoader(dataset_dir=dataset_dir)
     return HazardCurves(loader=loader)
 
 

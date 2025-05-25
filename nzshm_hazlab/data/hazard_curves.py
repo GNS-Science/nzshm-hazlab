@@ -14,7 +14,7 @@ from nzshm_hazlab.base_functions import calculate_hazard_at_poe, period_from_imt
 if TYPE_CHECKING:
     from nzshm_common import CodedLocation  # pragma: no cover
 
-    from .data_loaders.data_loader import DataLoader  # pragma: no cover
+    from .data_loaders.data_loaders import HazardLoader  # pragma: no cover
 
 _columns = ["hazard_model_id", "imt", "location", "agg", "vs30", "probability"]
 
@@ -22,7 +22,7 @@ _columns = ["hazard_model_id", "imt", "location", "agg", "vs30", "probability"]
 class HazardCurves:
     """A class for retrieving and storing hazard curves and calculating derived products."""
 
-    def __init__(self, loader: "DataLoader"):
+    def __init__(self, loader: "HazardLoader"):
         """Initialize a new HazardCurves object.
 
         Args:

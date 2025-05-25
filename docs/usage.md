@@ -3,7 +3,7 @@ To use nzshm-hazlab you must first [install the library](./installation.md)
 ## Load Data
 ```py
 from nzshm_hazlab.data.hazard_curves import HazardCurves
-from nzshm_hazlab.data.data_loaders import THSLoader
+from nzshm_hazlab.data.data_loaders import THSHazardLoader
 from nzshm_common.location import CodedLocation, location_by_id
 from nzshm_common.location.location import _lat_lon
 from nzshm_hazlab.constants import RESOLUTION
@@ -11,7 +11,7 @@ from nzshm_hazlab.constants import RESOLUTION
 
 hazard_model = "TEST_MODEL"
 dataset_dir = "~/toshi_hazard_store/AGG/"
-loader = THSLoader(dataset_dir=dataset_dir)
+loader = THSHazardLoader(dataset_dir=dataset_dir)
 hazard_curves_NSHM22 = HazardCurves(loader=loader)
 
 location_ids = ["WLG", "DUD", "CHC", "AKL"]
@@ -31,7 +31,7 @@ for location in locations:
 
 ## Plot Data
 ```py
-from nzshm_hazlab.data.data_loaders import THSLoader
+from nzshm_hazlab.data.data_loaders import THSHazardLoader
 from nzshm_hazlab.data.hazard_curves import HazardCurves
 from nzshm_hazlab.plot import plot_hazard_curve, plot_uhs
 from nzshm_common import CodedLocation
@@ -39,7 +39,7 @@ import matplotlib.pyplot as plt
 
 hazard_model_id = "NSHM_v1.0.4"
 dataset_dir = "~/toshi_hazard_store/AGG/"
-loader = THSLoader(dataset_dir=dataset_dir)
+loader = THSHazardLoader(dataset_dir=dataset_dir)
 hazard_curves_THSr4 = HazardCurves(loader=loader)
 location_id = "WLG"
 location = CodedLocation(-41.3, 174.78, 0.001)
