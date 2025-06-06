@@ -49,9 +49,11 @@ class THSHazardLoader:
             KeyError: If no records are found.
         """
         nloc_001 = location.downsample(0.001).code
+        nloc_0 = location.downsample(1.0).code
         flt = (
-            (pc.field("agg") == pc.scalar(agg))
+            (pc.field("aggr") == pc.scalar(agg))
             & (pc.field("imt") == pc.scalar(imt))
+            & (pc.field("nloc_0") == pc.scalar(nloc_0))
             & (pc.field("nloc_001") == pc.scalar(nloc_001))
             & (pc.field("vs30") == pc.scalar(vs30))
             & (pc.field("hazard_model_id") == pc.scalar(hazard_model_id))
