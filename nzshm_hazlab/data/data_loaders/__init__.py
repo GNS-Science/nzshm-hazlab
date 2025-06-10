@@ -2,10 +2,10 @@
 
 Modules:
     dynamo_loader: Defines the DynamoHazardLoader class.
-    oq_csv_loader: Defines the OQCSVHazardLoader class.
+    oq_csv_loader: Defines the OQCSVHazardLoader and OQCSVDisaggLoader classes.
     ths_loader: Defines the THSHazardLoader class.
 """
 
 from .dynamo_loader import DynamoHazardLoader
-from .oq_csv_loader import OQCSVHazardLoader
+from .oq_csv_loader import OQCSVHazardLoader, OQCSVDisaggLoader
 from .ths_loader import THSHazardLoader
