@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
-from toshi_hazard_store.model.revision_4 import pyarrow_dataset
+from toshi_hazard_store.model.pyarrow import pyarrow_dataset
 
 
 if TYPE_CHECKING:
@@ -28,7 +28,9 @@ class THSHazardLoader:
         Args:
             dataset_dir: location of dataset (parquet) files. This can be a local filepath or S3 bucket URI.
         """
-        self._dataset = _get_realizations_dataset(Path(dataset_dir).expanduser())
+        if not(isinstance(dataset_dir, str) and dataset_dir[0:5] == "s3://"):
+            dataset_dir = Path(dataset_dir).expanduser()
+        self._dataset = _get_realizations_dataset(dataset_dir)
         self._levels: None | np.ndarray = None
 
     def get_probabilities(
