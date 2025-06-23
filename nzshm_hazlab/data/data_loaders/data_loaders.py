@@ -47,10 +47,13 @@ class HazardLoader(Protocol):
         """
         ...
 
+
 class DisaggLoader(Protocol):
     """The protocol class for a disaggregation data loader."""
 
-    def get_disagg(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum') -> np.ndarray:
+    def get_disagg(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+    ) -> np.ndarray:
         """Get the disaggregation values.
 
         Args:
@@ -60,7 +63,7 @@ class DisaggLoader(Protocol):
             agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.
-        
+
         Returns:
             Array of probability contributions from each disaggregation bin.
                 Array has demensionallity matching the number of disaggregation dimensions with the length along
@@ -72,7 +75,9 @@ class DisaggLoader(Protocol):
         """
         ...
 
-    def get_bin_centers(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum') -> dict[str, np.ndarray]:
+    def get_bin_centers(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+    ) -> dict[str, np.ndarray]:
         """Get the disaggregation bin centers.
 
         Args:
@@ -82,7 +87,7 @@ class DisaggLoader(Protocol):
             agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.
-        
+
         Returns:
             Array of probability contributions from each disaggregation bin.
                 Array has demensionallity matching the number of disaggregation dimensions with the length along
@@ -94,7 +99,9 @@ class DisaggLoader(Protocol):
         """
         ...
 
-    def get_bin_edges(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum') -> dict[str, np.ndarray]:
+    def get_bin_edges(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+    ) -> dict[str, np.ndarray]:
         """Get the disaggregation bin centers.
 
         Args:
@@ -104,8 +111,9 @@ class DisaggLoader(Protocol):
             agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.
-        
+
         Returns:
-            The disaggregation bin centers with the keys being the disaggregation dimension names (e.g. "TRT", "dist") and the values being the bin centers.
+            The disaggregation bin centers with the keys being the disaggregation dimension names (e.g. "TRT", "dist")
+                and the values being the bin centers.
         """
         ...

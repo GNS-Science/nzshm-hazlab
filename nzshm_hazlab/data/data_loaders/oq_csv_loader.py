@@ -1,18 +1,18 @@
 """This module provides the OQCSVHazardLoader class."""
 
-from pathlib import Path
-from typing import cast, TYPE_CHECKING
-from functools import cache
 import csv
-import re
-import math
 import json
-from nzshm_hazlab.base_functions import convert_poe
+import math
+import re
+from functools import cache
+from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import pandas as pd
 from nzshm_common import CodedLocation
 
+from nzshm_hazlab.base_functions import convert_poe
 from nzshm_hazlab.constants import RESOLUTION
 
 if TYPE_CHECKING:
@@ -24,8 +24,9 @@ def _get_disagg_header_data(filepath):
         reader = csv.reader(file)
         header = next(reader)
     data_str = header[-1]
-    js = "{" + re.sub(r'(\b\w+=)',r'"\1', data_str).replace("=",  '":').replace("'", '"') + "}"
+    js = "{" + re.sub(r'(\b\w+=)', r'"\1', data_str).replace("=", '":').replace("'", '"') + "}"
     return json.loads(js)
+
 
 def _get_hazard_curve_df(hazard_id: str, imt: str, agg: str, output_dir: Path) -> pd.DataFrame:
     filename_prefix = "hazard" if agg == "mean" else "quantile"
@@ -33,6 +34,7 @@ def _get_hazard_curve_df(hazard_id: str, imt: str, agg: str, output_dir: Path) -
     if not filepath.exists():
         raise KeyError(f"Hazard curve not found for {hazard_id}, {imt}, {agg}")
     return pd.read_csv(filepath, header=1)
+
 
 def _disagg_filepath(hazard_id: str, location: CodedLocation, agg: str, output_dir: Path) -> Path:
 
@@ -48,7 +50,7 @@ def _disagg_filepath(hazard_id: str, location: CodedLocation, agg: str, output_d
         'Mag_Dist_Eps',
         'Mag_Dist',
         'Dist',
-        'Mag'
+        'Mag',
     ]
     for prefix in file_prefixes:
         for filepath in output_dir.glob(f"{prefix}-{agg}-*_{hazard_id}.csv"):
@@ -57,6 +59,7 @@ def _disagg_filepath(hazard_id: str, location: CodedLocation, agg: str, output_d
             if file_location == location:
                 return filepath
     raise KeyError(f"Disaggregation not found for {hazard_id}, {agg}")
+
 
 def _get_disagg_df(hazard_id: str, location: CodedLocation, agg: str, output_dir: Path) -> pd.DataFrame:
     filepath = _disagg_filepath(hazard_id, location, agg, output_dir)
@@ -68,7 +71,6 @@ def _get_disagg_df(hazard_id: str, location: CodedLocation, agg: str, output_dir
         df['poe'] = df.apply(lambda row: convert_poe(['poe'], inv_time, 1.0), axis=1)
 
     return df
-
 
 
 class OQCSVHazardLoader:
@@ -112,7 +114,6 @@ class OQCSVHazardLoader:
 
         hazard_model_id = str(hazard_model_id)
 
-
         df = _get_hazard_curve_df(hazard_model_id, imt, agg, self._output_dir)
 
         if self._levels is None:
@@ -120,7 +121,7 @@ class OQCSVHazardLoader:
 
         poe_columns = [col_name for col_name in df.columns if 'poe-' in col_name]
         # df['location'] = df.apply(lambda row: get_location(row), axis=1)
-        df['location'] = df.apply(lambda row: CodedLocation(row['lat'], row['lon'], RESOLUTION) , axis=1)
+        df['location'] = df.apply(lambda row: CodedLocation(row['lat'], row['lon'], RESOLUTION), axis=1)
         loc_entry = df.loc[df['location'].eq(location)]
         if len(loc_entry) == 0:
             raise KeyError(f"no records found for location {location} in {self._output_dir}")
@@ -160,10 +161,10 @@ class OQCSVHazardLoader:
 
 
 class OQCSVDisaggLoader:
-    """The protocol class for a disaggregation data loader."""
+    """A class for loading disaggregations from OpenQuake csv output."""
 
     def __init__(self, output_dir: Path | str):
-        """Initialize a new OQCSVHazardLoader object.
+        """Initialize a new OQCSVDisaggLoader object.
 
         Args:
             output_dir: The path to the folder where the output csv files are stored.
@@ -172,7 +173,9 @@ class OQCSVDisaggLoader:
             raise FileNotFoundError(f"No such directory {output_dir}")
         self._output_dir = Path(output_dir)
 
-    def get_disagg(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum') -> np.ndarray:
+    def get_disagg(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+    ) -> np.ndarray:
         """Get the disaggregation values.
 
         Args:
@@ -182,7 +185,7 @@ class OQCSVDisaggLoader:
             agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.
-        
+
         Returns:
             Array of probability contributions from each disaggregation bin.
                 Array has demensionallity matching the number of disaggregation dimensions with the length along
@@ -192,7 +195,6 @@ class OQCSVDisaggLoader:
         Raises:
             KeyError: If no records or more than one record is found in the database.
         """
-
         df = _get_disagg_df(hazard_model_id, location, agg, self._output_dir)
         bin_centers = self.get_bin_centers(hazard_model_id, imt, location, agg, vs30, poe)
         array_shape = [len(b) for b in bin_centers.values()]
@@ -217,8 +219,9 @@ class OQCSVDisaggLoader:
 
         return probs
 
-
-    def get_bin_centers(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum') -> dict[str, np.ndarray]:
+    def get_bin_centers(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+    ) -> dict[str, np.ndarray]:
         """Get the disaggregation bin centers.
 
         Args:
@@ -228,7 +231,7 @@ class OQCSVDisaggLoader:
             agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.
-        
+
         Returns:
             Array of probability contributions from each disaggregation bin.
                 Array has demensionallity matching the number of disaggregation dimensions with the length along
@@ -238,14 +241,15 @@ class OQCSVDisaggLoader:
         Raises:
             KeyError: If no records or more than one record is found in the database.
         """
-
         disaggs = _get_disagg_df(hazard_model_id, location, agg, self._output_dir)
         all_disagg_columns = ['trt', 'mag', 'dist', 'eps']
         disagg_columns = [col for col in all_disagg_columns if col in disaggs.columns]
-        return {col:np.sort(disaggs[col].unique()) for col in disagg_columns}
+        return {col: np.sort(disaggs[col].unique()) for col in disagg_columns}
 
-    @cache 
-    def get_bin_edges(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum') -> dict[str, np.ndarray]:
+    @cache
+    def get_bin_edges(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+    ) -> dict[str, np.ndarray]:
         """Get the disaggregation bin centers.
 
         Args:
@@ -255,11 +259,11 @@ class OQCSVDisaggLoader:
             agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.
-        
+
         Returns:
-            The disaggregation bin centers with the keys being the disaggregation dimension names (e.g. "TRT", "dist") and the values being the bin centers.
+            The disaggregation bin centers with the keys being the disaggregation dimension names (e.g. "TRT", "dist")
+                and the values being the bin centers.
         """
-    
         filepath = _disagg_filepath(hazard_model_id, location, agg, self._output_dir)
         header_data = _get_disagg_header_data(filepath)
-        return {k[:-10]:v for k,v in header_data.items() if "edges" in k}
+        return {k[:-10]: v for k, v in header_data.items() if "edges" in k}

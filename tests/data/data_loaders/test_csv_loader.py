@@ -6,11 +6,10 @@ import numpy as np
 import pytest
 from nzshm_common import CodedLocation
 from nzshm_common.location.location import _lat_lon
-
 from toshi_hazard_store.model import ProbabilityEnum
 
 from nzshm_hazlab.constants import RESOLUTION
-from nzshm_hazlab.data.data_loaders import OQCSVHazardLoader, OQCSVDisaggLoader
+from nzshm_hazlab.data.data_loaders import OQCSVDisaggLoader, OQCSVHazardLoader
 from tests.helpers import does_not_raise
 
 hazard_model_oqcsv = "1"
@@ -24,10 +23,12 @@ def csv_hazard_loader():
     oq_output_dir = Path(__file__).parent.parent.parent / "fixtures/data/csv_loader"
     return OQCSVHazardLoader(oq_output_dir)
 
+
 @pytest.fixture(scope='function')
 def csv_disagg_loader() -> OQCSVDisaggLoader:
     oq_output_dir = Path(__file__).parent.parent.parent / "fixtures/data/csv_loader"
     return OQCSVDisaggLoader(oq_output_dir)
+
 
 def test_no_dir():
     with pytest.raises(FileNotFoundError):
@@ -60,16 +61,17 @@ def test_levels(csv_hazard_loader):
     levels = csv_hazard_loader.get_levels(hazard_model_oqcsv, imt, wlg, agg, vs30)
     np.testing.assert_allclose(levels, expected)
 
+
 def test_disagg(csv_disagg_loader):
     hazard_model = "31"
     imt = "PGA"
     location = wlg
     agg = "mean"
     vs30 = "400"
-    dimensions = ['trt', 'mag', 'dist', 'eps', 'probability']
     poe = ProbabilityEnum._10_PCT_IN_50YRS
     disagg = csv_disagg_loader.get_disagg(hazard_model, imt, location, agg, vs30, poe)
     assert disagg.shape == (3, 24, 17, 16)
+
 
 def test_bin_centers(csv_disagg_loader):
     hazard_model = "31"
@@ -77,12 +79,13 @@ def test_bin_centers(csv_disagg_loader):
     location = wlg
     agg = "mean"
     vs30 = "400"
-    dimensions = {'trt':3, 'mag':24, 'dist':17, 'eps':16}
+    dimensions = {'trt': 3, 'mag': 24, 'dist': 17, 'eps': 16}
     poe = ProbabilityEnum._10_PCT_IN_50YRS
     bin_centers = csv_disagg_loader.get_bin_centers(hazard_model, imt, location, agg, vs30, poe)
     assert len(bin_centers) == len(dimensions)
     for dim, length in dimensions.items():
         assert len(bin_centers[dim]) == length
+
 
 def test_disagg_missing(csv_disagg_loader):
     hazard_model = "31"
@@ -101,7 +104,7 @@ def test_get_disagg_bin_edges(csv_disagg_loader):
     location = wlg
     agg = "mean"
     vs30 = "400"
-    dimensions = {'mag':24 + 1, 'dist':17 + 1, 'eps':16 + 1}
+    dimensions = {'mag': 24 + 1, 'dist': 17 + 1, 'eps': 16 + 1}
     poe = ProbabilityEnum._10_PCT_IN_50YRS
     bin_edges = csv_disagg_loader.get_bin_edges(hazard_model, imt, location, agg, vs30, poe)
     for dim, length in dimensions.items():

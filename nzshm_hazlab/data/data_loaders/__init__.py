@@ -7,5 +7,5 @@ Modules:
 """
 
 from .dynamo_loader import DynamoHazardLoader
-from .oq_csv_loader import OQCSVHazardLoader, OQCSVDisaggLoader
+from .oq_csv_loader import OQCSVDisaggLoader, OQCSVHazardLoader
 from .ths_loader import THSHazardLoader
