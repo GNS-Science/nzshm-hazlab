@@ -8,13 +8,12 @@ import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from toshi_hazard_store.model.pyarrow import pyarrow_dataset
 
-
 if TYPE_CHECKING:
     from nzshm_common import CodedLocation  # pragma: no cover
 
 
-def _get_realizations_dataset(dataset_dir: Path) -> ds.Dataset:
-    rlz_dir, filesystem = pyarrow_dataset.configure_output(str(dataset_dir))
+def _get_realizations_dataset(dataset_dir: str) -> ds.Dataset:
+    rlz_dir, filesystem = pyarrow_dataset.configure_output(dataset_dir)
     dataset = ds.dataset(rlz_dir, format="parquet", filesystem=filesystem, partitioning="hive")
     return dataset
 
@@ -28,9 +27,9 @@ class THSHazardLoader:
         Args:
             dataset_dir: location of dataset (parquet) files. This can be a local filepath or S3 bucket URI.
         """
-        if not(isinstance(dataset_dir, str) and dataset_dir[0:5] == "s3://"):
+        if not (isinstance(dataset_dir, str) and dataset_dir[0:5] == "s3://"):
             dataset_dir = Path(dataset_dir).expanduser()
-        self._dataset = _get_realizations_dataset(dataset_dir)
+        self._dataset = _get_realizations_dataset(str(dataset_dir))
         self._levels: None | np.ndarray = None
 
     def get_probabilities(

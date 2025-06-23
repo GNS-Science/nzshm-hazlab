@@ -68,7 +68,7 @@ def _get_disagg_df(hazard_id: str, location: CodedLocation, agg: str, output_dir
 
     # convert poes from OQ to annual, if necessary
     if (inv_time := header_data['investigation_time']) != 1.0:
-        df['poe'] = df.apply(lambda row: convert_poe(['poe'], inv_time, 1.0), axis=1)
+        df['poe'] = df.apply(lambda row: convert_poe(row['poe'], inv_time, 1.0), axis=1)
 
     return df
 
