@@ -6,6 +6,7 @@ import numpy as np
 from toshi_hazard_store import query
 
 if TYPE_CHECKING:
+    import numpy.typing as npt
     from nzshm_common import CodedLocation  # pragma: no cover
 
 
@@ -21,7 +22,7 @@ class DynamoHazardLoader:
 
     def get_probabilities(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> np.ndarray:
+    ) -> npt.NDArray:
         """Get the probablity values for a hazard curve.
 
         Args:
@@ -39,7 +40,7 @@ class DynamoHazardLoader:
             self._levels = np.array([float(item.lvl) for item in res.values])
         return np.array([float(item.val) for item in res.values])
 
-    def get_levels(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> np.ndarray:
+    def get_levels(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> npt.NDArray:
         """Get the intensity measure levels for a hazard curve.
 
         Args:

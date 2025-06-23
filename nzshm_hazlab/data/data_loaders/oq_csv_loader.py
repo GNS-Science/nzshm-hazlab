@@ -16,6 +16,7 @@ from nzshm_hazlab.base_functions import convert_poe
 from nzshm_hazlab.constants import RESOLUTION
 
 if TYPE_CHECKING:
+    import numpy.typing as npt
     from toshi_hazard_store.model import ProbabilityEnum
 
 
@@ -89,7 +90,7 @@ class OQCSVHazardLoader:
 
     def get_probabilities(
         self, hazard_model_id: str | int, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> np.ndarray:
+    ) -> npt.NDArray:
         """Get the probablity values for a hazard curve.
 
         Note that because the OpenQuake csv file does not store the site conditions, the vs30 argument
@@ -134,7 +135,7 @@ class OQCSVHazardLoader:
         poe_columns = [col_name for col_name in df.columns if 'poe-' in col_name]
         self._levels = np.array([float(col[4:]) for col in poe_columns])
 
-    def get_levels(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> np.ndarray:
+    def get_levels(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> npt.NDArray:
         """Get the intensity measure levels for a hazard curve.
 
         Note that because the OpenQuake csv file does not store the site conditions, the vs30 argument
@@ -175,7 +176,7 @@ class OQCSVDisaggLoader:
 
     def get_disagg(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
-    ) -> np.ndarray:
+    ) -> npt.NDArray:
         """Get the disaggregation values.
 
         Args:
@@ -221,7 +222,7 @@ class OQCSVDisaggLoader:
 
     def get_bin_centers(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
-    ) -> dict[str, np.ndarray]:
+    ) -> dict[str, npt.NDArray]:
         """Get the disaggregation bin centers.
 
         Args:
@@ -249,7 +250,7 @@ class OQCSVDisaggLoader:
     @cache
     def get_bin_edges(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
-    ) -> dict[str, np.ndarray]:
+    ) -> dict[str, npt.NDArray]:
         """Get the disaggregation bin centers.
 
         Args:

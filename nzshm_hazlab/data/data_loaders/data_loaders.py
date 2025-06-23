@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    import numpy as np
+    import numpy.typing as npt
     from nzshm_common import CodedLocation
     from toshi_hazard_store.model import ProbabilityEnum
 
@@ -17,7 +17,7 @@ class HazardLoader(Protocol):
 
     def get_probabilities(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> np.ndarray:
+    ) -> npt.NDArray:
         """Get the probablity values for a hazard curve.
 
         Args:
@@ -32,7 +32,7 @@ class HazardLoader(Protocol):
         """
         ...
 
-    def get_levels(self, hazard_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> np.ndarray:
+    def get_levels(self, hazard_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> npt.NDArray:
         """Get the intensity measure levels for a hazard curve.
 
         Args:
@@ -53,7 +53,7 @@ class DisaggLoader(Protocol):
 
     def get_disagg(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
-    ) -> np.ndarray:
+    ) -> npt.NDArray:
         """Get the disaggregation values.
 
         Args:
@@ -77,7 +77,7 @@ class DisaggLoader(Protocol):
 
     def get_bin_centers(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
-    ) -> dict[str, np.ndarray]:
+    ) -> dict[str, npt.NDArray]:
         """Get the disaggregation bin centers.
 
         Args:
@@ -101,7 +101,7 @@ class DisaggLoader(Protocol):
 
     def get_bin_edges(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
-    ) -> dict[str, np.ndarray]:
+    ) -> dict[str, npt.NDArray]:
         """Get the disaggregation bin centers.
 
         Args:
