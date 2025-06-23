@@ -3,9 +3,12 @@
 import math
 import re
 from enum import Enum
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
 
 
 class _GMType(Enum):
@@ -108,7 +111,7 @@ def convert_poe(poe_in: float, inv_time_in: float, inv_time_out: float) -> float
     return poe_from_rp(rp_from_poe(poe_in, inv_time_in), inv_time_out)
 
 
-def calculate_hazard_at_poe(poe: float, imtls: np.ndarray, poes: np.ndarray) -> float:
+def calculate_hazard_at_poe(poe: float, imtls: 'npt.NDArray', poes: 'npt.NDArray') -> float:
     """Calculate the hazard at a given probability of exceedance using interpolation.
 
     A hazard curve and a desired probablity at which to calculate hazard are provided.

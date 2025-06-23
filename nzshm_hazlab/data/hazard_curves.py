@@ -12,6 +12,7 @@ import pandas as pd
 from nzshm_hazlab.base_functions import calculate_hazard_at_poe, period_from_imt
 
 if TYPE_CHECKING:
+    import numpy.typing as npt
     from nzshm_common import CodedLocation  # pragma: no cover
 
     from .data_loaders.data_loaders import HazardLoader  # pragma: no cover
@@ -30,7 +31,7 @@ class HazardCurves:
         """
         self._loader = loader
         self._data = pd.DataFrame(columns=_columns)
-        self._levels: None | np.ndarray = None
+        self._levels: None | 'npt.NDArray' = None
 
     def get_hazard_curve(
         self,
@@ -39,7 +40,7 @@ class HazardCurves:
         location: 'CodedLocation',
         agg: str,
         vs30: int,
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> tuple['npt.NDArray', 'npt.NDArray']:
         """Get a single hazard curve.
 
         Args:
@@ -72,7 +73,7 @@ class HazardCurves:
 
     def get_uhs(
         self, hazard_model_id: str, poe: float, imts: list[str], location: 'CodedLocation', agg: str, vs30: int
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> tuple['npt.NDArray', 'npt.NDArray']:
         """Get the uniform hazard spectrum (UHS) for a site.
 
         The period for peak IMTs (e.g. "PGA", "PGV") is 0.

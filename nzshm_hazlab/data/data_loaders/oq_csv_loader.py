@@ -86,11 +86,11 @@ class OQCSVHazardLoader:
         if not Path(output_dir).is_dir():
             raise FileNotFoundError(f"No such directory {output_dir}")
         self._output_dir = Path(output_dir)
-        self._levels: np.ndarray | None = None
+        self._levels: 'npt.NDArray' | None = None
 
     def get_probabilities(
         self, hazard_model_id: str | int, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> npt.NDArray:
+    ) -> 'npt.NDArray':
         """Get the probablity values for a hazard curve.
 
         Note that because the OpenQuake csv file does not store the site conditions, the vs30 argument
@@ -135,7 +135,9 @@ class OQCSVHazardLoader:
         poe_columns = [col_name for col_name in df.columns if 'poe-' in col_name]
         self._levels = np.array([float(col[4:]) for col in poe_columns])
 
-    def get_levels(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> npt.NDArray:
+    def get_levels(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
+    ) -> 'npt.NDArray':
         """Get the intensity measure levels for a hazard curve.
 
         Note that because the OpenQuake csv file does not store the site conditions, the vs30 argument
@@ -176,7 +178,7 @@ class OQCSVDisaggLoader:
 
     def get_disagg(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
-    ) -> npt.NDArray:
+    ) -> 'npt.NDArray':
         """Get the disaggregation values.
 
         Args:
@@ -222,7 +224,7 @@ class OQCSVDisaggLoader:
 
     def get_bin_centers(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
-    ) -> dict[str, npt.NDArray]:
+    ) -> dict[str, 'npt.NDArray']:
         """Get the disaggregation bin centers.
 
         Args:
@@ -250,7 +252,7 @@ class OQCSVDisaggLoader:
     @cache
     def get_bin_edges(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
-    ) -> dict[str, npt.NDArray]:
+    ) -> dict[str, 'npt.NDArray']:
         """Get the disaggregation bin centers.
 
         Args:

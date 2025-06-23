@@ -18,11 +18,11 @@ class DynamoHazardLoader:
 
     def __init__(self):
         """Initialize a DynamoHazardLoader object."""
-        self._levels: np.ndarray | None = None
+        self._levels: 'npt.NDArray' | None = None
 
     def get_probabilities(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> npt.NDArray:
+        self, hazard_model_id: str, imt: str, location: 'CodedLocation', agg: str, vs30: int
+    ) -> 'npt.NDArray':
         """Get the probablity values for a hazard curve.
 
         Args:
@@ -40,7 +40,9 @@ class DynamoHazardLoader:
             self._levels = np.array([float(item.lvl) for item in res.values])
         return np.array([float(item.val) for item in res.values])
 
-    def get_levels(self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> npt.NDArray:
+    def get_levels(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
+    ) -> 'npt.NDArray':
         """Get the intensity measure levels for a hazard curve.
 
         Args:

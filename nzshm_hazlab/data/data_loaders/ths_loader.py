@@ -9,6 +9,7 @@ import pyarrow.dataset as ds
 from toshi_hazard_store.model.pyarrow import pyarrow_dataset
 
 if TYPE_CHECKING:
+    import numpy.typing as npt
     from nzshm_common import CodedLocation  # pragma: no cover
 
 
@@ -30,11 +31,11 @@ class THSHazardLoader:
         if not (isinstance(dataset_dir, str) and dataset_dir[0:5] == "s3://"):
             dataset_dir = Path(dataset_dir).expanduser()
         self._dataset = _get_realizations_dataset(str(dataset_dir))
-        self._levels: None | np.ndarray = None
+        self._levels: None | 'npt.NDArray' = None
 
     def get_probabilities(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> 'np.ndarray':
+    ) -> 'npt.NDArray':
         """Get the probablity values for a hazard curve.
 
         Args:
@@ -71,7 +72,7 @@ class THSHazardLoader:
     # TODO: get actual levels once they are stored by THS
     def get_levels(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> 'np.ndarray':
+    ) -> 'npt.NDArray':
         """Get the intensity measure levels for a hazard curve.
 
         Args:
