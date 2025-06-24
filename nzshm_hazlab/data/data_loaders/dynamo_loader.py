@@ -6,7 +6,7 @@ import numpy as np
 from toshi_hazard_store import query
 
 if TYPE_CHECKING:
-    import numpy.typing as npt
+    import numpy.typing as npt  # pragma: no cover
     from nzshm_common import CodedLocation  # pragma: no cover
 
 

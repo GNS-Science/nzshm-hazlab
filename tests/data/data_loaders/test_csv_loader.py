@@ -87,7 +87,7 @@ def test_bin_centers(csv_disagg_loader):
         assert len(bin_centers[dim]) == length
 
 
-def test_disagg_missing(csv_disagg_loader):
+def test_disagg_missing_poe(csv_disagg_loader):
     hazard_model = "31"
     imt = "PGA"
     location = wlg
@@ -95,6 +95,16 @@ def test_disagg_missing(csv_disagg_loader):
     vs30 = "400"
     poe = ProbabilityEnum._2_PCT_IN_50YRS
     with pytest.raises(KeyError, match='no records found for'):
+        csv_disagg_loader.get_disagg(hazard_model, imt, location, agg, vs30, poe)
+
+
+@pytest.mark.parametrize("hazard_model,agg", [("31", "0.001"), ("32", "mean")])
+def test_disagg_missing(hazard_model, agg, csv_disagg_loader):
+    imt = "PGA"
+    location = wlg
+    vs30 = "400"
+    poe = ProbabilityEnum._10_PCT_IN_50YRS
+    with pytest.raises(KeyError, match='Disaggregation not found for'):
         csv_disagg_loader.get_disagg(hazard_model, imt, location, agg, vs30, poe)
 
 

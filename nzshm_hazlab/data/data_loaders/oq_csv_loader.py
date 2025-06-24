@@ -16,8 +16,8 @@ from nzshm_hazlab.base_functions import convert_poe
 from nzshm_hazlab.constants import RESOLUTION
 
 if TYPE_CHECKING:
-    import numpy.typing as npt
-    from toshi_hazard_store.model import ProbabilityEnum
+    import numpy.typing as npt  # pragma: no cover
+    from toshi_hazard_store.model import ProbabilityEnum  # pragma: no cover
 
 
 def _get_disagg_header_data(filepath):
@@ -110,9 +110,6 @@ class OQCSVHazardLoader:
         Raises:
             KeyError: If no records or more than one record is found in the database.
         """
-        # def get_location(row):
-        #     return CodedLocation(row['lat'], row['lon'], RESOLUTION)
-
         hazard_model_id = str(hazard_model_id)
 
         df = _get_hazard_curve_df(hazard_model_id, imt, agg, self._output_dir)
