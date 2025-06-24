@@ -1,3 +1,0 @@
-ignore:
-    - "*/__init__.py"
-    - "nzshm_hazlab/data/data_loaders/data_loader.py"
