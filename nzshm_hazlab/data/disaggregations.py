@@ -12,11 +12,11 @@ import pandas as pd
 from nzshm_hazlab.base_functions import prob_to_rate, rate_to_prob
 
 if TYPE_CHECKING:
-    import numpy.typing as npt  # pragma: no cover
-    from nzshm_common.location import CodedLocation  # pragma: no cover
-    from toshi_hazard_store.model import ProbabilityEnum  # pragma: no cover
+    import numpy.typing as npt
+    from nzshm_common.location import CodedLocation
+    from toshi_hazard_store.model import ProbabilityEnum
 
-    from .data_loaders.data_loaders import DisaggLoader  # pragma: no cover
+    from .data_loaders.data_loaders import DisaggLoader
 
 _columns = ["hazard_model_id", "imt", "location", "agg", "vs30", "poe", "probability"]
 

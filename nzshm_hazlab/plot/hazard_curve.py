@@ -6,11 +6,11 @@ import nzshm_hazlab.plot.constants as constants
 from nzshm_hazlab.base_functions import convert_poe
 
 if TYPE_CHECKING:
-    from matplotlib.axes import Axes  # pragma: no cover
-    from matplotlib.lines import Line2D  # pragma: no cover
-    from nzshm_common import CodedLocation  # pragma: no cover
+    from matplotlib.axes import Axes
+    from matplotlib.lines import Line2D
+    from nzshm_common import CodedLocation
 
-    from nzshm_hazlab.data import HazardCurves  # pragma: no cover
+    from nzshm_hazlab.data import HazardCurves
 
 PERIOD_MIN = 0.01
 

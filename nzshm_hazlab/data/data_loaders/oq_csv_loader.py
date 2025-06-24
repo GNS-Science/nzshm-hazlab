@@ -16,8 +16,8 @@ from nzshm_hazlab.base_functions import convert_poe
 from nzshm_hazlab.constants import RESOLUTION
 
 if TYPE_CHECKING:
-    import numpy.typing as npt  # pragma: no cover
-    from toshi_hazard_store.model import ProbabilityEnum  # pragma: no cover
+    import numpy.typing as npt
+    from toshi_hazard_store.model import ProbabilityEnum
 
 
 def _get_disagg_header_data(filepath):

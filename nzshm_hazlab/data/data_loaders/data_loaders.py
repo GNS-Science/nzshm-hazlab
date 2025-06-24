@@ -1,6 +1,6 @@
 """This module provides the Protocol DataLoader class."""
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol  # pragma: no cover
 
 if TYPE_CHECKING:
     import numpy.typing as npt
