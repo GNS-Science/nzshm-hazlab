@@ -9,7 +9,7 @@ import pyarrow.dataset as ds
 from toshi_hazard_store.model.pyarrow import pyarrow_dataset
 
 if TYPE_CHECKING:
-    import numpy.typing as npt
+    import numpy.typing as npt  # pragma: no cover
     from nzshm_common import CodedLocation  # pragma: no cover
 
 

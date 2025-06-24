@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 
 if TYPE_CHECKING:
-    import numpy.typing as npt
+    import numpy.typing as npt  # pragma: no cover
 
 
 class _GMType(Enum):

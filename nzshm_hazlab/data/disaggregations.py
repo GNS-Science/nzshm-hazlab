@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from nzshm_common.location import CodedLocation  # pragma: no cover
     from toshi_hazard_store.model import ProbabilityEnum  # pragma: no cover
 
-    from .data_loaders.data_loaders import DisaggLoader
+    from .data_loaders.data_loaders import DisaggLoader  # pragma: no cover
 
 _columns = ["hazard_model_id", "imt", "location", "agg", "vs30", "poe", "probability"]
 

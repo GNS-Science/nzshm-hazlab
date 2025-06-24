@@ -12,7 +12,7 @@ import pandas as pd
 from nzshm_hazlab.base_functions import calculate_hazard_at_poe, period_from_imt
 
 if TYPE_CHECKING:
-    import numpy.typing as npt
+    import numpy.typing as npt  # pragma: no cover
     from nzshm_common import CodedLocation  # pragma: no cover
 
     from .data_loaders.data_loaders import HazardLoader  # pragma: no cover

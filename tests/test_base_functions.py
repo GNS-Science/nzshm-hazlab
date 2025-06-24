@@ -25,11 +25,12 @@ def test_period_from_imt(imt, period):
 def test_imt_from_period(imt, period, type):
     assert base_functions.imt_from_period(period, type) == imt
 
+
 @pytest.mark.filterwarnings("ignore:divide by zero encountered in log")
 def test_prob_to_rate():
     prob = np.array([0.0, 0.5, 1.0])
     rate = base_functions.prob_to_rate(prob, 1.0)
-    rate_expected = np.array([0.0, -np.log(1.0-0.5), np.inf])
+    rate_expected = np.array([0.0, -np.log(1.0 - 0.5), np.inf])
     np.testing.assert_allclose(rate, rate_expected)
 
 

@@ -73,6 +73,17 @@ def test_disagg(csv_disagg_loader):
     assert disagg.shape == (3, 24, 17, 16)
 
 
+def test_disagg_convert_inv_time(csv_disagg_loader):
+    hazard_model = "32"
+    imt = "PGA"
+    location = wlg
+    agg = "mean"
+    vs30 = "400"
+    poe = ProbabilityEnum._10_PCT_IN_50YRS
+    disagg = csv_disagg_loader.get_disagg(hazard_model, imt, location, agg, vs30, poe)
+    assert disagg.shape == (3, 24, 17, 16)
+
+
 def test_bin_centers(csv_disagg_loader):
     hazard_model = "31"
     imt = "PGA"
@@ -98,7 +109,7 @@ def test_disagg_missing_poe(csv_disagg_loader):
         csv_disagg_loader.get_disagg(hazard_model, imt, location, agg, vs30, poe)
 
 
-@pytest.mark.parametrize("hazard_model,agg", [("31", "0.001"), ("32", "mean")])
+@pytest.mark.parametrize("hazard_model,agg", [("31", "0.001"), ("30", "mean")])
 def test_disagg_missing(hazard_model, agg, csv_disagg_loader):
     imt = "PGA"
     location = wlg
