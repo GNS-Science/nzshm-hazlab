@@ -1,22 +1,26 @@
-import pytest
-from nzshm_hazlab.data.data_loaders import OQCSVDisaggLoader
-from nzshm_hazlab.data import Disaggregations
 from pathlib import Path
-from toshi_hazard_store.model import ProbabilityEnum
+
+import pytest
 from nzshm_common.location import get_locations
+from toshi_hazard_store.model import ProbabilityEnum
+
+from nzshm_hazlab.data import Disaggregations
+from nzshm_hazlab.data.data_loaders import OQCSVDisaggLoader
 
 testdata = [
-            (["trt", "mag", "dist", "eps"], (3, 24, 17, 16)),
-            (["mag", "dist", "eps"], (24, 17, 16)),
-            (["trt", "dist", "eps"], (3, 17, 16)),
-            (["mag", "dist"], (24, 17)),
+    (["trt", "mag", "dist", "eps"], (3, 24, 17, 16)),
+    (["mag", "dist", "eps"], (24, 17, 16)),
+    (["trt", "dist", "eps"], (3, 17, 16)),
+    (["mag", "dist"], (24, 17)),
+    (["dist"], (17,)),
 ]
+
+
 @pytest.mark.parametrize("dimensions,shape", testdata)
 def test_get_disaggregations(dimensions, shape):
     oq_output_dir = Path(__file__).parent.parent / "fixtures/data/csv_loader"
     loader = OQCSVDisaggLoader(oq_output_dir)
     disaggs = Disaggregations(loader=loader)
-
 
     hazard_model = "31"
     imt = "PGA"
@@ -34,7 +38,6 @@ def test_get_disaggs_missing():
     loader = OQCSVDisaggLoader(oq_output_dir)
     disaggs = Disaggregations(loader=loader)
 
-
     hazard_model = "31"
     imt = "PGA"
     location = get_locations(["WLG"])[0]
@@ -43,4 +46,6 @@ def test_get_disaggs_missing():
     dimensions = ["trt", "mag", "dist", "eps", "foobar"]
     poe = ProbabilityEnum._10_PCT_IN_50YRS
     with pytest.raises(KeyError):
-        bin_centers, probabilities = disaggs.get_disaggregations(hazard_model, dimensions, imt, location, agg, vs30, poe)
+        bin_centers, probabilities = disaggs.get_disaggregations(
+            hazard_model, dimensions, imt, location, agg, vs30, poe
+        )

@@ -16,6 +16,7 @@ class _GMType(Enum):
     disp = "D"
     vel = "V"
 
+
 def prob_to_rate(prob: 'npt.NDArray', inv_time: float) -> 'npt.NDArray':
     """Convert probability of exceedance to rate assuming Poisson distribution.
 
@@ -28,6 +29,7 @@ def prob_to_rate(prob: 'npt.NDArray', inv_time: float) -> 'npt.NDArray':
     """
     return -np.log(1.0 - prob) / inv_time
 
+
 def rate_to_prob(rate: 'npt.NDArray', inv_time: float) -> 'npt.NDArray':
     """Convert rate to probabiility of exceedance assuming Poisson distribution.
 
@@ -39,6 +41,7 @@ def rate_to_prob(rate: 'npt.NDArray', inv_time: float) -> 'npt.NDArray':
         probability of exceedance in inv_time
     """
     return 1.0 - np.exp(-inv_time * rate)
+
 
 def period_from_imt(imt: str) -> float:
     """Convert intensity measure type string to a time period.

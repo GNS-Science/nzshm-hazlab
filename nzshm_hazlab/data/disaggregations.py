@@ -1,6 +1,12 @@
-from typing import TYPE_CHECKING, Iterable, cast
-import numpy as np
+"""This module provides the Disaggregations class.
 
+Classes:
+    Disaggregations: a class to retrive disaggregation matrices.
+"""
+
+from typing import TYPE_CHECKING, Iterable
+
+import numpy as np
 import pandas as pd
 
 from nzshm_hazlab.base_functions import prob_to_rate, rate_to_prob
@@ -16,16 +22,17 @@ _columns = ["hazard_model_id", "imt", "location", "agg", "vs30", "poe", "probabi
 
 
 class Disaggregations:
+    """A class for retrieving and storing disaggregation matrices."""
 
     def __init__(self, loader: 'DisaggLoader'):
-        """Initialize a new HazardCurves object.
+        """Initialize a new Disaggregations object.
 
         Args:
-            loader: The data loader to use to retrive hazard curves.
+            loader: The data loader to use to retrive disaggregations.
         """
         self._loader = loader
         self._data = pd.DataFrame(columns=_columns)
-        self._bin_centers: None | dict[str, 'npt.NDArray'] = None
+        self._bin_centers: dict[str, 'npt.NDArray'] = {}
 
     def get_disaggregations(
         self,
@@ -37,6 +44,26 @@ class Disaggregations:
         vs30: int,
         poe: 'ProbabilityEnum',
     ) -> tuple[dict[str, 'npt.NDArray'], 'npt.NDArray']:
+        """Get a disaggregation matrix.
+
+        Available disaggregation dimensions are dictated by what was
+        calculated during processing. Typical dimensions are "trt" (tectonic region type),
+        "mag" (earthquake magnitude), "dist" (distance to source), "eps" (GMM epsilon).
+
+        Args:
+            hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
+            dimensions: The disaggregation dimensions desired, e.g. ["trt", "mag"]
+            imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
+            location: The site location for the hazard curve.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
+            vs30: The vs30 of the site.
+            poe: Probability of exceedance of the disaggregation (point on the hazard curve at which the
+                disaggregation was calculated)
+
+        Returns:
+            A tuple of (bin_centers, disaggregation probability matrix). The order of the dimensions in bin_centers
+                is the same as the dimensions of the disaggregation probability matrix.
+        """
 
         def filter_data(hmi, imt, loc, agg, vs30, poe):
             return self._data.loc[
@@ -54,17 +81,16 @@ class Disaggregations:
             self._load_data(hazard_model_id, imt, location, agg, vs30, poe)
             data = filter_data(hazard_model_id, imt, location, agg, vs30, poe)
 
-        if (missing := set(dimensions) - set(self._dimensions)):
+        if missing := set(dimensions) - set(self._dimensions):
             raise KeyError(f"disaggregation dimensions {missing} do not exist")
 
         probabilities = data["probability"].values[0]
         # sum out the dimensions not requested
         rates = prob_to_rate(probabilities, 1.0)
         dims_remove = set(self._dimensions) - set(dimensions)
-        bin_centers = {dim:bins for dim,bins in self._bin_centers.items() if dim in dimensions}
-        for dim in dims_remove:
-            axis = self._dimensions.index(dim)
-            rates = np.sum(rates, axis=axis)
+        bin_centers = {dim: bins for dim, bins in self._bin_centers.items() if dim in dimensions}
+        axes = tuple(self._dimensions.index(dim) for dim in dims_remove)
+        rates = np.sum(rates, axis=axes)
         probabilities = rate_to_prob(rates, 1.0)
         return bin_centers, probabilities
 
@@ -81,6 +107,6 @@ class Disaggregations:
         df = pd.DataFrame([[hazard_model_id, imt, location, agg, vs30, poe, values]], columns=_columns)
         self._data = pd.concat([self._data, df])
 
-        if self._bin_centers is None:
+        if not self._bin_centers:
             self._bin_centers = self._loader.get_bin_centers(hazard_model_id, imt, location, agg, vs30, poe)
-            self._dimensions = list(self._bin_centers.keys())
+            self._dimensions: list[str] = list(self._bin_centers.keys())
