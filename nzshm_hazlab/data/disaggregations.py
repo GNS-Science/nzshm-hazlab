@@ -47,7 +47,7 @@ class Disaggregations:
         """Get a disaggregation matrix.
 
         Available disaggregation dimensions are dictated by what was
-        calculated during processing. Typical dimensions are "trt" (tectonic region type),
+        calculated during processing. Possible dimensions are "trt" (tectonic region type),
         "mag" (earthquake magnitude), "dist" (distance to source), "eps" (GMM epsilon).
 
         Args:

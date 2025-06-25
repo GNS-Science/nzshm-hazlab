@@ -73,7 +73,7 @@ def test_disagg(csv_disagg_loader):
     assert disagg.shape == (3, 24, 17, 16)
 
 
-def test_disagg_convert_inv_time(csv_disagg_loader):
+def test_disagg_convert_investigation_time_to_1yr(csv_disagg_loader):
     hazard_model = "32"
     imt = "PGA"
     location = wlg
