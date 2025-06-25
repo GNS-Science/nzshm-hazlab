@@ -1,4 +1,4 @@
-"""This module provies the THSLoader class."""
+"""This module provies the THSHazardLoader class."""
 
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -6,33 +6,36 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
-from toshi_hazard_store.model.revision_4 import pyarrow_dataset
+from toshi_hazard_store.model.pyarrow import pyarrow_dataset
 
 if TYPE_CHECKING:
-    from nzshm_common import CodedLocation  # pragma: no cover
+    import numpy.typing as npt
+    from nzshm_common import CodedLocation
 
 
-def _get_realizations_dataset(dataset_dir: Path) -> ds.Dataset:
-    rlz_dir, filesystem = pyarrow_dataset.configure_output(str(dataset_dir))
+def _get_realizations_dataset(dataset_dir: str) -> ds.Dataset:
+    rlz_dir, filesystem = pyarrow_dataset.configure_output(dataset_dir)
     dataset = ds.dataset(rlz_dir, format="parquet", filesystem=filesystem, partitioning="hive")
     return dataset
 
 
-class THSLoader:
+class THSHazardLoader:
     """A class for loading hazard curves from toshi-hazard-store."""
 
     def __init__(self, dataset_dir: Path | str):
-        """Initialize a THSLoader object.
+        """Initialize a THSHazardLoader object.
 
         Args:
             dataset_dir: location of dataset (parquet) files. This can be a local filepath or S3 bucket URI.
         """
-        self._dataset = _get_realizations_dataset(Path(dataset_dir).expanduser())
-        self._levels: None | np.ndarray = None
+        if not (isinstance(dataset_dir, str) and dataset_dir[0:5] == "s3://"):
+            dataset_dir = Path(dataset_dir).expanduser()
+        self._dataset = _get_realizations_dataset(str(dataset_dir))
+        self._levels: None | 'npt.NDArray' = None
 
     def get_probabilities(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> 'np.ndarray':
+    ) -> 'npt.NDArray':
         """Get the probablity values for a hazard curve.
 
         Args:
@@ -49,9 +52,11 @@ class THSLoader:
             KeyError: If no records are found.
         """
         nloc_001 = location.downsample(0.001).code
+        nloc_0 = location.downsample(1.0).code
         flt = (
-            (pc.field("agg") == pc.scalar(agg))
+            (pc.field("aggr") == pc.scalar(agg))
             & (pc.field("imt") == pc.scalar(imt))
+            & (pc.field("nloc_0") == pc.scalar(nloc_0))
             & (pc.field("nloc_001") == pc.scalar(nloc_001))
             & (pc.field("vs30") == pc.scalar(vs30))
             & (pc.field("hazard_model_id") == pc.scalar(hazard_model_id))
@@ -67,7 +72,7 @@ class THSLoader:
     # TODO: get actual levels once they are stored by THS
     def get_levels(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
-    ) -> 'np.ndarray':
+    ) -> 'npt.NDArray':
         """Get the intensity measure levels for a hazard curve.
 
         Args:

@@ -8,7 +8,7 @@ from nzshm_common import CodedLocation
 from nzshm_common.location.location import _lat_lon
 
 from nzshm_hazlab.constants import RESOLUTION
-from nzshm_hazlab.data.data_loaders import THSLoader
+from nzshm_hazlab.data.data_loaders import THSHazardLoader
 from tests.helpers import does_not_raise
 
 hazard_model_oqcsv = "TEST_RUNZI"
@@ -21,7 +21,7 @@ other_location = CodedLocation(lat=-41.75, lon=171.58, resolution=0.001)
 @pytest.fixture(scope='function')
 def loader():
     dataset_dir = Path(__file__).parent.parent.parent / "fixtures/data/ths_loader/dataset"
-    return THSLoader(dataset_dir=dataset_dir)
+    return THSHazardLoader(dataset_dir=dataset_dir)
 
 
 location_imt_agg_err = [

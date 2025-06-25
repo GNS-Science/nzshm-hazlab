@@ -6,7 +6,7 @@ from nzshm_common.location.location import _lat_lon
 
 from nzshm_hazlab.base_functions import convert_poe
 from nzshm_hazlab.constants import RESOLUTION
-from nzshm_hazlab.data.data_loaders import OQCSVLoader
+from nzshm_hazlab.data.data_loaders import OQCSVHazardLoader
 from nzshm_hazlab.data.hazard_curves import HazardCurves
 
 vs30 = 750
@@ -18,7 +18,7 @@ hazard_model_oqcsv = "1"
 @pytest.fixture(scope='module')
 def hazard_curves():
     oq_output_dir = Path(__file__).parent.parent / "fixtures/data/csv_loader"
-    csv_loader = OQCSVLoader(oq_output_dir)
+    csv_loader = OQCSVHazardLoader(oq_output_dir)
     return HazardCurves(loader=csv_loader)
 
 
