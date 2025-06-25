@@ -1,6 +1,6 @@
 To use nzshm-hazlab you must first [install the library](./installation.md)
 
-## Load Data
+## Load Hazard Curves
 ```py
 from nzshm_hazlab.data.hazard_curves import HazardCurves
 from nzshm_hazlab.data.data_loaders import THSHazardLoader
@@ -10,7 +10,7 @@ from nzshm_hazlab.constants import RESOLUTION
 
 
 hazard_model = "TEST_MODEL"
-dataset_dir = "~/toshi_hazard_store/AGG/"
+dataset_dir = "./toshi_hazard_store/AGG/"
 loader = THSHazardLoader(dataset_dir=dataset_dir)
 hazard_curves_NSHM22 = HazardCurves(loader=loader)
 
@@ -29,6 +29,31 @@ for location in locations:
             print('='*50)
 ```
 
+## Load Disaggregation Matrix
+```py
+from nzshm_common.location import get_locations
+from toshi_hazard_store.model import ProbabilityEnum
+
+from nzshm_hazlab.data import Disaggregations
+from nzshm_hazlab.data.data_loaders import OQCSVDisaggLoader
+
+hazard_model = "31"
+dataset_dir = "./data/csv_loader"
+loader = OQCSVDisaggLoader(dataset_dir)
+disaggs = Disaggregations(loader=loader)
+
+location = get_locations(["WLG"])[0]
+dimensions = ["mag", "dist"]
+agg = "mean"
+imt = "PGA"
+vs30 = 400
+poe = ProbabilityEnum._10_PCT_IN_50YRS
+
+bin_centers, disagg_matrix =disaggs.get_disaggregations(hazard_model, dimensions, imt, location, agg, vs30, poe)
+print(bin_centers)
+print(disagg_matrix.shape)
+```
+
 ## Plot Data
 ```py
 from nzshm_hazlab.data.data_loaders import THSHazardLoader
@@ -38,7 +63,7 @@ from nzshm_common import CodedLocation
 import matplotlib.pyplot as plt
 
 hazard_model_id = "NSHM_v1.0.4"
-dataset_dir = "~/toshi_hazard_store/AGG/"
+dataset_dir = "./toshi_hazard_store/AGG/"
 loader = THSHazardLoader(dataset_dir=dataset_dir)
 hazard_curves_THSr4 = HazardCurves(loader=loader)
 location_id = "WLG"
