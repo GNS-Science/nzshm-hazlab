@@ -6,6 +6,6 @@ Modules:
     ths_loader: Defines the THSHazardLoader class.
 """
 
-from .dynamo_loader import DynamoHazardLoader, DynamoDisaggLoader
+from .dynamo_loader import DynamoDisaggLoader, DynamoHazardLoader
 from .oq_csv_loader import OQCSVDisaggLoader, OQCSVHazardLoader
 from .ths_loader import THSHazardLoader

@@ -34,7 +34,7 @@ class THSHazardLoader:
         self._levels: None | 'npt.NDArray' = None
 
     def get_probabilities(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, agg: str
     ) -> 'npt.NDArray':
         """Get the probablity values for a hazard curve.
 
@@ -42,8 +42,8 @@ class THSHazardLoader:
             hazard_model_id: The identifier of the hazard model.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             The probability values.
@@ -71,7 +71,7 @@ class THSHazardLoader:
 
     # TODO: get actual levels once they are stored by THS
     def get_levels(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, agg: str
     ) -> 'npt.NDArray':
         """Get the intensity measure levels for a hazard curve.
 
@@ -79,8 +79,8 @@ class THSHazardLoader:
             hazard_model_id: The identifier of the hazard model.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             The intensity measure values.

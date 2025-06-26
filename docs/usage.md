@@ -24,7 +24,7 @@ vs30s = [400]
 for location in locations:
     for imt in imts:
         for vs30 in vs30s:
-            levels, values = hazard_curves_NSHM22.get_hazard_curve(hazard_model, imts[0], locations[0], aggs[0], vs30s[0])
+            levels, values = hazard_curves_NSHM22.get_hazard_curve(hazard_model, imts[0], locations[0], vs30s[0], aggs[0])
             print(levels, values)
             print('='*50)
 ```
@@ -49,7 +49,7 @@ imt = "PGA"
 vs30 = 400
 poe = ProbabilityEnum._10_PCT_IN_50YRS
 
-bin_centers, disagg_matrix =disaggs.get_disaggregations(hazard_model, dimensions, imt, location, agg, vs30, poe)
+bin_centers, disagg_matrix =disaggs.get_disaggregations(hazard_model, dimensions, imt, location, vs30, poe, agg)
 print(bin_centers)
 print(disagg_matrix.shape)
 ```

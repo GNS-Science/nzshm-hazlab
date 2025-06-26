@@ -36,7 +36,7 @@ location_imt_agg_err = [
 @pytest.mark.parametrize("location,imt,agg,err", location_imt_agg_err)
 def test_probabilities(location, imt, agg, err, loader):
     with err:
-        probabilities = loader.get_probabilities(hazard_model_oqcsv, imt, location, agg, vs30)
+        probabilities = loader.get_probabilities(hazard_model_oqcsv, imt, location, vs30, agg)
         dir = Path(__file__).parent.parent.parent / "fixtures/data/ths_loader/expected"
         filepath = dir / f"{location.lat}_{location.lon}_{imt}_{agg}.json"
         expected = json.load(filepath.open())
@@ -48,5 +48,5 @@ def test_levels(loader):
     expected = json.load(ref.open())
     agg = "mean"
     imt = "PGA"
-    levels = loader.get_levels(hazard_model_oqcsv, imt, wlg, agg, vs30)
+    levels = loader.get_levels(hazard_model_oqcsv, imt, wlg, vs30, agg)
     np.testing.assert_allclose(levels, expected)

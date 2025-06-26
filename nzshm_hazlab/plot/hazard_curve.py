@@ -98,14 +98,14 @@ def plot_hazard_curve(
     # if odd number of aggs, plot the centre as a thick line
     i_center = int(len(aggs) / 2)
     if len(aggs) % 2 == 1:
-        levels, probs = data.get_hazard_curve(hazard_model_id, imt, location, aggs[i_center], vs30)
+        levels, probs = data.get_hazard_curve(hazard_model_id, imt, location, vs30, aggs[i_center])
         lhs = axes.plot(levels, probs, lw=constants.LINE_WIDTH_CENTER, color=color, label=label, **kwargs)
         line_handles += lhs
 
     filled = False
     for left, right in _center_out(len(aggs)):
-        levels_low, probs_low = data.get_hazard_curve(hazard_model_id, imt, location, aggs[left], vs30)
-        levels_high, probs_high = data.get_hazard_curve(hazard_model_id, imt, location, aggs[right], vs30)
+        levels_low, probs_low = data.get_hazard_curve(hazard_model_id, imt, location, vs30, aggs[left])
+        levels_high, probs_high = data.get_hazard_curve(hazard_model_id, imt, location, vs30, aggs[right])
         lhs = axes.plot(levels_low, probs_low, lw=constants.LINE_WIDTH_BOUNDS, color=color, **kwargs)
         line_handles += lhs
 
@@ -206,14 +206,14 @@ def plot_uhs(
     # if odd number of aggs, plot the centre as a thick line
     i_center = int(len(aggs) / 2)
     if len(aggs) % 2 == 1:
-        periods, imtls = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[i_center], vs30)
+        periods, imtls = data.get_uhs(hazard_model_id, apoe, imts, location, vs30, aggs[i_center])
         lhs = axes.plot(periods, imtls, lw=constants.LINE_WIDTH_CENTER, color=color, label=label, **kwargs)
         line_handles += lhs
 
     filled = False
     for left, right in _center_out(len(aggs)):
-        periods_low, imtls_low = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[left], vs30)
-        periods_high, imtls_high = data.get_uhs(hazard_model_id, apoe, imts, location, aggs[right], vs30)
+        periods_low, imtls_low = data.get_uhs(hazard_model_id, apoe, imts, location, vs30, aggs[left])
+        periods_high, imtls_high = data.get_uhs(hazard_model_id, apoe, imts, location, vs30, aggs[right])
         lhs = axes.plot(periods_low, imtls_low, lw=constants.LINE_WIDTH_BOUNDS, color=color, **kwargs)
         line_handles += lhs
 

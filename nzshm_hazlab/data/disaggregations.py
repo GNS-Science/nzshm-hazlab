@@ -40,9 +40,9 @@ class Disaggregations:
         dimensions: Iterable[str],
         imt: str,
         location: 'CodedLocation',
-        agg: str,
         vs30: int,
         poe: 'ProbabilityEnum',
+        agg: str,
     ) -> tuple[dict[str, 'npt.NDArray'], 'npt.NDArray']:
         """Get a disaggregation matrix.
 
@@ -55,17 +55,17 @@ class Disaggregations:
             dimensions: The disaggregation dimensions desired, e.g. ["trt", "mag"]
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: Probability of exceedance of the disaggregation (point on the hazard curve at which the
                 disaggregation was calculated)
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             A tuple of (bin_centers, disaggregation probability matrix). The order of the dimensions in bin_centers
                 is the same as the dimensions of the disaggregation probability matrix.
         """
 
-        def filter_data(hmi, imt, loc, agg, vs30, poe):
+        def filter_data(hmi, imt, loc, vs30, poe, agg):
             return self._data.loc[
                 self._data["imt"].eq(imt)
                 & self._data["location"].eq(loc)
@@ -75,11 +75,11 @@ class Disaggregations:
                 & self._data["poe"].eq(poe)
             ]
 
-        data = filter_data(hazard_model_id, imt, location, agg, vs30, poe)
+        data = filter_data(hazard_model_id, imt, location, vs30, poe, agg)
 
         if data.empty:
-            self._load_data(hazard_model_id, imt, location, agg, vs30, poe)
-            data = filter_data(hazard_model_id, imt, location, agg, vs30, poe)
+            self._load_data(hazard_model_id, imt, location, vs30, poe, agg)
+            data = filter_data(hazard_model_id, imt, location, vs30, poe, agg)
 
         if missing := set(dimensions) - set(self._dimensions):
             raise KeyError(f"disaggregation dimensions {missing} do not exist")
@@ -99,14 +99,14 @@ class Disaggregations:
         hazard_model_id: str,
         imt: str,
         location: "CodedLocation",
-        agg: str,
         vs30: int,
         poe: 'ProbabilityEnum',
+        agg: str,
     ) -> None:
-        values = self._loader.get_disagg(hazard_model_id, imt, location, agg, vs30, poe)
+        values = self._loader.get_disagg(hazard_model_id, imt, location, vs30, poe, agg)
         df = pd.DataFrame([[hazard_model_id, imt, location, agg, vs30, poe, values]], columns=_columns)
         self._data = pd.concat([self._data, df])
 
         if not self._bin_centers:
-            self._bin_centers = self._loader.get_bin_centers(hazard_model_id, imt, location, agg, vs30, poe)
+            self._bin_centers = self._loader.get_bin_centers(hazard_model_id, imt, location, vs30, poe, agg)
             self._dimensions: list[str] = list(self._bin_centers.keys())

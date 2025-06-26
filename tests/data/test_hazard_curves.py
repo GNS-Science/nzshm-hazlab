@@ -29,10 +29,10 @@ def test_uhs(hazard_curves):
     investigation_time = 50.0
     poe = 0.1
     apoe = convert_poe(poe, investigation_time, 1.0)
-    assert hazard_curves.get_uhs(hazard_model_oqcsv, apoe, imts, location, agg, vs30)
+    assert hazard_curves.get_uhs(hazard_model_oqcsv, apoe, imts, location, vs30, agg)
 
 
 @pytest.mark.parametrize("agg", ["mean", "0.1"])
 def test_hazard_curve(agg, hazard_curves):
     imt = "PGA"
-    assert hazard_curves.get_hazard_curve(hazard_model_oqcsv, imt, location, agg, vs30)
+    assert hazard_curves.get_hazard_curve(hazard_model_oqcsv, imt, location, vs30, agg)
