@@ -28,7 +28,7 @@ def test_get_disaggregations(dimensions, shape):
     agg = "mean"
     vs30 = "400"
     poe = ProbabilityEnum._10_PCT_IN_50YRS
-    bin_centers, probabilities = disaggs.get_disaggregations(hazard_model, dimensions, imt, location, vs30, poe, agg)
+    bin_centers, probabilities = disaggs.get_disaggregation(hazard_model, dimensions, imt, location, vs30, poe, agg)
     assert set(bin_centers.keys()) == set(dimensions)
     assert probabilities.shape == shape
 
@@ -46,6 +46,6 @@ def test_get_disaggs_missing():
     dimensions = ["trt", "mag", "dist", "eps", "foobar"]
     poe = ProbabilityEnum._10_PCT_IN_50YRS
     with pytest.raises(KeyError):
-        bin_centers, probabilities = disaggs.get_disaggregations(
+        bin_centers, probabilities = disaggs.get_disaggregation(
             hazard_model, dimensions, imt, location, vs30, poe, agg
         )

@@ -34,7 +34,7 @@ class Disaggregations:
         self._data = pd.DataFrame(columns=_columns)
         self._bin_centers: dict[str, 'npt.NDArray'] = {}
 
-    def get_disaggregations(
+    def get_disaggregation(
         self,
         hazard_model_id: str,
         dimensions: Iterable[str],
