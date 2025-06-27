@@ -46,6 +46,4 @@ def test_get_disaggs_missing():
     dimensions = ["trt", "mag", "dist", "eps", "foobar"]
     poe = ProbabilityEnum._10_PCT_IN_50YRS
     with pytest.raises(KeyError):
-        bin_centers, probabilities = disaggs.get_disaggregation(
-            hazard_model, dimensions, imt, location, vs30, poe, agg
-        )
+        bin_centers, probabilities = disaggs.get_disaggregation(hazard_model, dimensions, imt, location, vs30, poe, agg)
