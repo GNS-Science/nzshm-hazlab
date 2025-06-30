@@ -1,11 +1,10 @@
 """This module provides functions for plotting disaggregations."""
 
-import copy
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
-import numpy as np
 import matplotlib
+import numpy as np
 from matplotlib import cm
 from matplotlib.axes import Axes
 from matplotlib.colors import LightSource, ListedColormap, Normalize
@@ -130,6 +129,8 @@ def plot_disagg_2d(
     """
     if len(dimensions) != 2:
         raise ValueError("Dimensions must have length of 2.")
+    if 'trt' in dimensions:
+        raise ValueError("Cannot specify trt as a dimension for 2d disaggregatin plot.")
     if kwargs.get('shading'):
         raise KeyError("Cannot specify shading as a keyword argument.")
 
@@ -137,14 +138,8 @@ def plot_disagg_2d(
     if not keyword_args.get('cmap'):
         keyword_args['cmap'] = _cmap()
 
-    # we don't want to have trt in the requested dimensions, as it can't
-    # be plotted as an axis on a 2d plot, so remove it
-    dimensions_copy = copy.copy(dimensions)
-    if 'trt' in dimensions_copy:
-        dimensions_copy.pop(dimensions_copy.index('trt'))
-
-    # but if we split by trt, we have to include it in the disaggregations
-    dims = dimensions_copy + ['trt'] if split_by_trt else dimensions_copy
+    # if we split by trt, we have to include it in the retrieved disaggregations
+    dims = dimensions + ['trt'] if split_by_trt else dimensions
     bins, probs = data.get_disaggregation(hazard_model_id, dims, imt, location, vs30, poe, agg)
     rates_pct = prob_to_rate(probs, 1.0) / np.sum(probs)
 
@@ -168,7 +163,7 @@ def plot_disagg_2d(
         # move the trt axis to be first for easy indexing
         rates_pct = np.moveaxis(rates_pct, dim_trt, 0)
         for i, trt in enumerate(trts):
-            pcx = _plot_2d(axes[i], dimensions_copy, bins, rates_pct[i, ...], pct_lim, **keyword_args)
+            pcx = _plot_2d(axes[i], dimensions, bins, rates_pct[i, ...], pct_lim, **keyword_args)
             axes[i].set_title(trt)
         fig = cast(Figure, axes[-1].get_figure())
         fig.colorbar(pcx, ax=axes[-1], label="% Contribution to Hazard")
@@ -176,7 +171,7 @@ def plot_disagg_2d(
     else:
         axes = cast(Axes, axes)
 
-    pcx = _plot_2d(axes, dimensions_copy, bins, rates_pct, pct_lim, **keyword_args)
+    pcx = _plot_2d(axes, dimensions, bins, rates_pct, pct_lim, **keyword_args)
     fig = cast(Figure, axes.get_figure())
     fig.colorbar(pcx, label="% Contribution to Hazard")
     return (axes,)
