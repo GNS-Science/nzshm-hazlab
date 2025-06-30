@@ -179,7 +179,7 @@ def plot_disagg_2d(
 
 def plot_disagg_3d(
     fig: 'Figure',
-    disaggs: 'Disaggregations',
+    data: 'Disaggregations',
     hazard_model_id: str,
     location: 'CodedLocation',
     imt: str,
@@ -217,7 +217,7 @@ def plot_disagg_3d(
     ax = cast(Axes3D, fig.add_subplot(1, 1, 1, projection='3d'))
 
     # calculate percent contribution to hazard
-    bins, probs = disaggs.get_disaggregation(hazard_model_id, ['mag', 'dist', 'eps'], imt, location, vs30, poe, agg)
+    bins, probs = data.get_disaggregation(hazard_model_id, ['mag', 'dist', 'eps'], imt, location, vs30, poe, agg)
     rates_pct = prob_to_rate(probs, 1.0) / np.sum(probs) * 100
 
     # construct light source and colormap
