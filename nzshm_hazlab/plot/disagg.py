@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import numpy as np
+import matplotlib
 from matplotlib import cm
 from matplotlib.axes import Axes
 from matplotlib.colors import LightSource, ListedColormap, Normalize
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
 
 
 def _cmap():
-    cmp = cm.get_cmap(DEFAULT_CMAP)
+    cmp = matplotlib.colormaps.get_cmap(DEFAULT_CMAP)
     white = np.array([1.0, 1.0, 1.0, 1.0])
     newcolors = cmp(np.linspace(0, 1, 256))
     newcolors[:5, :] = white
@@ -226,7 +227,7 @@ def plot_disagg_3d(
 
     # construct light source and colormap
     ls = LightSource(azdeg=45, altdeg=10)
-    cmp = cm.get_cmap('coolwarm')
+    cmp = matplotlib.colormaps.get_cmap('coolwarm')
     newcolors = cmp(np.linspace(0, 1, len(bins['eps'])))
     newcmp = ListedColormap(newcolors)
     norm = Normalize(vmin=-4, vmax=4)
