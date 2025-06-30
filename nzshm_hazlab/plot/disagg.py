@@ -261,9 +261,6 @@ def plot_disagg_3d(
         anchor=(0.0, 0.75),
         label='epsilon',
     )
-    ax.set_xlabel('Magnitude')
-    ax.set_ylabel('Distance (km)')
-    ax.set_zlabel('% Contribution to Hazard')
     ax.set_xlim(mag_lim)
     ax.set_ylim(dist_lim)
     ax.view_init(elev=35, azim=45)
