@@ -89,7 +89,7 @@ class OQCSVHazardLoader:
         self._levels: 'npt.NDArray' | None = None
 
     def get_probabilities(
-        self, hazard_model_id: str | int, imt: str, location: "CodedLocation", agg: str, vs30: int
+        self, hazard_model_id: str | int, imt: str, location: "CodedLocation", vs30: int, agg: str
     ) -> 'npt.NDArray':
         """Get the probablity values for a hazard curve.
 
@@ -101,8 +101,8 @@ class OQCSVHazardLoader:
             hazard_model_id: The calculation ID of the OpenQuake run.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: Not used.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             The probability values.
@@ -133,7 +133,7 @@ class OQCSVHazardLoader:
         self._levels = np.array([float(col[4:]) for col in poe_columns])
 
     def get_levels(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, agg: str
     ) -> 'npt.NDArray':
         """Get the intensity measure levels for a hazard curve.
 
@@ -145,8 +145,8 @@ class OQCSVHazardLoader:
             hazard_model_id: The calculation ID of the OpenQuake run.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: Not used.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             The intensity measure values.
@@ -174,7 +174,7 @@ class OQCSVDisaggLoader:
         self._output_dir = Path(output_dir)
 
     def get_disagg(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
     ) -> 'npt.NDArray':
         """Get the disaggregation values.
 
@@ -182,9 +182,9 @@ class OQCSVDisaggLoader:
             hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
-            vs30: The vs30 of the site.
+            vs30: Not used.
             poe: The probability of exceedance.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             Array of probability contributions from each disaggregation bin.
@@ -196,7 +196,7 @@ class OQCSVDisaggLoader:
             KeyError: If no records or more than one record is found in the database.
         """
         df = _get_disagg_df(hazard_model_id, location, agg, self._output_dir)
-        bin_centers = self.get_bin_centers(hazard_model_id, imt, location, agg, vs30, poe)
+        bin_centers = self.get_bin_centers(hazard_model_id, imt, location, vs30, poe, agg)
         array_shape = [len(b) for b in bin_centers.values()]
         n_bins = math.prod(array_shape)
 
@@ -220,7 +220,7 @@ class OQCSVDisaggLoader:
         return probs
 
     def get_bin_centers(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
     ) -> dict[str, 'npt.NDArray']:
         """Get the disaggregation bin centers.
 
@@ -228,9 +228,9 @@ class OQCSVDisaggLoader:
             hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
-            vs30: The vs30 of the site.
+            vs30: Not used.
             poe: The probability of exceedance.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             Array of probability contributions from each disaggregation bin.
@@ -248,7 +248,7 @@ class OQCSVDisaggLoader:
 
     @cache
     def get_bin_edges(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
     ) -> dict[str, 'npt.NDArray']:
         """Get the disaggregation bin centers.
 
@@ -256,9 +256,9 @@ class OQCSVDisaggLoader:
             hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             The disaggregation bin centers with the keys being the disaggregation dimension names (e.g. "TRT", "dist")

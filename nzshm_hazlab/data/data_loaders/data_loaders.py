@@ -16,7 +16,12 @@ class HazardLoader(Protocol):
     """
 
     def get_probabilities(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
+        self,
+        hazard_model_id: str,
+        imt: str,
+        location: "CodedLocation",
+        vs30: int,
+        agg: str,
     ) -> npt.NDArray:
         """Get the probablity values for a hazard curve.
 
@@ -24,23 +29,23 @@ class HazardLoader(Protocol):
             hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             The probability values.
         """
         ...
 
-    def get_levels(self, hazard_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int) -> npt.NDArray:
+    def get_levels(self, hazard_id: str, imt: str, location: "CodedLocation", vs30: int, agg: str) -> npt.NDArray:
         """Get the intensity measure levels for a hazard curve.
 
         Args:
             hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             The intensity measure values.
@@ -52,7 +57,7 @@ class DisaggLoader(Protocol):
     """The protocol class for a disaggregation data loader."""
 
     def get_disagg(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
     ) -> npt.NDArray:
         """Get the disaggregation values.
 
@@ -60,9 +65,9 @@ class DisaggLoader(Protocol):
             hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             Array of probability contributions from each disaggregation bin.
@@ -76,7 +81,7 @@ class DisaggLoader(Protocol):
         ...
 
     def get_bin_centers(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
     ) -> dict[str, npt.NDArray]:
         """Get the disaggregation bin centers.
 
@@ -84,9 +89,9 @@ class DisaggLoader(Protocol):
             hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             Array of probability contributions from each disaggregation bin.
@@ -100,7 +105,7 @@ class DisaggLoader(Protocol):
         ...
 
     def get_bin_edges(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int, poe: 'ProbabilityEnum'
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
     ) -> dict[str, npt.NDArray]:
         """Get the disaggregation bin centers.
 
@@ -108,9 +113,9 @@ class DisaggLoader(Protocol):
             hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             The disaggregation bin centers with the keys being the disaggregation dimension names (e.g. "TRT", "dist")
