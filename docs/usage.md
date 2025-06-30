@@ -5,8 +5,7 @@ To use nzshm-hazlab you must first [install the library](./installation.md)
 from nzshm_hazlab.data.hazard_curves import HazardCurves
 from nzshm_hazlab.data.data_loaders import THSHazardLoader
 from nzshm_common.location import CodedLocation, location_by_id
-from nzshm_common.location.location import _lat_lon
-from nzshm_hazlab.constants import RESOLUTION
+from nzshm_common.location import get_locations
 
 
 hazard_model = "TEST_MODEL"
@@ -15,7 +14,7 @@ loader = THSHazardLoader(dataset_dir=dataset_dir)
 hazard_curves_NSHM22 = HazardCurves(loader=loader)
 
 location_ids = ["WLG", "DUD", "CHC", "AKL"]
-locations = [CodedLocation(*_lat_lon(_id), RESOLUTION) for _id in location_ids]
+locations = get_locations(location_ids)
 
 aggs = ["mean", "0.1"]
 imts = ["PGA", "SA(1.0)"]

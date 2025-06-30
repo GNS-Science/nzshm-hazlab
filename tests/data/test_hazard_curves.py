@@ -1,17 +1,14 @@
 from pathlib import Path
 
 import pytest
-from nzshm_common import CodedLocation
-from nzshm_common.location.location import _lat_lon
+from nzshm_common.location import get_locations
 
 from nzshm_hazlab.base_functions import convert_poe
-from nzshm_hazlab.constants import RESOLUTION
 from nzshm_hazlab.data.data_loaders import OQCSVHazardLoader
 from nzshm_hazlab.data.hazard_curves import HazardCurves
 
 vs30 = 750
-location_id = "WLG"
-location = CodedLocation(*_lat_lon(location_id), RESOLUTION)
+location = get_locations(["WLG"])[0]
 hazard_model_oqcsv = "1"
 
 

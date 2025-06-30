@@ -5,16 +5,15 @@ from pathlib import Path
 import numpy as np
 import pytest
 from nzshm_common import CodedLocation
-from nzshm_common.location.location import _lat_lon
+from nzshm_common.location import get_locations
 
-from nzshm_hazlab.constants import RESOLUTION
 from nzshm_hazlab.data.data_loaders import THSHazardLoader
 from tests.helpers import does_not_raise
 
 hazard_model_oqcsv = "TEST_RUNZI"
 vs30 = 400
 
-wlg = CodedLocation(*_lat_lon("WLG"), RESOLUTION)
+wlg = get_locations(["WLG"])[0]
 other_location = CodedLocation(lat=-41.75, lon=171.58, resolution=0.001)
 
 
