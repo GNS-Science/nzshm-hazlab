@@ -53,7 +53,7 @@ print(bin_centers)
 print(disagg_matrix.shape)
 ```
 
-## Plot Data
+## Plot Hazard Curve and UHS
 ```py
 from nzshm_hazlab.data.data_loaders import THSHazardLoader
 from nzshm_hazlab.data.hazard_curves import HazardCurves
@@ -86,5 +86,43 @@ fig, ax = plt.subplots(1,1)
 fig.set_size_inches(PLOT_WIDTH,PLOT_HEIGHT)
 fig.set_facecolor('white')
 plot_uhs(ax, hazard_curves_NSHM22, hazard_model_dynamo, location, imts, poe, investigation_time, vs30, aggs, linestyle="--")
+plt.show()
+```
+
+
+## Plot Disaggregations
+```py
+import matplotlib.pyplot as plt
+from nzshm_common.location import get_locations
+from toshi_hazard_store.model import ProbabilityEnum
+from nzshm_hazlab.plot import plot_disagg_1d, plot_disagg_2d, plot_disagg_3d
+
+from nzshm_hazlab.data import Disaggregations
+from nzshm_hazlab.data.data_loaders import DynamoDisaggLoader
+
+hazard_model = "NSHM_v1.0.4"
+location = get_locations(["WLG"])[0]
+dimensions = ["mag", "dist"]
+agg = "mean"
+imt = "PGA"
+vs30 = 400
+poe = ProbabilityEnum._10_PCT_IN_50YRS
+
+loader = DynamoDisaggLoader()
+disaggs = Disaggregations(loader=loader)
+bin_centers, disagg_matrix = disaggs.get_disaggregation(hazard_model, dimensions, imt, location, vs30, poe, agg)
+
+fig, ax = plt.subplots(1, 1)
+ax = plot_disagg_1d(ax, disaggs, hazard_model, location, imt, vs30, poe, agg, dimension="trt")
+
+fig, ax = plt.subplots(1, 1)
+ax = plot_disagg_2d(ax, disaggs, hazard_model, location, imt, vs30, poe, agg, dimensions=["mag", "dist"])
+
+fig, ax = plt.subplots(1, 3)
+ax = plot_disagg_2d(list(ax), disaggs, hazard_model, location, imt, vs30, poe, agg, dimensions=["mag", "dist"], split_by_trt=True)
+
+fig = plt.figure()
+plot_disagg_3d(fig, disaggs, hazard_model, location, imt, vs30, poe, agg, dist_lim=[0, 70])
+
 plt.show()
 ```
