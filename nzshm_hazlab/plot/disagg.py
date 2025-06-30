@@ -2,17 +2,21 @@
 
 import copy
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import numpy as np
 from matplotlib import cm
-from matplotlib.colors import ListedColormap
+from matplotlib.axes import Axes
+from matplotlib.colors import LightSource, ListedColormap, Normalize
+from matplotlib.figure import Figure
+from mpl_toolkits.mplot3d.axes3d import Axes3D
 
+from nzshm_hazlab.base_functions import prob_to_rate
 from nzshm_hazlab.plot.constants import DEFAULT_CMAP
 
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from matplotlib.axes import Axes
+    from matplotlib.collections import QuadMesh
     from nzshm_common import CodedLocation
     from toshi_hazard_store.model import ProbabilityEnum
 
@@ -29,7 +33,7 @@ def _cmap():
 
 def plot_disagg_1d(
     axes: 'Axes',
-    disaggs: 'Disaggregations',
+    data: 'Disaggregations',
     hazard_model_id: str,
     location: 'CodedLocation',
     imt: str,
@@ -39,14 +43,38 @@ def plot_disagg_1d(
     dimension: str,
     **kwargs: Any,
 ) -> 'Axes':
-    bins, probs = disaggs.get_disaggregation(hazard_model_id, [dimension], imt, location, vs30, poe, agg)
-    axes.bar(bins[dimension], probs, **kwargs)
+    """Make a bar plot of percent contribution to hazard along a given dimension.
+
+    Args:
+        axes: Axes on which to create the bar plot.
+        data: The disaggregation data.
+        hazard_model_id: The d of the hazard model to plot.
+        location: The site location.
+        imt: The intensity measure type to plot (e.g. "PGA", SA(1.0)")
+        vs30: The site vs30 to plot.
+        poe: The probabilty of exceedance on the mean hazard curve at which the disggregation is calcualted.
+        agg: The aggregate statistic (e.g. 'mean' would plot the mean disaggregation and '0.5' would plot the
+            median disaggregation)
+        dimension: The disaggregation dimension (also known as the projection) to plot as the independent variable.
+        kwargs: Any additional arguments to pass to the matplotlib plot function.
+
+    Returns:
+        The axes on which the bar plot was created.
+    """
+    bins, probs = data.get_disaggregation(hazard_model_id, [dimension], imt, location, vs30, poe, agg)
+    rates_pct = prob_to_rate(probs, 1.0) / np.sum(probs) * 100
+    axes.bar(bins[dimension], rates_pct, **kwargs)
     return axes
 
 
 def _plot_2d(
-    ax: 'Axes', dimensions: list[str], bins: dict[str, 'npt.NDArray'], probs: 'npt.NDArray', **kwargs: Any
-) -> None:
+    ax: 'Axes',
+    dimensions: list[str],
+    bins: dict[str, 'npt.NDArray'],
+    probs: 'npt.NDArray',
+    pct_lim: list[float],
+    **kwargs: Any,
+) -> 'QuadMesh':
 
     # put the probabilties axes in the correct order
     if dimensions[0] != list(bins.keys())[0]:
@@ -54,24 +82,53 @@ def _plot_2d(
     else:
         z = probs.transpose()
     x, y = np.meshgrid(bins[dimensions[0]], bins[dimensions[1]])
-    ax.pcolormesh(x, y, z, shading='auto', **kwargs)
+    return ax.pcolormesh(x, y, z, shading='nearest', vmin=pct_lim[0], vmax=pct_lim[1], **kwargs)
 
 
 def plot_disagg_2d(
-    axes: 'Axes',
-    disaggs: 'Disaggregations',
+    axes: Union['Axes', Sequence['Axes']],
+    data: 'Disaggregations',
     hazard_model_id: str,
     location: 'CodedLocation',
     imt: str,
     vs30: int,
     poe: 'ProbabilityEnum',
     agg: str,
-    dimensions: Sequence[str],
+    dimensions: list[str],
+    pct_lim: Optional[list[float]] = None,
     split_by_trt: bool = False,
     **kwargs: Any,
 ) -> tuple['Axes', ...]:
+    """Make a 2D pseudocolor plot of percent contribution to hazard along two dimensions.
+
+    Args:
+        axes: Axes on which to create the bar plot. If split_by_trt is true, this must be a list of Axes objects
+            with the number of elements equal to the number of tectonic tregion types.
+        data: The disaggregation data.
+        hazard_model_id: The d of the hazard model to plot.
+        location: The site location.
+        imt: The intensity measure type to plot (e.g. "PGA", SA(1.0)")
+        vs30: The site vs30 to plot.
+        poe: The probabilty of exceedance on the mean hazard curve at which the disggregation is calcualted.
+        agg: The aggregate statistic (e.g. 'mean' would plot the mean disaggregation and '0.5' would plot
+            the median disaggregation)
+        dimensions: The disaggregation dimensions (also known as the projection) to use.
+        pct_lim: The percent contribution limits for the colormap. Colormap will autoscale if not given.
+        split_by_trt: If True, split the plots into seperate TRT (tectonic retion type) plots.
+        kwargs: Any additional arguments to pass to the matplotlib plot function.
+
+    Returns:
+        Tuple of axes on which the plot(s) were created.
+
+    Raises:
+        ValueError: If demensions does not have len 2.
+        ValueError: If pct_lim does not have len 2.
+        ValueError: If split_by_trt and len(axes) does not match the number of TRTs
+        TypeError: If split_by_trt and axes is not a Sequence.
+        KeyError: If shading is given as a keword argument. Shading is always set to 'nearest'.
+    """
     if len(dimensions) != 2:
-        raise ValueError("dimensions must have length of 2")
+        raise ValueError("Dimensions must have length of 2.")
     if kwargs.get('shading'):
         raise KeyError("Cannot specify shading as a keyword argument.")
 
@@ -80,52 +137,52 @@ def plot_disagg_2d(
         keyword_args['cmap'] = _cmap()
 
     # we don't want to have trt in the requested dimensions, as it can't
-    # be plotted on as an axis on a 2d plot, so remove it
+    # be plotted as an axis on a 2d plot, so remove it
     dimensions_copy = copy.copy(dimensions)
     if 'trt' in dimensions_copy:
         dimensions_copy.pop(dimensions_copy.index('trt'))
 
     # but if we split by trt, we have to include it in the disaggregations
     dims = dimensions_copy + ['trt'] if split_by_trt else dimensions_copy
-    bins, probs = disaggs.get_disaggregation(hazard_model_id, dims, imt, location, vs30, poe, agg)
+    bins, probs = data.get_disaggregation(hazard_model_id, dims, imt, location, vs30, poe, agg)
+    rates_pct = prob_to_rate(probs, 1.0) / np.sum(probs)
+
+    # set the limits of the colormap
+    if pct_lim is None:
+        pct_lim = [0.0, rates_pct.max()]
+    elif len(pct_lim) != 2:
+        raise ValueError("pct_lim must have length of 2")
+
     if split_by_trt:
+        if not isinstance(axes, (Sequence, np.ndarray)):
+            raise TypeError("If split_by_trt is True, axes must be a sequence of Axes objects.")
+        if len(axes) != len(bins['trt']):
+            raise ValueError(
+                "axes sequence must have the same number of elements as there are tectonic region types. "
+                f"Number of TRTs {len(bins['trt'])}, length of axes {len(axes)}."
+            )
+
         dim_trt = list(bins.keys()).index('trt')
         trts = bins.pop('trt')
         # move the trt axis to be first for easy indexing
-        probs = np.moveaxis(probs, dim_trt, 0)
-        qms = []
-        axs = _split_axes(axes, len(trts))
+        rates_pct = np.moveaxis(rates_pct, dim_trt, 0)
         for i, trt in enumerate(trts):
-            qms.append(_plot_2d(axs[i], dimensions_copy, bins, probs[i, ...], **keyword_args))
-            axs[i].set_title(trt)
-        return tuple(axs)
+            pcx = _plot_2d(axes[i], dimensions_copy, bins, rates_pct[i, ...], pct_lim, **keyword_args)
+            axes[i].set_title(trt)
+        fig = cast(Figure, axes[-1].get_figure())
+        fig.colorbar(pcx, ax=axes[-1], label="% Contribution to Hazard")
+        return tuple(axes)
+    else:
+        axes = cast(Axes, axes)
 
-    _plot_2d(axes, dimensions_copy, bins, probs, **keyword_args)
+    pcx = _plot_2d(axes, dimensions_copy, bins, rates_pct, pct_lim, **keyword_args)
+    fig = cast(Figure, axes.get_figure())
+    fig.colorbar(pcx, label="% Contribution to Hazard")
     return (axes,)
 
 
-def _split_axes(axes: 'Axes', n: int) -> list['Axes']:
-
-    fig = axes.get_figure()
-    pos = axes.get_position()
-    axes.remove()
-
-    gs = fig.add_gridspec(nrows=1, ncols=n)
-
-    fig.subplots_adjust(left=pos.x0, right=pos.x1, bottom=pos.y0, top=pos.y1, wspace=0.05)
-
-    axs = []
-    for i in range(n):
-        if i == 0:
-            axs.append(fig.add_subplot(gs[i]))
-        else:
-            axs.append(fig.add_subplot(gs[i], sharey=axs[0]))
-
-    return axs
-
-
 def plot_disagg_3d(
-    axes: 'Axes',
+    fig: 'Figure',
     disaggs: 'Disaggregations',
     hazard_model_id: str,
     location: 'CodedLocation',
@@ -133,8 +190,82 @@ def plot_disagg_3d(
     vs30: int,
     poe: 'ProbabilityEnum',
     agg: str,
-    dimensions: Sequence[str],
-    split_by_trt: bool = False,
-    **kwargs: Any,
-):
-    pass
+    dist_lim: Optional[list[float]] = None,
+    mag_lim: Optional[list[float]] = None,
+) -> 'Axes':
+    """Make a 3D bar plot of percent contribution to hazard.
+
+    The disaggregation will be plotted as a function of distance and magnitude colored by epislon.
+
+    Args:
+        fig: Figure on which to create the bar plot.
+        data: The disaggregation data.
+        hazard_model_id: The d of the hazard model to plot.
+        location: The site location.
+        imt: The intensity measure type to plot (e.g. "PGA", SA(1.0)")
+        vs30: The site vs30 to plot.
+        poe: The probabilty of exceedance on the mean hazard curve at which the disggregation is calcualted.
+        agg: The aggregate statistic (e.g. 'mean' would plot the mean disaggregation and '0.5' would plot
+            the median disaggregation)
+        dist_lim: The distance plot limits.
+        mag_lim: The magnitude plot limits.
+
+    Returns:
+        The axes on which the plot was created.
+    """
+    if dist_lim is None:
+        dist_lim = [0, 350]
+    if mag_lim is None:
+        mag_lim = [5, 10]
+
+    ax = cast(Axes3D, fig.add_subplot(1, 1, 1, projection='3d'))
+
+    # calculate percent contribution to hazard
+    bins, probs = disaggs.get_disaggregation(hazard_model_id, ['mag', 'dist', 'eps'], imt, location, vs30, poe, agg)
+    rates_pct = prob_to_rate(probs, 1.0) / np.sum(probs) * 100
+
+    # construct light source and colormap
+    ls = LightSource(azdeg=45, altdeg=10)
+    cmp = cm.get_cmap('coolwarm')
+    newcolors = cmp(np.linspace(0, 1, len(bins['eps'])))
+    newcmp = ListedColormap(newcolors)
+    norm = Normalize(vmin=-4, vmax=4)
+
+    # move epsilon axis to last for easy indexing later
+    dim_eps = list(bins.keys()).index('eps')
+    rates_pct = np.moveaxis(rates_pct, dim_eps, -1)
+
+    dind = bins['dist'] <= dist_lim[1]
+    rates_pct = rates_pct[:, dind, :]
+    dists = bins['dist'][dind]
+    _xx, _yy = np.meshgrid(bins['mag'], dists)
+    x, y = _xx.T.ravel(), _yy.T.ravel()
+    width = 0.1
+    depth = (dist_lim[1] - dist_lim[0]) / (mag_lim[1] - mag_lim[0]) * width
+
+    bottom = np.zeros(x.shape)
+    for i in range(len(bins['eps'])):
+        z0 = bottom
+        z1 = rates_pct[:, :, i].ravel()
+        ind = z1 > 0.1
+        if any(ind):
+            ax.bar3d(x[ind], y[ind], z0[ind], width, depth, z1[ind], color=newcolors[i], lightsource=ls, alpha=1.0)
+            bottom += rates_pct[:, :, i].ravel()
+
+    deps = bins['eps'][1] - bins['eps'][0]
+    fig.colorbar(
+        cm.ScalarMappable(norm=norm, cmap=newcmp),
+        ax=ax,
+        ticks=(list(bins['eps'] - deps / 2) + [bins['eps'][-1] + deps / 2])[0:-1:2] + [bins['eps'][-1] + deps / 2],
+        shrink=0.3,
+        anchor=(0.0, 0.75),
+        label='epsilon',
+    )
+    ax.set_xlabel('Magnitude')
+    ax.set_ylabel('Distance (km)')
+    ax.set_zlabel('% Contribution to Hazard')
+    ax.set_xlim(mag_lim)
+    ax.set_ylim(dist_lim)
+    ax.view_init(elev=35, azim=45)
+
+    return ax
