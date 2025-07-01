@@ -1,13 +1,15 @@
-"""This module provies the DynamoHazardLoader class."""
+"""This module provies the DynamoHazardLoader and DynamoDisaggLoader classes."""
 
 from typing import TYPE_CHECKING
 
 import numpy as np
 from toshi_hazard_store import query
+from toshi_hazard_store.model import AggregationEnum
 
 if TYPE_CHECKING:
     import numpy.typing as npt
     from nzshm_common import CodedLocation
+    from toshi_hazard_store.model import ProbabilityEnum
 
 
 class DynamoHazardLoader:
@@ -21,7 +23,7 @@ class DynamoHazardLoader:
         self._levels: 'npt.NDArray' | None = None
 
     def get_probabilities(
-        self, hazard_model_id: str, imt: str, location: 'CodedLocation', agg: str, vs30: int
+        self, hazard_model_id: str, imt: str, location: 'CodedLocation', vs30: int, agg: str
     ) -> 'npt.NDArray':
         """Get the probablity values for a hazard curve.
 
@@ -29,8 +31,8 @@ class DynamoHazardLoader:
             hazard_model_id: The identifier of the hazard model.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             The probability values.
@@ -41,7 +43,7 @@ class DynamoHazardLoader:
         return np.array([float(item.val) for item in res.values])
 
     def get_levels(
-        self, hazard_model_id: str, imt: str, location: "CodedLocation", agg: str, vs30: int
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, agg: str
     ) -> 'npt.NDArray':
         """Get the intensity measure levels for a hazard curve.
 
@@ -49,8 +51,8 @@ class DynamoHazardLoader:
             hazard_model_id: The identifier of the hazard model.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
-            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
             vs30: The vs30 of the site.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Returns:
             The intensity measure values.
@@ -59,3 +61,87 @@ class DynamoHazardLoader:
             res = next(query.get_hazard_curves([location.code], [vs30], [hazard_model_id], [imt], [agg]))
             self._levels = np.array([float(item.lvl) for item in res.values])
         return self._levels
+
+
+class DynamoDisaggLoader:
+    """A class for loading disaggregation matricies from toshi-hazard-store DynamoDB."""
+
+    def get_disagg(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
+    ) -> 'npt.NDArray':
+        """Get the disaggregation values.
+
+        Args:
+            hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
+            imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
+            location: The site location for the hazard curve.
+            vs30: The vs30 of the site.
+            poe: The probability of exceedance.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
+
+        Returns:
+            Array of probability contributions from each disaggregation bin.
+                Array has demensionallity matching the number of disaggregation dimensions with the length along
+                each dimension matching the number of bins. The order of dimensions matches the order of the bins
+                from the get_bin_centers method. Indexing order is 'matrix' indexing.
+
+        Raises:
+            KeyError: If no records or more than one record is found in the database.
+        """
+        agg = AggregationEnum(agg.lower())
+        location = location.downsample(0.001).code
+        return next(
+            query.get_disagg_aggregates(
+                [hazard_model_id], [agg], [AggregationEnum.MEAN], [location], [vs30], [imt], [poe]
+            )
+        ).disaggs
+
+    def get_bin_centers(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
+    ) -> dict[str, 'npt.NDArray']:
+        """Get the disaggregation bin centers.
+
+        Args:
+            hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
+            imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
+            location: The site location for the hazard curve.
+            vs30: The vs30 of the site.
+            poe: The probability of exceedance.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
+
+        Returns:
+            Array of probability contributions from each disaggregation bin.
+                Array has demensionallity matching the number of disaggregation dimensions with the length along
+                each dimension matching the number of bins. The order of dimensions matches the order of the bins
+                from the get_bin_centers method.
+
+        Raises:
+            KeyError: If no records or more than one record is found in the database.
+        """
+        agg = AggregationEnum(agg.lower())
+        location = location.downsample(0.001).code
+        bins = next(
+            query.get_disagg_aggregates(
+                [hazard_model_id], [agg], [AggregationEnum.MEAN], [location], [vs30], [imt], [poe]
+            )
+        ).bins
+        dimensions = ["mag", "dist", "trt", "eps"]
+        return {d: b for d, b in zip(dimensions, bins)}
+
+    def get_bin_edges(
+        self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
+    ) -> dict[str, 'npt.NDArray']:
+        """Get the disaggregation bin centers.
+
+        Args:
+            hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
+            imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
+            location: The site location for the hazard curve.
+            vs30: The vs30 of the site.
+            poe: The probability of exceedance.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
+
+        Raises:
+            NotImplementedError: Dynamo database does not provide bin edges.
+        """
+        raise NotImplementedError("get_bin_edges is not implemented for the DynamoDisaggLoader class")

@@ -1,17 +1,14 @@
 from pathlib import Path
 
 import pytest
-from nzshm_common import CodedLocation
-from nzshm_common.location.location import _lat_lon
+from nzshm_common.location import get_locations
 
 from nzshm_hazlab.base_functions import convert_poe
-from nzshm_hazlab.constants import RESOLUTION
 from nzshm_hazlab.data.data_loaders import OQCSVHazardLoader
 from nzshm_hazlab.data.hazard_curves import HazardCurves
 
 vs30 = 750
-location_id = "WLG"
-location = CodedLocation(*_lat_lon(location_id), RESOLUTION)
+location = get_locations(["WLG"])[0]
 hazard_model_oqcsv = "1"
 
 
@@ -29,10 +26,10 @@ def test_uhs(hazard_curves):
     investigation_time = 50.0
     poe = 0.1
     apoe = convert_poe(poe, investigation_time, 1.0)
-    assert hazard_curves.get_uhs(hazard_model_oqcsv, apoe, imts, location, agg, vs30)
+    assert hazard_curves.get_uhs(hazard_model_oqcsv, apoe, imts, location, vs30, agg)
 
 
 @pytest.mark.parametrize("agg", ["mean", "0.1"])
 def test_hazard_curve(agg, hazard_curves):
     imt = "PGA"
-    assert hazard_curves.get_hazard_curve(hazard_model_oqcsv, imt, location, agg, vs30)
+    assert hazard_curves.get_hazard_curve(hazard_model_oqcsv, imt, location, vs30, agg)
