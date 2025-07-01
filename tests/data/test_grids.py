@@ -54,3 +54,25 @@ def test_get_grid_cache(mocker):
     vs30 = 400
     hazard_grids.get_grid(hazard_model_id, imt, grid_name, vs30, poe, agg)
     assert spy.call_count == 2
+
+def test_2_grids():
+    """Test that we can get two different grids and the second doesn't overwrite the first."""
+    hazard_model_id = "NSHM_v1.0.4"
+    grid_name = "NZ_0_1_NB_1_1"
+    agg = "mean"
+    imt1 = "SA(1.0)"
+    poe1 = ProbabilityEnum._2_PCT_IN_50YRS
+    vs301 = 750
+    poe2 = ProbabilityEnum._10_PCT_IN_50YRS
+    imt2 = "PGA"
+    vs302 = 400
+
+    loader = DummyGridLoader()
+    hazard_grids = HazardGrids(loader=loader)
+    
+    grid1 = hazard_grids.get_grid(hazard_model_id, imt1, grid_name, vs301, poe1, agg)
+    grid2 = hazard_grids.get_grid(hazard_model_id, imt2, grid_name, vs302, poe2, agg)
+    grid1_repeat = hazard_grids.get_grid(hazard_model_id, imt1, grid_name, vs301, poe1, agg)
+
+    assert all(grid1 == grid1_repeat)
+    assert any(grid2 != grid1)

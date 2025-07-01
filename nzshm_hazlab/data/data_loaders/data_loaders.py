@@ -134,7 +134,7 @@ class GridLoader(Protocol):
 
         Args:
             hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
-            imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
+            imt: The intensity measure type (e.g. "PGA", "SA(1.0)").
             grid_name: The site location for the hazard curve.
             vs30: The vs30 of the site.
             poe: The probability of exceedance.

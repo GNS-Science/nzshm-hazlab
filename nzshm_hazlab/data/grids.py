@@ -20,7 +20,7 @@ _columns = ["hazard_model_id", "imt", "grid_name", "vs30", "agg", "poe", "imtls"
 
 
 class HazardGrids:
-    """A class to retrive hazard grids.
+    """A class to retrieve hazard grids.
 
     Hazard grids are intensity measure levels (IMTLs) at a particular probability of exceedance for every point
     on a map grid. They are used to produce "hazard maps".
