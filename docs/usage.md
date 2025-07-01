@@ -53,6 +53,28 @@ print(bin_centers)
 print(disagg_matrix.shape)
 ```
 
+
+## Load a Hazard Grid
+```py
+from nzshm_common.grids import get_location_grid
+from nzshm_hazlab.data import HazardGrids
+from nzshm_hazlab.data.data_loaders import DynamoGridLoader
+from toshi_hazard_store.model import ProbabilityEnum
+
+loader = DynamoGridLoader()
+hazard_grids = HazardGrids(loader=loader)
+
+hazard_model_id = "NSHM_v1.0.4"
+grid_name = "NZ_0_1_NB_1_1"
+poe = ProbabilityEnum._2_PCT_IN_50YRS
+agg = "mean"
+imt = "SA(1.0)"
+vs30 = 750
+
+hazard_grid = hazard_grids.get_grid(hazard_model_id, imt, grid_name, vs30, poe, agg)
+locations = get_location_grid('NZ_0_1_NB_1_1')
+```
+
 ## Plot Hazard Curve and UHS
 ```py
 from nzshm_hazlab.data.data_loaders import THSHazardLoader

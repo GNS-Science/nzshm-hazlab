@@ -6,6 +6,8 @@ import numpy as np
 from toshi_hazard_store import query
 from toshi_hazard_store.model import AggregationEnum
 
+from nzshm_hazlab.base_functions import convert_poe
+
 if TYPE_CHECKING:
     import numpy.typing as npt
     from nzshm_common import CodedLocation
@@ -145,3 +147,29 @@ class DynamoDisaggLoader:
             NotImplementedError: Dynamo database does not provide bin edges.
         """
         raise NotImplementedError("get_bin_edges is not implemented for the DynamoDisaggLoader class")
+
+
+class DynamoGridLoader:
+    """A class for loading hazard grid data from toshi-hazard-store DynamoDB."""
+
+    def get_grid(
+        self, hazard_model_id: str, imt: str, grid_name: str, vs30: int, poe: 'ProbabilityEnum', agg: str
+    ) -> 'npt.NDArray':
+        """Get the hazard grid IMTL values.
+
+        Args:
+            hazard_model_id: The identifier of the hazard model. Specific use will depend on the DataLoader type.
+            imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
+            grid_name: The site location for the hazard curve.
+            vs30: The vs30 of the site.
+            poe: The probability of exceedance.
+            agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
+
+        Returns:
+            The intensity measure levels (IMTLs) at the poe of interest over the grid. The array is 1D and its entries
+                are in the same order as the locations retrieved from nzshm_common.grids.get_location_grid.
+        """
+        poe_in_50 = round(convert_poe(poe.value, 1.0, 50.0), 4)
+        return np.array(
+            next(query.get_gridded_hazard([hazard_model_id], [grid_name], [vs30], [imt], [agg], [poe_in_50])).grid_poes
+        )
