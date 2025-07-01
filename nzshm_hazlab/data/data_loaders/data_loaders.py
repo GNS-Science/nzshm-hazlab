@@ -128,7 +128,7 @@ class GridLoader(Protocol):
     """The protocol class for a hazard grid data loader."""
 
     def get_grid(
-        hazard_model_id: str, imt: str, grid_name: str, vs30: int, poe: 'ProbabilityEnum', agg: str
+        self, hazard_model_id: str, imt: str, grid_name: str, vs30: int, poe: 'ProbabilityEnum', agg: str
     ) -> 'npt.NDArray':
         """Get the hazard grid IMTL values.
 
