@@ -144,4 +144,4 @@ class DynamoDisaggLoader:
         Raises:
             NotImplimentedError: Dynamo database does not provide bin edges.
         """
-        raise NotImplementedError("get_bin_edges is not implimented for the DynamoDisaggLoader class")
+        raise NotImplementedError("get_bin_edges is not implemented for the DynamoDisaggLoader class")
