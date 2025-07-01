@@ -142,6 +142,6 @@ class DynamoDisaggLoader:
             agg: The statistical aggregate curve (e.g. "mean", "0.1") where fractions represent fractile curves.
 
         Raises:
-            NotImplimentedError: Dynamo database does not provide bin edges.
+            NotImplementedError: Dynamo database does not provide bin edges.
         """
         raise NotImplementedError("get_bin_edges is not implemented for the DynamoDisaggLoader class")
