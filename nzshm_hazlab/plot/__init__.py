@@ -6,4 +6,4 @@ Modules:
 
 from .disaggregation import plot_disagg_1d, plot_disagg_2d, plot_disagg_3d
 from .hazard_curve import plot_hazard_curve, plot_uhs
-from .hazard_map import plot_hazard_map 
+from .hazard_map import plot_hazard_map, plot_hazard_diff_map
