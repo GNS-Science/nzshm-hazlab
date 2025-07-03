@@ -1,7 +1,7 @@
 """This module provides the HazardGrids class.
 
 Classes:
-    HazardGrids: a class to retrive hazard grids. Hazard grids are intensity measure levels (IMTLs) at a particular
+    HazardGrids: a class to retrieve hazard grids. Hazard grids are intensity measure levels (IMTLs) at a particular
         probability of exceedance for every point on a map grid. They are used to produce "hazard maps".
 """
 

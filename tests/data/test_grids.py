@@ -55,6 +55,7 @@ def test_get_grid_cache(mocker):
     hazard_grids.get_grid(hazard_model_id, imt, grid_name, vs30, poe, agg)
     assert spy.call_count == 2
 
+
 def test_2_grids():
     """Test that we can get two different grids and the second doesn't overwrite the first."""
     hazard_model_id = "NSHM_v1.0.4"
@@ -69,7 +70,7 @@ def test_2_grids():
 
     loader = DummyGridLoader()
     hazard_grids = HazardGrids(loader=loader)
-    
+
     grid1 = hazard_grids.get_grid(hazard_model_id, imt1, grid_name, vs301, poe1, agg)
     grid2 = hazard_grids.get_grid(hazard_model_id, imt2, grid_name, vs302, poe2, agg)
     grid1_repeat = hazard_grids.get_grid(hazard_model_id, imt1, grid_name, vs301, poe1, agg)
