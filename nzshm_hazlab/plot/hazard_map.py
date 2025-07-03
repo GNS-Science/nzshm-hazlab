@@ -126,7 +126,8 @@ def plot_grid_map(
     ax.gridlines(draw_labels=["bottom", "left"], xlocs=list(range(165, 185, 5)), zorder=zorder)
     zorder += 1
     cax = ax.inset_axes([0.6, 0.1, 0.35, 0.07], zorder=zorder)
-    fig.colorbar(mesh, cax=cax, orientation='horizontal', ticks=ticker.MultipleLocator(0.5))
+    tick_multiple = round((clim[1] - clim[0])/3, 1)
+    fig.colorbar(mesh, cax=cax, orientation='horizontal', ticks=ticker.MultipleLocator(tick_multiple))
     return fig, ax
 
 
