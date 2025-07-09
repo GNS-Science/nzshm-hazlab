@@ -10,10 +10,11 @@ class DummyGridLoader:
     """A dummy grid loader class."""
 
     def __init__(self, directory: Path | str):
+        """Initialize a dummy grid loader."""
         self._directory = Path(directory)
 
     def get_grid(self, hazard_model_id, imt, grid_name, vs30, poe, agg):
-        """A method for the dummy loader."""
+        """A method for the dummy grid loader."""
         filename = f"hazard_grid-{hazard_model_id}-{imt}-{grid_name}-{vs30}-{poe.name}-{agg}.npy"
         filepath = self._directory / filename
         return np.load(filepath)
