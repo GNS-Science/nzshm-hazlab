@@ -148,3 +148,44 @@ plot_disagg_3d(fig, disaggs, hazard_model, location, imt, vs30, poe, agg, dist_l
 
 plt.show()
 ```
+
+## Plot Hazard Maps
+```py
+from nzshm_hazlab.data import HazardGrids
+from nzshm_hazlab.plot import plot_hazard_map, plot_hazard_diff_map
+from nzshm_hazlab.data.data_loaders import DynamoGridLoader
+from toshi_hazard_store.model import ProbabilityEnum
+import matplotlib.pyplot as plt
+
+loader = DynamoGridLoader()
+hazard_grids = HazardGrids(loader=loader)
+
+hazard_model_id = "NSHM_v1.0.4"
+grid_name = "NZ_0_1_NB_1_1"
+agg = "mean"
+poe = ProbabilityEnum._10_PCT_IN_50YRS
+imt = "PGA"
+vs30 = 400
+filepath = f"hazard_grid-{hazard_model_id}-{imt}-{grid_name}-{vs30}-{poe.name}-{agg}"
+
+fig, ax = plot_hazard_map(hazard_grids, hazard_model_id, grid_name, imt, vs30, poe, agg, clim=[0, 1.5])
+poe_split = poe.name.split('_') 
+ax.set_title(f"{imt} {poe_split[1]}% in {poe_split[-1]}")
+
+hgs = [hazard_grids, hazard_grids]
+hmids = [hazard_model_id, hazard_model_id]
+imts = ["PGA", "SA(1.0)"]
+vs30s = [vs30, vs30]
+poes = [poe, poe]
+aggs = [agg, agg]
+diff_type = 'sub'
+fig, ax = plot_hazard_diff_map(hgs, hmids, grid_name, imts, vs30s, poes, aggs, diff_type=diff_type)
+ax.set_title("subtraction")
+
+diff_type = 'ratio'
+fig, ax = plot_hazard_diff_map(hgs, hmids, grid_name, imts, vs30s, poes, aggs, diff_type=diff_type)
+ax.set_title("ratio")
+
+
+plt.show()
+```
