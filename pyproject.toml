@@ -19,6 +19,7 @@ pandas = "^2.2.3"
 numpy = "<2"
 pyside6 = "^6.9.0"
 toshi-hazard-store = "^1.1.0"
+cartopy = "^0.24.1"
 
 [tool.poetry.group.dev.dependencies]
 tox = "^4.26.0"
