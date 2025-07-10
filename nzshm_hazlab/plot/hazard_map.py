@@ -190,27 +190,3 @@ def plot_grid_map(
     tick_multiple = round((clim[1] - clim[0]) / 3, 1)
     fig.colorbar(mesh, cax=cax, orientation='horizontal', ticks=ticker.MultipleLocator(tick_multiple))
     return fig, ax
-
-
-# def plot_hazard_map_plotly(
-#     hazard_grids: 'HazardGrids',
-#     hazard_model_id: str,
-#     grid_name: str,
-#     imt: str,
-#     vs30: int,
-#     poe: 'ProbabilityEnum',
-#     agg: str,
-#     clim: Optional[list[float]] = None,
-#     clip: bool = True,
-# ):
-#     locations = get_location_grid(grid_name)
-#     imtls = hazard_grids.get_grid(hazard_model_id, imt, grid_name, vs30, poe, agg)
-#     lons = [loc.lon for loc in locations]
-#     lats = [loc.lat for loc in locations]
-#     df = pd.DataFrame({'lat': lats, 'lon': lons, 'imtl': imtls})
-
-#     # fig = px.density_map(df, lat='lat', lon='lon', z='imtl', radius=10,
-#     #                     center=dict(lat=0, lon=180), zoom=0,
-#     #                     map_style="open-street-map")
-#     fig = px.scatter_map(df, lat='lat', lon='lon', color='imtl')
-#     return fig
