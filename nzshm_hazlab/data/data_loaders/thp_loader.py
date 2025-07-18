@@ -28,7 +28,6 @@ def _get_batch_table_cached(
     imts: tuple[str],
 ) -> 'pa.Table':
 
-    print("table not cached")
     return data.get_batch_table(dataset, compatible_calc_id, sources_digests, gmms_digests, nloc_0, vs30, imts)
 
 
