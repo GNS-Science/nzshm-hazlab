@@ -38,6 +38,9 @@ class THPHazardLoader:
     This class allows a user to calculated hazard curves from  a hazard model constructed by defining source
     and ground motion logic trees calculate hazard curves. The logic trees are comprised of branches for which
     realizations have been pre-computed and stored in a Arrow dataset by toshi-hazard-store.
+
+    The location of the realizations database is set with the environment variable THP_RLZ_DIR or in a .env file.
+    The location can be a local file path or an s3 bucket URI.
     """
 
     def __init__(self, compatible_calc_id: str, srm_logic_tree: 'SourceLogicTree', gmcm_logic_tree: 'GMCMLogicTree'):

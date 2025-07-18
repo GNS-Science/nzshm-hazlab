@@ -12,3 +12,4 @@
 - Load hazard curves from DynamoDB version of toshi-hazard-store (to be deprecated).
 - Load hazard curves from Arrow version of toshi-hazard-store.
 - Load hazard curves from OpenQuake csv output.
+- Create hazard curves from user-defined hazard model.
