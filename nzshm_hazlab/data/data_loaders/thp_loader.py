@@ -1,25 +1,26 @@
-from typing import TYPE_CHECKING
-import numpy as np
+"""This module provides the THPHazardLoader class for producing hazard curves from dynamically created hazard models."""
+
 import functools
-from toshi_hazard_post.logic_tree import HazardLogicTree
-import toshi_hazard_post.data as data
+from typing import TYPE_CHECKING
+
+import numpy as np
 import toshi_hazard_post.aggregation_calc as aggregation
 import toshi_hazard_post.calculators as calculators
-
+import toshi_hazard_post.data as data
+from toshi_hazard_post.logic_tree import HazardLogicTree
 
 if TYPE_CHECKING:
     import numpy.typing as npt
-    from nzshm_common import CodedLocation
-    import pyarrow.dataset as ds
     import pyarrow as pa
+    import pyarrow.dataset as ds
+    from nzshm_common import CodedLocation
     from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
-
 
 
 @functools.cache
 def _get_batch_table_cached(
     dataset: 'ds.Dataset',
-    compatibility_key: str,
+    compatible_calc_id: str,
     sources_digests: tuple[str],
     gmms_digests: tuple[str],
     nloc_0: str,
@@ -28,23 +29,38 @@ def _get_batch_table_cached(
 ) -> 'pa.Table':
 
     print("table not cached")
-    return data.get_batch_table(dataset, compatibility_key, sources_digests, gmms_digests, nloc_0, vs30, imts)
+    return data.get_batch_table(dataset, compatible_calc_id, sources_digests, gmms_digests, nloc_0, vs30, imts)
 
 
 class THPHazardLoader:
-    """A class for loading hazard curves from toshi-hazard-store."""
+    """A class for creating hazard curves from user-defined hazard models.
 
-    def __init__(self, compatibility_key: str, srm_logic_tree: 'SourceLogicTree', gmcm_logic_tree: 'GMCMLogicTree'):
+    This class allows a user to calculated hazard curves from  a hazard model constructed by defining source
+    and ground motion logic trees calculate hazard curves. The logic trees are comprised of branches for which
+    realizations have been pre-computed and stored in a Arrow dataset by toshi-hazard-store.
+    """
+
+    def __init__(self, compatible_calc_id: str, srm_logic_tree: 'SourceLogicTree', gmcm_logic_tree: 'GMCMLogicTree'):
+        """Initialize a new THPHazardLoader object.
+
+        Args:
+            compatible_calc_id: The ID of a compatible calculation for PSHA engines interoperability. See the
+                toshi-hazard-store documentation for details.
+            srm_logic_tree: The seismicity rate model (aka source model) logic tree.
+            gmcm_logic_tree: The ground motion model logic tree.
+        """
+        self.compatible_calc_id = compatible_calc_id
 
         logic_tree = HazardLogicTree(srm_logic_tree, gmcm_logic_tree)
-        self.branch_hash_table = logic_tree.branch_hash_table
-        self.weights = logic_tree.weights
-        self.compatibility_key = compatibility_key
-        self.dataset = data.get_realizations_dataset()
+
         component_branches = logic_tree.component_branches
         self.gmms_digests = [branch.gmcm_hash_digest for branch in component_branches]
         self.sources_digests = [branch.source_hash_digest for branch in component_branches]
 
+        self.branch_hash_table = logic_tree.branch_hash_table
+        self.weights = logic_tree.weights
+
+        self.dataset = data.get_realizations_dataset()
 
     def get_probabilities(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, agg: str
@@ -52,7 +68,8 @@ class THPHazardLoader:
         """Get the probablity values for a hazard curve.
 
         Args:
-            hazard_model_id: The identifier of the hazard model.
+            hazard_model_id: The identifier of the hazard model. This is not used for the THP loader and can
+                take on any value.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
             vs30: The vs30 of the site.
@@ -60,24 +77,26 @@ class THPHazardLoader:
 
         Returns:
             The probability values.
-
-        Raises:
-            KeyError: If no records are found.
         """
-
         agg_types = [agg]
         imts = [imt]
-        nloc_0 = location.downsample(1.0).code    
+        nloc_0 = location.downsample(1.0).code
         batch_datatable = _get_batch_table_cached(
-                self.dataset, self.compatibility_key, tuple(self.sources_digests), tuple(self.gmms_digests), nloc_0, vs30, tuple(imts)
-            )
+            self.dataset,
+            self.compatible_calc_id,
+            tuple(self.sources_digests),
+            tuple(self.gmms_digests),
+            nloc_0,
+            vs30,
+            tuple(imts),
+        )
         job_datatable = data.get_job_datatable(batch_datatable, location, imt, len(self.sources_digests))
         component_probs = job_datatable.to_pandas()
         component_rates = aggregation.convert_probs_to_rates(component_probs)
         component_rates = aggregation.create_component_dict(component_rates)
         composite_rates = aggregation.build_branch_rates(self.branch_hash_table, component_rates)
         hazard = aggregation.calculate_aggs(composite_rates, self.weights, agg_types)
-        return calculators.rate_to_prob(hazard, 1.0)[0,:]
+        return calculators.rate_to_prob(hazard, 1.0)[0, :]
 
     # TODO: get actual levels once they are stored by THS
     def get_levels(
@@ -86,7 +105,8 @@ class THPHazardLoader:
         """Get the intensity measure levels for a hazard curve.
 
         Args:
-            hazard_model_id: The identifier of the hazard model.
+            hazard_model_id: The identifier of the hazard model. This is not used for the THP loader and can
+                take on any value.
             imt: The intesity measure type (e.g. "PGA", "SA(1.0)").
             location: The site location for the hazard curve.
             vs30: The vs30 of the site.
