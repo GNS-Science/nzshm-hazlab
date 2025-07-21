@@ -3557,7 +3557,7 @@ aws = []
 type = "git"
 url = "https://github.com/GNS-Science/toshi-hazard-post.git"
 reference = "pre-release"
-resolved_reference = "79f082725182cd9638697232319b50b61a00920e"
+resolved_reference = "9ff1499660075fa134301c6a1cc6772d68daa8b8"
 
 [[package]]
 name = "toshi-hazard-store"

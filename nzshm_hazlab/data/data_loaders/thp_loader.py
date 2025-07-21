@@ -28,7 +28,7 @@ def _get_batch_table_cached(
     imts: tuple[str],
 ) -> 'pa.Table':
 
-    return data.get_batch_table(dataset, compatible_calc_id, sources_digests, gmms_digests, nloc_0, vs30, imts)
+    return data.get_batch_table(dataset, compatible_calc_id, sources_digests, gmms_digests, vs30, nloc_0, imts)
 
 
 class THPHazardLoader:
