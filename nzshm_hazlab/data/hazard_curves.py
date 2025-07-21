@@ -68,7 +68,6 @@ class HazardCurves:
         if data.empty:
             self._load_data(hazard_model_id, imt, location, vs30, agg)
             data = filter_data(hazard_model_id, imt, location, vs30, agg)
-
         return cast(np.ndarray, self._levels), data["probability"].values[0]
 
     def get_uhs(
