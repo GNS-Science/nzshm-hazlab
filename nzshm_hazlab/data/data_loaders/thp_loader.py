@@ -41,6 +41,18 @@ class THPHazardLoader:
 
     The location of the realizations database is set with the environment variable THP_RLZ_DIR or in a .env file.
     The location can be a local file path or an s3 bucket URI.
+
+    Examples:
+        ```py
+        from nzshm_hazlab.data.data_loaders import THPHazardLoader
+        from nzshm_hazlab.data import HazardCurves
+        from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree
+
+        hazard_model_ths = "NSHM_v1.0.4"
+        slt = SourceLogicTree.from_json("srm_logic_tree.json")
+        gmcm = GMCMLogicTree.from_json("gmcm_logic_tree.json")
+        thp_loader = THPHazardLoader("NZSHM22", slt, gmcm)
+        ```
     """
 
     def __init__(self, compatible_calc_id: str, srm_logic_tree: 'SourceLogicTree', gmcm_logic_tree: 'GMCMLogicTree'):
