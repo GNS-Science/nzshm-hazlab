@@ -20,6 +20,7 @@ numpy = "<2"
 pyside6 = "^6.9.0"
 toshi-hazard-store = "^1.1.0"
 cartopy = "^0.24.1"
+toshi-hazard-post = {git = "https://github.com/GNS-Science/toshi-hazard-post.git", rev = "pre-release"}
 
 [tool.poetry.group.dev.dependencies]
 tox = "^4.26.0"

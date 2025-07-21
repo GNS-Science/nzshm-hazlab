@@ -1,51 +1,42 @@
-import importlib.resources as resources
-import json
+import os
 from pathlib import Path
 
-import numpy as np
 import pytest
-from nzshm_common import CodedLocation
-from nzshm_common.location import get_locations
+from nzshm_common.location import CodedLocation, get_locations
+from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
 
-from nzshm_hazlab.data.data_loaders import THSHazardLoader
+from nzshm_hazlab.data.data_loaders import THPHazardLoader
 from tests.helpers import does_not_raise
 
-hazard_model_oqcsv = "TEST_RUNZI"
 vs30 = 400
 
 wlg = get_locations(["WLG"])[0]
-other_location = CodedLocation(lat=-41.75, lon=171.58, resolution=0.001)
+other_location = CodedLocation(lat=-41.75, lon=171.511, resolution=0.001)
 
 
 @pytest.fixture(scope='function')
 def loader():
-    dataset_dir = Path(__file__).parent.parent.parent / "fixtures/data/ths_loader/dataset"
-    return THSHazardLoader(dataset_dir=dataset_dir)
+    os.environ["THP_RLZ_DIR"] = str(Path(__file__).parent.parent.parent / "fixtures/data/thp_loader/rlz_dataset")
+    compatible_calc_id = "NZSHM22"
+    srm_path = Path(__file__).parent.parent.parent / "fixtures/data/thp_loader/srm_logic_tree.json"
+    gmcm_path = Path(__file__).parent.parent.parent / "fixtures/data/thp_loader/gmcm_logic_tree.json"
+    srm_logic_tree = SourceLogicTree.from_json(srm_path)
+    gmcm_logic_tree = GMCMLogicTree.from_json(gmcm_path)
+    return THPHazardLoader(compatible_calc_id, srm_logic_tree, gmcm_logic_tree)
 
 
 location_imt_agg_err = [
-    (wlg, "PGA", "0.01", does_not_raise()),
     (wlg, "PGA", "mean", does_not_raise()),
-    (wlg, "SA(1.5)", "mean", does_not_raise()),
-    (wlg, "SA(7.0)", "mean", pytest.raises(KeyError)),
-    (other_location, "PGA", "mean", pytest.raises(KeyError)),
+    (wlg, "PGA", "0.666", does_not_raise()),  # can calculate any valid fractile
+    (wlg, "PGA", "std", does_not_raise()),
+    (wlg, "SA(1.0)", "mean", does_not_raise()),
+    (wlg, "SA(7.0)", "mean", pytest.raises(Exception)),
+    (other_location, "PGA", "mean", pytest.raises(Exception)),
 ]
 
 
 @pytest.mark.parametrize("location,imt,agg,err", location_imt_agg_err)
 def test_probabilities(location, imt, agg, err, loader):
     with err:
-        probabilities = loader.get_probabilities(hazard_model_oqcsv, imt, location, vs30, agg)
-        dir = Path(__file__).parent.parent.parent / "fixtures/data/ths_loader/expected"
-        filepath = dir / f"{location.lat}_{location.lon}_{imt}_{agg}.json"
-        expected = json.load(filepath.open())
-        np.testing.assert_allclose(probabilities, expected)
-
-
-def test_levels(loader):
-    ref = resources.files('tests.fixtures.data.ths_loader.expected') / 'levels.json'
-    expected = json.load(ref.open())
-    agg = "mean"
-    imt = "PGA"
-    levels = loader.get_levels(hazard_model_oqcsv, imt, wlg, vs30, agg)
-    np.testing.assert_allclose(levels, expected)
+        probs = loader.get_probabilities("dummy_hazard_model_id", imt, location, vs30, agg)
+        assert (probs.size) > 0

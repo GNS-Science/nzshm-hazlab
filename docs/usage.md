@@ -28,6 +28,19 @@ for location in locations:
             print('='*50)
 ```
 
+## Create Hazard Curves from User Defined Model (Logic Trees)
+```py
+from nzshm_hazlab.data.data_loaders import THPHazardLoader
+from nzshm_hazlab.data import HazardCurves
+from nzshm_model.logic_tree import SourceLogicTree, GMCMLogicTree
+
+hazard_model_ths = "NSHM_v1.0.4"
+slt = SourceLogicTree.from_json("srm_logic_tree.json")
+gmcm = GMCMLogicTree.from_json("gmcm_logic_tree.json")
+thp_loader = THPHazardLoader("NZSHM22", slt, gmcm)
+hazard_curves = HazardCurves(loader=thp_loader)
+```
+
 ## Load Disaggregation Matrix
 ```py
 from nzshm_common.location import get_locations

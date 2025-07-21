@@ -4,3 +4,4 @@
 ::: nzshm_hazlab.data.data_loaders.OQCSVHazardLoader
 ::: nzshm_hazlab.data.data_loaders.THSHazardLoader
 ::: nzshm_hazlab.data.data_loaders.OQCSVDisaggLoader
+::: nzshm_hazlab.data.data_loaders.THPHazardLoader
