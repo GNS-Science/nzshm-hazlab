@@ -74,8 +74,7 @@ def plot_hazard_curve(
         >>> import matplotlib.pyplot as plt
 
         >>> hazard_model_id = "NSHM_v1.0.4"
-        >>> dataset_dir = "~/toshi_hazard_store/AGG/"
-        >>> loader = THSHazardLoader(dataset_dir=dataset_dir)
+        >>> loader = THSHazardLoader()
         >>> hazard_curves = HazardCurves(loader=loader)
         >>> location_id = "WLG"
         >>> location = CodedLocation(-41.3, 174.78, 0.001)
@@ -179,8 +178,7 @@ def plot_uhs(
         >>> import matplotlib.pyplot as plt
 
         >>> hazard_model_id = "NSHM_v1.0.4"
-        >>> dataset_dir = "~/toshi_hazard_store/AGG/"
-        >>> loader = THSHazardLoader(dataset_dir=dataset_dir)
+        >>> loader = THSHazardLoader()
         >>> hazard_curves = HazardCurves(loader=loader)
         >>> location_id = "WLG"
         >>> location = CodedLocation(-41.3, 174.78, 0.001)
