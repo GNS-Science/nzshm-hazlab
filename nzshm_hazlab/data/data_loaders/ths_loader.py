@@ -1,23 +1,13 @@
 """This module provies the THSHazardLoader class."""
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
-import pyarrow.compute as pc
-import pyarrow.dataset as ds
-from toshi_hazard_store.model.pyarrow import pyarrow_dataset
 from toshi_hazard_store.query.datasets import get_hazard_curves
 
 if TYPE_CHECKING:
     import numpy.typing as npt
     from nzshm_common import CodedLocation
-
-
-def _get_realizations_dataset(dataset_dir: str) -> ds.Dataset:
-    rlz_dir, filesystem = pyarrow_dataset.configure_output(dataset_dir)
-    dataset = ds.dataset(rlz_dir, format="parquet", filesystem=filesystem, partitioning="hive")
-    return dataset
 
 
 class THSHazardLoader:
@@ -48,24 +38,24 @@ class THSHazardLoader:
         Raises:
             KeyError: If no records are found.
         """
-
         # try differenty query strategies starting with the most efficient partitioning
         for strategy in ['d2', 'd1', 'native']:
             try:
                 # using next(), we should only get one result
                 agg_hazard = next(
-                    get_hazard_curves([location.downsample(0.001).code], [vs30], hazard_model_id, [imt], [agg], strategy)
+                    get_hazard_curves(
+                        [location.downsample(0.001).code], [vs30], hazard_model_id, [imt], [agg], strategy
+                    )
                 )
                 break
             except RuntimeWarning:
                 continue
             except StopIteration:
                 raise KeyError(f"agg dataset does not contain {hazard_model_id=}, {imt=}, {location=}, {vs30=}, {agg=}")
-        
+
         if self._levels is None:
             self._levels = np.array([v.lvl for v in agg_hazard.values])
         return np.array([v.val for v in agg_hazard.values])
-
 
     def get_levels(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, agg: str
@@ -83,5 +73,6 @@ class THSHazardLoader:
             The intensity measure values.
         """
         if self._levels is None:
-            _  = self.get_probabilities(hazard_model_id, imt, location, vs30, agg)
+            _ = self.get_probabilities(hazard_model_id, imt, location, vs30, agg)
+        assert self._levels is not None  # for type checking
         return self._levels

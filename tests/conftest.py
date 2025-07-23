@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import numpy as np
@@ -25,3 +26,9 @@ class DummyGridLoader:
 def hazard_grids() -> HazardGrids:
     loader = DummyGridLoader(Path(__file__).parent / "fixtures/data/grids/")
     return HazardGrids(loader=loader)
+
+
+# set the locations of the THS and THP datastores
+def pytest_configure(config):
+    os.environ['THS_DATASET_AGGR_URI'] = str(Path(__file__).parent / "fixtures/data/ths_loader/dataset")
+    os.environ["THP_RLZ_DIR"] = str(Path(__file__).parent / "fixtures/data/thp_loader/rlz_dataset")

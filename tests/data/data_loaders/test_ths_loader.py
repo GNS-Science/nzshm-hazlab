@@ -1,9 +1,6 @@
 import importlib.resources as resources
 import json
 from pathlib import Path
-import os
-dataset_dir = Path(__file__).parent.parent.parent / "fixtures/data/ths_loader/dataset"
-os.environ['THS_DATASET_AGGR_URI'] = str(dataset_dir)
 
 import numpy as np
 import pytest
