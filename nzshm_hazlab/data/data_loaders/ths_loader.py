@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class THSHazardLoader:
     """A class for loading hazard curves from toshi-hazard-store.
 
-    Specify the location of the dataset with environmnet variable 'THS_DATASET_AGGR_URI'.
+    Specify the location of the dataset with environment variable 'THS_DATASET_AGGR_URI'.
     """
 
     def __init__(self):
