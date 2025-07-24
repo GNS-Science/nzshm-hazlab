@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import matplotlib.pyplot as plt
 import pytest
 from matplotlib.testing.decorators import image_comparison
@@ -20,8 +18,7 @@ other_location = CodedLocation(lat=-41.75, lon=171.58, resolution=0.001)
 
 @pytest.fixture(scope='module')
 def hazard_curves():
-    dataset_dir = Path(__file__).parent.parent / "fixtures/data/ths_loader/dataset"
-    loader = THSHazardLoader(dataset_dir=dataset_dir)
+    loader = THSHazardLoader()
     return HazardCurves(loader=loader)
 
 

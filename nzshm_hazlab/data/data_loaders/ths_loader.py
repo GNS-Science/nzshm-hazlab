@@ -1,36 +1,23 @@
 """This module provies the THSHazardLoader class."""
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
-import pyarrow.compute as pc
-import pyarrow.dataset as ds
-from toshi_hazard_store.model.pyarrow import pyarrow_dataset
+from toshi_hazard_store.query.datasets import get_hazard_curves
 
 if TYPE_CHECKING:
     import numpy.typing as npt
     from nzshm_common import CodedLocation
 
 
-def _get_realizations_dataset(dataset_dir: str) -> ds.Dataset:
-    rlz_dir, filesystem = pyarrow_dataset.configure_output(dataset_dir)
-    dataset = ds.dataset(rlz_dir, format="parquet", filesystem=filesystem, partitioning="hive")
-    return dataset
-
-
 class THSHazardLoader:
-    """A class for loading hazard curves from toshi-hazard-store."""
+    """A class for loading hazard curves from toshi-hazard-store.
 
-    def __init__(self, dataset_dir: Path | str):
-        """Initialize a THSHazardLoader object.
+    Specify the location of the dataset with environment variable 'THS_DATASET_AGGR_URI'.
+    """
 
-        Args:
-            dataset_dir: location of dataset (parquet) files. This can be a local filepath or S3 bucket URI.
-        """
-        if not (isinstance(dataset_dir, str) and dataset_dir[0:5] == "s3://"):
-            dataset_dir = Path(dataset_dir).expanduser()
-        self._dataset = _get_realizations_dataset(str(dataset_dir))
+    def __init__(self):
+        """Initialize a THSHazardLoader object."""
         self._levels: None | 'npt.NDArray' = None
 
     def get_probabilities(
@@ -51,25 +38,25 @@ class THSHazardLoader:
         Raises:
             KeyError: If no records are found.
         """
-        nloc_001 = location.downsample(0.001).code
-        nloc_0 = location.downsample(1.0).code
-        flt = (
-            (pc.field("aggr") == pc.scalar(agg))
-            & (pc.field("imt") == pc.scalar(imt))
-            & (pc.field("nloc_0") == pc.scalar(nloc_0))
-            & (pc.field("nloc_001") == pc.scalar(nloc_001))
-            & (pc.field("vs30") == pc.scalar(vs30))
-            & (pc.field("hazard_model_id") == pc.scalar(hazard_model_id))
-        )
-        arrow_scanner = ds.Scanner.from_dataset(self._dataset, filter=flt)
-        table = arrow_scanner.to_table()
-        values = table.column("values").to_numpy()
-        if len(values) != 1:
-            raise KeyError("pyarrow filter on agg dataset did not result in a single entry")
+        # try differenty query strategies starting with the most efficient partitioning
+        for strategy in ['d2', 'd1', 'native']:
+            try:
+                # using next(), we should only get one result
+                agg_hazard = next(
+                    get_hazard_curves(
+                        [location.downsample(0.001).code], [vs30], hazard_model_id, [imt], [agg], strategy
+                    )
+                )
+                break
+            except RuntimeWarning:
+                continue
+            except StopIteration:
+                raise KeyError(f"agg dataset does not contain {hazard_model_id=}, {imt=}, {location=}, {vs30=}, {agg=}")
 
-        return values[0]
+        if self._levels is None:
+            self._levels = np.array([v.lvl for v in agg_hazard.values])
+        return np.array([v.val for v in agg_hazard.values])
 
-    # TODO: get actual levels once they are stored by THS
     def get_levels(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, agg: str
     ) -> 'npt.NDArray':
@@ -85,51 +72,7 @@ class THSHazardLoader:
         Returns:
             The intensity measure values.
         """
-        return np.array(
-            [
-                0.0001,
-                0.0002,
-                0.0004,
-                0.0006,
-                0.0008,
-                0.001,
-                0.002,
-                0.004,
-                0.006,
-                0.008,
-                0.01,
-                0.02,
-                0.04,
-                0.06,
-                0.08,
-                0.1,
-                0.2,
-                0.3,
-                0.4,
-                0.5,
-                0.6,
-                0.7,
-                0.8,
-                0.9,
-                1.0,
-                1.2,
-                1.4,
-                1.6,
-                1.8,
-                2.0,
-                2.2,
-                2.4,
-                2.6,
-                2.8,
-                3.0,
-                3.5,
-                4.0,
-                4.5,
-                5.0,
-                6.0,
-                7.0,
-                8.0,
-                9.0,
-                10.0,
-            ]
-        )
+        if self._levels is None:
+            _ = self.get_probabilities(hazard_model_id, imt, location, vs30, agg)
+        assert self._levels is not None  # for type checking
+        return self._levels

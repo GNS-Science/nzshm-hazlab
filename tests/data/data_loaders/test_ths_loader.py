@@ -19,8 +19,7 @@ other_location = CodedLocation(lat=-41.75, lon=171.58, resolution=0.001)
 
 @pytest.fixture(scope='function')
 def loader():
-    dataset_dir = Path(__file__).parent.parent.parent / "fixtures/data/ths_loader/dataset"
-    return THSHazardLoader(dataset_dir=dataset_dir)
+    return THSHazardLoader()
 
 
 location_imt_agg_err = [

@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import pytest
@@ -16,7 +15,6 @@ other_location = CodedLocation(lat=-41.75, lon=171.511, resolution=0.001)
 
 @pytest.fixture(scope='function')
 def loader():
-    os.environ["THP_RLZ_DIR"] = str(Path(__file__).parent.parent.parent / "fixtures/data/thp_loader/rlz_dataset")
     compatible_calc_id = "NZSHM22"
     srm_path = Path(__file__).parent.parent.parent / "fixtures/data/thp_loader/srm_logic_tree.json"
     gmcm_path = Path(__file__).parent.parent.parent / "fixtures/data/thp_loader/gmcm_logic_tree.json"

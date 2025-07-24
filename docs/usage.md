@@ -9,8 +9,7 @@ from nzshm_common.location import get_locations
 
 
 hazard_model = "TEST_MODEL"
-dataset_dir = "./toshi_hazard_store/AGG/"
-loader = THSHazardLoader(dataset_dir=dataset_dir)
+loader = THSHazardLoader()
 hazard_curves_NSHM22 = HazardCurves(loader=loader)
 
 location_ids = ["WLG", "DUD", "CHC", "AKL"]
@@ -97,8 +96,7 @@ from nzshm_common import CodedLocation
 import matplotlib.pyplot as plt
 
 hazard_model_id = "NSHM_v1.0.4"
-dataset_dir = "./toshi_hazard_store/AGG/"
-loader = THSHazardLoader(dataset_dir=dataset_dir)
+loader = THSHazardLoader()
 hazard_curves_THSr4 = HazardCurves(loader=loader)
 location_id = "WLG"
 location = CodedLocation(-41.3, 174.78, 0.001)

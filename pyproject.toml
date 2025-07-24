@@ -7,20 +7,21 @@ authors = [
 ]
 description = "A laboratory for exploring hazard models"
 license = "AGPL-3.0"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "nzshm-common (>=0.8.4, <0.9.0)",
+  "matplotlib (>=3.10.3, <4.0.0)",
+  "pandas (>=2.2.3, <3.0.0)",
+  "numpy<2",
+  "cartopy (>=0.24.1, <0.25.0)",
+  "toshi-hazard-store (>=1.2.1,<2.0.0)",
+  "toshi-hazard-post @ git+https://github.com/GNS-Science/toshi-hazard-post.git@pre-release",
+]
+[project.optional-dependencies]
+graphics = ["pyside6 (>=6.9.1,<7.0.0)"]
 
 [tool.poetry]
 packages = [{include = "nzshm_hazlab"}]
-
-[tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-nzshm-common = "^0.8.4"
-matplotlib = "^3.10.3"
-pandas = "^2.2.3"
-numpy = "<2"
-pyside6 = "^6.9.0"
-toshi-hazard-store = "^1.1.0"
-cartopy = "^0.24.1"
-toshi-hazard-post = {git = "https://github.com/GNS-Science/toshi-hazard-post.git", rev = "pre-release"}
 
 [tool.poetry.group.dev.dependencies]
 tox = "^4.26.0"

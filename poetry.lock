@@ -312,18 +312,18 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.39.9"
+version = "1.39.12"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "boto3-1.39.9-py3-none-any.whl", hash = "sha256:5bc85e9fdec4e21ef5ca2c22b4d51a3e32b53f3da36ce51f5a3ea4dbde07b132"},
-    {file = "boto3-1.39.9.tar.gz", hash = "sha256:e3d3a6b617e1575e7ec854c820a882ab2e189a0421e74dc0dca2c9e13d4370a5"},
+    {file = "boto3-1.39.12-py3-none-any.whl", hash = "sha256:bbf7a8d374b513975c305883ae40e623cc261dbdc25ea86ae435647cae837a15"},
+    {file = "boto3-1.39.12.tar.gz", hash = "sha256:1a715cb40ea9df6b666148b243b5b9adbfa5be50d28e2f660330c0581d94b639"},
 ]
 
 [package.dependencies]
-botocore = ">=1.39.9,<1.40.0"
+botocore = ">=1.39.12,<1.40.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.13.0,<0.14.0"
 
@@ -332,14 +332,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.39.9"
+version = "1.39.12"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "botocore-1.39.9-py3-none-any.whl", hash = "sha256:a9691cbe03a3bc8b2720b3c36e5c5a2eecace6acd72bfb1107f00e75edaec4f3"},
-    {file = "botocore-1.39.9.tar.gz", hash = "sha256:02f141c2849e4589a79feea245ce4ecc478d48b7865572445af8aae3b041772d"},
+    {file = "botocore-1.39.12-py3-none-any.whl", hash = "sha256:60bfa0f1e0eb03997e22254e2e6a0e3f7e02b8f845253a4bb235d9240d195c72"},
+    {file = "botocore-1.39.12.tar.gz", hash = "sha256:d20b53a196af32ff153cbdbef3cb89e6a9065dc5e90ce23d009e03364601a266"},
 ]
 
 [package.dependencies]
@@ -3056,9 +3056,10 @@ files = [
 name = "pyside6"
 version = "6.9.1"
 description = "Python bindings for the Qt cross-platform application and UI framework"
-optional = false
+optional = true
 python-versions = "<3.14,>=3.9"
 groups = ["main"]
+markers = "extra == \"graphics\""
 files = [
     {file = "PySide6-6.9.1-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:f843ef39970a2f79757810fffd7b8e93ac42a3de9ea62f2a03648cde57648aed"},
     {file = "PySide6-6.9.1-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:db44ac08b8f7ac1b421bc1c6a44200d03f08d80dc7b3f68dfdb1684f30f41c17"},
@@ -3076,9 +3077,10 @@ shiboken6 = "6.9.1"
 name = "pyside6-addons"
 version = "6.9.1"
 description = "Python bindings for the Qt cross-platform application and UI framework (Addons)"
-optional = false
+optional = true
 python-versions = "<3.14,>=3.9"
 groups = ["main"]
+markers = "extra == \"graphics\""
 files = [
     {file = "PySide6_Addons-6.9.1-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:7be0708fa89715c282541fca47e2ba97c0c8d2886e0236ef994b2dd8f52aacdd"},
     {file = "PySide6_Addons-6.9.1-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:da7869b02e3599d26546fad582db4656060786bc5ec8ece5ec9ee8aa8b42371c"},
@@ -3095,9 +3097,10 @@ shiboken6 = "6.9.1"
 name = "pyside6-essentials"
 version = "6.9.1"
 description = "Python bindings for the Qt cross-platform application and UI framework (Essentials)"
-optional = false
+optional = true
 python-versions = "<3.14,>=3.9"
 groups = ["main"]
+markers = "extra == \"graphics\""
 files = [
     {file = "PySide6_Essentials-6.9.1-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:ed43435a70e018e1c22efcaf34a9430b83cfcad716dba661b03de21c13322fab"},
     {file = "PySide6_Essentials-6.9.1-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:e5da48883f006c6206ef85874db74ddebcdf69b0281bd4f1642b1c5ac1d54aea"},
@@ -3422,9 +3425,10 @@ test = ["pytest", "pytest-cov", "scipy-doctest"]
 name = "shiboken6"
 version = "6.9.1"
 description = "Python/C++ bindings helper module"
-optional = false
+optional = true
 python-versions = "<3.14,>=3.9"
 groups = ["main"]
+markers = "extra == \"graphics\""
 files = [
     {file = "shiboken6-6.9.1-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:40e92afc88da06b5100c56b761e59837ff282166e9531268f3d910b6128e621e"},
     {file = "shiboken6-6.9.1-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:efcdfa8655d34aaf8d7a0c7724def3440bd46db02f5ad3b1785db5f6ccb0a8ff"},
@@ -3538,37 +3542,34 @@ files = []
 develop = false
 
 [package.dependencies]
-click = "^8.1.8"
+click = ">=8.1.8"
 numba = "<0.61.0"
 numpy = "<2"
-nzshm-common = "^0.8.4"
-nzshm-model = "^0.13.5"
-pandas = "^2.0.3"
+nzshm-common = ">=0.8.4"
+nzshm-model = ">=0.13.5"
+pandas = ">=2.0.3"
 pyarrow = {version = ">=15.0", extras = ["pandas"]}
-pydantic = "^2.10.6"
-python-dotenv = "^1.0.1"
-tomlkit = "^0.13.2"
-toshi-hazard-store = "^1.1.0"
-
-[package.extras]
-aws = []
+pydantic = ">=2.10.6"
+python-dotenv = ">=1.0.1"
+tomlkit = ">=0.13.2"
+toshi-hazard-store = ">=1.1.0"
 
 [package.source]
 type = "git"
 url = "https://github.com/GNS-Science/toshi-hazard-post.git"
 reference = "pre-release"
-resolved_reference = "9ff1499660075fa134301c6a1cc6772d68daa8b8"
+resolved_reference = "e5c722dd612cde115dbbfa667e5bf38f0776008b"
 
 [[package]]
 name = "toshi-hazard-store"
-version = "1.1.3"
+version = "1.2.1"
 description = "Library for saving and retrieving NZHSM openquake hazard results with convenience (uses AWS Dynamodb)."
 optional = false
 python-versions = "<3.13,>=3.10"
 groups = ["main"]
 files = [
-    {file = "toshi_hazard_store-1.1.3-py3-none-any.whl", hash = "sha256:6652caa29b12bc3dd1df5e81415914a95c16e109fcafede07bbdab858ade131f"},
-    {file = "toshi_hazard_store-1.1.3.tar.gz", hash = "sha256:d739ae07ebd4bff7025861411af73be03bef4fd77e606596a71593b03172fb8a"},
+    {file = "toshi_hazard_store-1.2.1-py3-none-any.whl", hash = "sha256:475d56f6e6bad533da41bb809c5501d863dbaebaaa546f1f9b3928c7c820317d"},
+    {file = "toshi_hazard_store-1.2.1.tar.gz", hash = "sha256:5058738d15f97840976cd46c60082da2bdfa9cc7dc998ccf93a81e039a506e62"},
 ]
 
 [package.dependencies]
@@ -3686,14 +3687,14 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "virtualenv"
-version = "20.31.2"
+version = "20.32.0"
 description = "Virtual Python Environment builder"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "virtualenv-20.31.2-py3-none-any.whl", hash = "sha256:36efd0d9650ee985f0cad72065001e66d49a6f24eb44d98980f630686243cf11"},
-    {file = "virtualenv-20.31.2.tar.gz", hash = "sha256:e10c0a9d02835e592521be48b332b6caee6887f332c111aa79a09b9e79efc2af"},
+    {file = "virtualenv-20.32.0-py3-none-any.whl", hash = "sha256:2c310aecb62e5aa1b06103ed7c2977b81e042695de2697d01017ff0f1034af56"},
+    {file = "virtualenv-20.32.0.tar.gz", hash = "sha256:886bf75cadfdc964674e6e33eb74d787dff31ca314ceace03ca5810620f4ecf0"},
 ]
 
 [package.dependencies]
@@ -3984,9 +3985,9 @@ multidict = ">=4.0"
 propcache = ">=0.2.1"
 
 [extras]
-graphics = []
+graphics = ["pyside6"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "b8ceb274a958072dc1b5c8459c6bfdd4a6a30941d8960831c03ca7d24b936ee7"
+content-hash = "942e8b9a9bfe11e9eaf6ce7b11dce84909233d09f7f0eef2700a3f32c57376b6"
