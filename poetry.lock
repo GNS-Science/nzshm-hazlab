@@ -3557,8 +3557,8 @@ toshi-hazard-store = ">=1.1.0"
 [package.source]
 type = "git"
 url = "https://github.com/GNS-Science/toshi-hazard-post.git"
-reference = "update-ths-dep"
-resolved_reference = "8ad664d839d5455609a044ca639cbb875a99d330"
+reference = "pre-release"
+resolved_reference = "e5c722dd612cde115dbbfa667e5bf38f0776008b"
 
 [[package]]
 name = "toshi-hazard-store"
@@ -3990,4 +3990,4 @@ graphics = ["pyside6"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "53bf5e7c111d449a0fe1d54ef65dd89a6b409eca032b00ebbcb70c1a2a159083"
+content-hash = "942e8b9a9bfe11e9eaf6ce7b11dce84909233d09f7f0eef2700a3f32c57376b6"

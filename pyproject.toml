@@ -14,8 +14,8 @@ dependencies = [
   "pandas (>=2.2.3, <3.0.0)",
   "numpy<2",
   "cartopy (>=0.24.1, <0.25.0)",
-  "toshi-hazard-post @ git+https://github.com/GNS-Science/toshi-hazard-post.git@update-ths-dep",
   "toshi-hazard-store (>=1.2.1,<2.0.0)",
+  "toshi-hazard-post @ git+https://github.com/GNS-Science/toshi-hazard-post.git@pre-release",
 ]
 [project.optional-dependencies]
 graphics = ["pyside6 (>=6.9.1,<7.0.0)"]
