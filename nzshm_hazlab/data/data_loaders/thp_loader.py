@@ -1,7 +1,8 @@
 """This module provides the THPHazardLoader class for producing hazard curves from dynamically created hazard models."""
 
 import functools
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+from pathlib import Path
 
 import numpy as np
 import toshi_hazard_post.aggregation_calc as aggregation
@@ -39,8 +40,8 @@ class THPHazardLoader:
     been pre-computed and stored in a Arrow dataset by toshi-hazard-store. See the nzshm-model documentation
     for how to build the logic tree objects needed to define the hazard model.
 
-    The location of the realizations database is set with the environment variable THP_RLZ_DIR or in a .env file.
-    The location can be a local file path or an s3 bucket URI.
+    The location of the realizations database is set with the environment variable THP_RLZ_DIR, in a .env file
+    or by passing the location on initilaization. The location can be a local file path or an s3 bucket URI.
 
     Examples:
         ```py
@@ -55,7 +56,7 @@ class THPHazardLoader:
         ```
     """
 
-    def __init__(self, compatible_calc_id: str, srm_logic_tree: 'SourceLogicTree', gmcm_logic_tree: 'GMCMLogicTree'):
+    def __init__(self, compatible_calc_id: str, srm_logic_tree: 'SourceLogicTree', gmcm_logic_tree: 'GMCMLogicTree', rlz_dir: Optional[str | Path]=None):
         """Initialize a new THPHazardLoader object.
 
         Args:
@@ -63,6 +64,7 @@ class THPHazardLoader:
                 toshi-hazard-store documentation for details.
             srm_logic_tree: The seismicity rate model (aka source model) logic tree.
             gmcm_logic_tree: The ground motion model logic tree.
+            rlz_dir: Location of realization dataset. If not passed, function will use env var.
         """
         self.compatible_calc_id = compatible_calc_id
 
@@ -75,7 +77,7 @@ class THPHazardLoader:
         self.branch_hash_table = logic_tree.branch_hash_table
         self.weights = logic_tree.weights
 
-        self.dataset = data.get_realizations_dataset()
+        self.dataset = data.get_realizations_dataset(rlz_dir=rlz_dir)
 
     def get_probabilities(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, agg: str
