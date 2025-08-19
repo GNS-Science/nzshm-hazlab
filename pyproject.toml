@@ -15,7 +15,7 @@ dependencies = [
   "numpy<2",
   "cartopy (>=0.24.1, <0.25.0)",
   "toshi-hazard-store (>=1.2.1,<2.0.0)",
-  "toshi-hazard-post @ git+https://github.com/GNS-Science/toshi-hazard-post.git@pre-release",
+  "toshi-hazard-post @ git+https://github.com/GNS-Science/toshi-hazard-post.git@feature/83-rlz_dir",
 ]
 [project.optional-dependencies]
 graphics = ["pyside6 (>=6.9.1,<7.0.0)"]
