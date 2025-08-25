@@ -3639,10 +3639,12 @@ name = "toshi-hazard-post"
 version = "0.7.1"
 description = "Hazard post-processing pipeline as serverless AWS infrastructure."
 optional = false
-python-versions = ">=3.10,<3.13"
+python-versions = "<3.13,>=3.10"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "toshi_hazard_post-0.7.1-py3-none-any.whl", hash = "sha256:ac630bbdcfa16ed5e2648f2aa7198c022d3206f35fef1a82aecdc4e8c4ab9cae"},
+    {file = "toshi_hazard_post-0.7.1.tar.gz", hash = "sha256:f0910fb9c3dcebe4876afcfa87fe6957ab392ad5e7de06be8a71095f75f16313"},
+]
 
 [package.dependencies]
 click = ">=8.1.8"
@@ -3656,12 +3658,7 @@ pydantic = ">=2.10.6"
 python-dotenv = ">=1.0.1"
 tomlkit = ">=0.13.2"
 toshi-hazard-store = ">=1.1.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/GNS-Science/toshi-hazard-post.git"
-reference = "feature/83-rlz_dir"
-resolved_reference = "1f356c911184fd2e1fa50b2ff6419be59ceaca18"
+tzdata = ">=2025.2,<2026.0"
 
 [[package]]
 name = "toshi-hazard-store"
@@ -4095,4 +4092,4 @@ graphics = ["pyside6"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "c1729a3102f5e28c1b376b8ff94d2fef0c5153455372e2d9b90cf872107742f2"
+content-hash = "af759b397aa05866b537d33581212df0b8cda014c589a2996c1e1c0093e7354d"
