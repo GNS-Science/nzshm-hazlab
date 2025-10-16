@@ -1,8 +1,8 @@
 """This module provides the THPHazardLoader class for producing hazard curves from dynamically created hazard models."""
 
 import functools
-from typing import TYPE_CHECKING, Optional
 from pathlib import Path
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import toshi_hazard_post.aggregation_calc as aggregation
@@ -56,7 +56,13 @@ class THPHazardLoader:
         ```
     """
 
-    def __init__(self, compatible_calc_id: str, srm_logic_tree: 'SourceLogicTree', gmcm_logic_tree: 'GMCMLogicTree', rlz_dir: Optional[str | Path]=None):
+    def __init__(
+        self,
+        compatible_calc_id: str,
+        srm_logic_tree: 'SourceLogicTree',
+        gmcm_logic_tree: 'GMCMLogicTree',
+        rlz_dir: Optional[str | Path] = None,
+    ):
         """Initialize a new THPHazardLoader object.
 
         Args:

@@ -1,5 +1,6 @@
-import matplotlib.pyplot as plt
 import sys
+
+import matplotlib.pyplot as plt
 import pytest
 from matplotlib.testing.decorators import image_comparison
 from nzshm_common import CodedLocation

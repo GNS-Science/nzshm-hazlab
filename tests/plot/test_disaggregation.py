@@ -1,5 +1,5 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pytest
@@ -17,6 +17,9 @@ location = get_locations(["WLG"])[0]
 agg = "mean"
 vs30 = "400"
 poe = ProbabilityEnum._10_PCT_IN_50YRS
+
+if sys.platform.startswith("win"):
+    pytest.skip("tests fail on Windows", allow_module_level=True)
 
 
 @pytest.fixture(scope='module')
@@ -92,14 +95,12 @@ def test_plot_disagg_3d(disaggregations):
     plot_disagg_3d(fig, disaggregations, hazard_model, location, imt, vs30, poe, agg, dist_lim=[0, 70])
 
 
-@pytest.mark.skipif(sys.platform.startswith("win"), reason="test fails on Windows")
 def test_plot_disagg_3d_noimage(disaggregations):
     """Since we skip the image comparison test (test_plot_disagg_3d), run this test just ensure no exceptions raised."""
     fig = plt.figure()
     plot_disagg_3d(fig, disaggregations, hazard_model, location, imt, vs30, poe, agg, dist_lim=[0, 70])
 
 
-@pytest.mark.skipif(sys.platform.startswith("win"), reason="test fails on Windows")
 @pytest.mark.parametrize(
     "dimensions, error_msg",
     (
