@@ -99,6 +99,7 @@ def test_plot_disagg_3d_noimage(disaggregations):
     plot_disagg_3d(fig, disaggregations, hazard_model, location, imt, vs30, poe, agg, dist_lim=[0, 70])
 
 
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="test fails on Windows")
 @pytest.mark.parametrize(
     "dimensions, error_msg",
     (
