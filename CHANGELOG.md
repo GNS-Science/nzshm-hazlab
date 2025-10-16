@@ -1,6 +1,10 @@
 # Changelog 
 
-## [0.1.0] XXX
+## [0.1.0] 2025-10-17
+
+### Changed
+ - Migrated pyproject.toml to PEP 508 as per poetry v2.2 docs.
+ - Ensure CI/CD workflows use minimum install footprints
 
 ### Added
 - Plotting functions for hazard maps.
