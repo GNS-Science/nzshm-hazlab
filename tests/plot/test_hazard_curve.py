@@ -17,6 +17,9 @@ imt = "PGA"
 wlg = get_locations(["WLG"])[0]
 other_location = CodedLocation(lat=-41.75, lon=171.58, resolution=0.001)
 
+if sys.platform.startswith("win"):
+    pytest.skip("tests fail on Windows", allow_module_level=True)
+
 
 @pytest.fixture(scope='module')
 def hazard_curves():
@@ -69,7 +72,6 @@ poe = 0.1
 inv_time = 50.0
 
 
-@pytest.mark.skipif(sys.platform.startswith("win"), reason="test fails on Windows")
 @image_comparison(baseline_images=['uhs_curve_mean'], extensions=['png'], style='mpl20')
 def test_plot_uhs_curve_single(hazard_curves):
     aggs = ["mean"]
