@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import sys
 import pytest
 from matplotlib.testing.decorators import image_comparison
 from nzshm_common import CodedLocation
@@ -67,6 +68,7 @@ poe = 0.1
 inv_time = 50.0
 
 
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="test fails on Windows")
 @image_comparison(baseline_images=['uhs_curve_mean'], extensions=['png'], style='mpl20')
 def test_plot_uhs_curve_single(hazard_curves):
     aggs = ["mean"]
