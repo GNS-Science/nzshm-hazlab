@@ -1,50 +1,52 @@
 [project]
 name = "nzshm-hazlab"
 version = "0.1.0"
+description = "A laboratory for exploring hazard models"
 readme = "README.md"
 authors = [
   {name = "Chris DiCaprio", email = "christopher.dicaprio@gmail.com"},
 ]
-description = "A laboratory for exploring hazard models"
 license = "AGPL-3.0"
 requires-python = ">=3.11,<3.13"
 dependencies = [
-  "nzshm-common (>=0.8.4, <0.9.0)",
   "matplotlib (>=3.10.3, <4.0.0)",
   "pandas (>=2.2.3, <3.0.0)",
   "numpy<2",
   "cartopy (>=0.24.1, <0.25.0)",
-  "toshi-hazard-store (>=1.2.1,<2.0.0)",
   "toshi-hazard-post (>=0.7.1,<0.8.0)",
+  "toshi-hazard-store (>=1.2.4,<2.0.0)",
+  "nzshm-model (<0.14.0)",
+  "nzshm-common (<0.9.0)",
 ]
+
 [project.optional-dependencies]
-graphics = ["pyside6 (>=6.9.1,<7.0.0)"]
+interactive = [
+  "ipython",
+  "jupyterlab"
+]
 
 [tool.poetry]
 packages = [{include = "nzshm_hazlab"}]
 
-[tool.poetry.group.dev.dependencies]
-tox = "^4.26.0"
-isort = "^6.0.1"
-black = "^25.1.0"
-flake8 = "^7.2.0"
-bump2version = "^1.0.1"
-flake8-docstrings = "^1.7.0"
-pytest = "^8.3.5"
-pytest-cov = "^6.1.1"
-mypy = "^1.15.0"
-ipython = "^9.2.0"
-pytest-mock = "^3.14.1"
-
-
-[tool.poetry.group.docs.dependencies]
-mkdocs-material = "^9.6.14"
-mkdocs = "^1.6.1"
-mkdocs-include-markdown-plugin = "^7.1.5"
-mkdocstrings = {extras = ["python"], version = "^0.29.1"}
-
-[tool.poetry.extras]
-graphics = ["pyqt5"]
+[dependency-groups]
+dev = [
+  "tox",
+  "isort",
+  "black",
+  "flake8",
+  "bump2version",
+  "flake8-docstrings",
+  "pytest",
+  "pytest-cov",
+  "mypy",
+  "pytest-mock",
+  "safety (>=3.6.2,<4.0.0)",
+  "pip-audit (>=2.9.0,<3.0.0)",
+]
+doc = [
+  "mkdocs-material",
+  "mkdocs",
+]
 
 [tool.black]
 line-length = 120
@@ -70,5 +72,5 @@ exclude = '''
 addopts = "--import-mode=importlib"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"

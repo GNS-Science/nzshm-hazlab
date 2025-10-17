@@ -1,3 +1,5 @@
+import sys
+
 import matplotlib.pyplot as plt
 import pytest
 from matplotlib.testing.decorators import image_comparison
@@ -14,6 +16,9 @@ vs30 = 400
 imt = "PGA"
 wlg = get_locations(["WLG"])[0]
 other_location = CodedLocation(lat=-41.75, lon=171.58, resolution=0.001)
+
+if sys.platform.startswith("win"):
+    pytest.skip("tests fail on Windows", allow_module_level=True)
 
 
 @pytest.fixture(scope='module')

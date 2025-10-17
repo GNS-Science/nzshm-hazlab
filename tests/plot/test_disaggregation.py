@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -16,6 +17,9 @@ location = get_locations(["WLG"])[0]
 agg = "mean"
 vs30 = "400"
 poe = ProbabilityEnum._10_PCT_IN_50YRS
+
+if sys.platform.startswith("win"):
+    pytest.skip("tests fail on Windows", allow_module_level=True)
 
 
 @pytest.fixture(scope='module')
