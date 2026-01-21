@@ -1,5 +1,13 @@
 # Changelog 
 
+## [0.1.1] 2026-01-21
+
+### Added
+ - audit environment for tox
+
+### Changed
+ - update dependencies for new advisories
+
 ## [0.1.0] 2025-10-17
 
 ### Changed
