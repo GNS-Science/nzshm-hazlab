@@ -51,6 +51,10 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+# security audits
+audit.txt
+.safety-project.ini
+
 # Translations
 *.mo
 *.pot
