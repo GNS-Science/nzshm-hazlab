@@ -1,5 +1,11 @@
 # Changelog 
 
+## [0.1.2] 2026-03-27
+
+### Changed
+ - latest nzshm-common and nzshm-model versions
+ - unpinned nzshm-common, nzshm-model, and toshi-hazard-store dependencies
+
 ## [0.1.1] 2026-01-21
 
 ### Added
