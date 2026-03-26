@@ -6786,4 +6786,4 @@ interactive = ["ipython", "jupyterlab"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "849a1ff74cb02eae3fa1a3ef096f1061dfa0862b0af393cc3d6699e720336898"
+content-hash = "32c699e8a4fad2d7ad52ff1c0756e0df42161f2825a1e685a4703817eb89643e"
