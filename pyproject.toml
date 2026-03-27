@@ -1,6 +1,6 @@
 [project]
 name = "nzshm-hazlab"
-version = "0.1.1"
+version = "0.1.2"
 description = "A laboratory for exploring hazard models"
 readme = "README.md"
 authors = [
@@ -13,10 +13,10 @@ dependencies = [
   "pandas (>=2.2.3, <3.0.0)",
   "numpy (>=1.26.4, <2)",
   "cartopy (>=0.24.1, <0.25.0)",
-  "toshi-hazard-post (>=0.7.1,<0.8.0)",
+  "toshi-hazard-post (>=0.7.1)",
   "toshi-hazard-store (>=1.2.4,<2.0.0)",
-  "nzshm-model (<0.14.0)",
-  "nzshm-common (<0.9.0)",
+  "nzshm-model (>=0.14.2)",
+  "nzshm-common (>=0.9.3)",
 ]
 
 [project.optional-dependencies]
