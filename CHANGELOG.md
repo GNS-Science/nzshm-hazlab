@@ -1,9 +1,15 @@
 # Changelog 
 
-## [0.1.2] 2026-03-30
+## [0.1.3] 2026-03-30
 
 ### Changed
- - latest nzshm-common, nzshm-model, and toshi-hazard-store versions
+ - latest toshi-hazard-store version
+ - reinstated windows build in GHA test suite
+
+## [0.1.2] 2026-03-27
+
+### Changed
+ - latest nzshm-common and nzshm-model versions
  - unpinned nzshm-common, nzshm-model, and toshi-hazard-store dependencies
  - updated setup.cfg to be compatible with latest tox
 
