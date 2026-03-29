@@ -1,9 +1,9 @@
 # Changelog 
 
-## [0.1.2] 2026-03-27
+## [0.1.2] 2026-03-30
 
 ### Changed
- - latest nzshm-common and nzshm-model versions
+ - latest nzshm-common, nzshm-model, and toshi-hazard-store versions
  - unpinned nzshm-common, nzshm-model, and toshi-hazard-store dependencies
  - updated setup.cfg to be compatible with latest tox
 
