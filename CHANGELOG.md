@@ -1,5 +1,11 @@
 # Changelog 
 
+## [0.1.3] 2026-03-30
+
+### Changed
+ - latest toshi-hazard-store version
+ - reinstated windows build in GHA test suite
+
 ## [0.1.2] 2026-03-27
 
 ### Changed
