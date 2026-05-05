@@ -1,5 +1,11 @@
 # Changelog 
 
+## [Unreleased]
+
+### Changed
+ - Migrate from Poetry to uv; replace flake8/black/isort with ruff
+ - Upgrade lancedb 0.29.2 → 0.30.2 (fixes CreateEmptyTableRequest import error)
+
 ## [0.1.3] 2026-03-30
 
 ### Changed
