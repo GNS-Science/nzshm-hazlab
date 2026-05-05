@@ -57,6 +57,9 @@ build-backend = "hatchling.build"
 exclude-newer = "1 week"
 exclude-newer-package = { "nzshm-common" = false, "nzshm-model" = false, "toshi-hazard-post" = false, "toshi-hazard-store" = false }
 
+[tool.uv.sources]
+toshi-hazard-store = { git = "https://github.com/GNS-Science/toshi-hazard-store.git", branch = "feature/160-disagg-agg-query" }
+
 [tool.ruff]
 line-length = 120
 
