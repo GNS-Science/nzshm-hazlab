@@ -86,7 +86,7 @@ class OQCSVHazardLoader:
         if not Path(output_dir).is_dir():
             raise FileNotFoundError(f"No such directory {output_dir}")
         self._output_dir = Path(output_dir)
-        self._levels: 'npt.NDArray' | None = None
+        self._levels: npt.NDArray | None = None
 
     def get_probabilities(
         self, hazard_model_id: str | int, imt: str, location: "CodedLocation", vs30: int, agg: str
@@ -211,7 +211,7 @@ class OQCSVDisaggLoader:
         # this is likely not the fastest way to create the reshaped disagg array, but it's easy and we don't care
         # about speed as this class will not be used often
         probs = np.empty(array_shape)
-        for ri, row in df.iterrows():
+        for _ri, row in df.iterrows():
             ind = []
             for name, values in bin_centers.items():
                 ind.append(np.where(values == row[name])[0][0])
@@ -246,7 +246,7 @@ class OQCSVDisaggLoader:
         disagg_columns = [col for col in all_disagg_columns if col in disaggs.columns]
         return {col: np.sort(disaggs[col].unique()) for col in disagg_columns}
 
-    @cache
+    @cache  # noqa: B019
     def get_bin_edges(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
     ) -> dict[str, 'npt.NDArray']:

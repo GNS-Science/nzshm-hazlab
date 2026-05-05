@@ -1,7 +1,7 @@
 """This module provides functions for plotting disaggregations."""
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Union, cast
 
 import matplotlib
 import numpy as np
@@ -95,7 +95,7 @@ def plot_disagg_2d(
     poe: 'ProbabilityEnum',
     agg: str,
     dimensions: list[str],
-    pct_lim: Optional[list[float]] = None,
+    pct_lim: list[float] | None = None,
     split_by_trt: bool = False,
     **kwargs: Any,
 ) -> tuple['Axes', ...]:
@@ -186,8 +186,8 @@ def plot_disagg_3d(
     vs30: int,
     poe: 'ProbabilityEnum',
     agg: str,
-    dist_lim: Optional[list[float]] = None,
-    mag_lim: Optional[list[float]] = None,
+    dist_lim: list[float] | None = None,
+    mag_lim: list[float] | None = None,
 ) -> 'Axes':
     """Make a 3D bar plot of percent contribution to hazard.
 

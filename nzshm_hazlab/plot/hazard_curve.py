@@ -27,7 +27,7 @@ def _center_out(length):
     else:
         right = center
 
-    for i in range(center):
+    for _i in range(center):
         yield (left, right)
         left -= 1
         right += 1

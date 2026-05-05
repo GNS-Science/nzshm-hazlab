@@ -2,7 +2,7 @@
 
 import functools
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import numpy as np
 import toshi_hazard_post.aggregation_calc as aggregation
@@ -61,7 +61,7 @@ class THPHazardLoader:
         compatible_calc_id: str,
         srm_logic_tree: 'SourceLogicTree',
         gmcm_logic_tree: 'GMCMLogicTree',
-        rlz_dir: Optional[str | Path] = None,
+        rlz_dir: str | Path | None = None,
     ):
         """Initialize a new THPHazardLoader object.
 

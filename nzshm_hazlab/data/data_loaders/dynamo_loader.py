@@ -22,7 +22,7 @@ class DynamoHazardLoader:
 
     def __init__(self):
         """Initialize a DynamoHazardLoader object."""
-        self._levels: 'npt.NDArray' | None = None
+        self._levels: npt.NDArray | None = None
 
     def get_probabilities(
         self, hazard_model_id: str, imt: str, location: 'CodedLocation', vs30: int, agg: str
@@ -128,7 +128,7 @@ class DynamoDisaggLoader:
             )
         ).bins
         dimensions = ["mag", "dist", "trt", "eps"]
-        return {d: b for d, b in zip(dimensions, bins)}
+        return {d: b for d, b in zip(dimensions, bins, strict=False)}
 
     def get_bin_edges(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, poe: 'ProbabilityEnum', agg: str
