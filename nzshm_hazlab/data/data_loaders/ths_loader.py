@@ -16,7 +16,7 @@ class THSHazardLoader:
     Specify the location of the dataset with environment variable 'THS_DATASET_AGGR_URI'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a THSHazardLoader object."""
         self._levels: None | npt.NDArray = None
 

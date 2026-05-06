@@ -20,7 +20,7 @@ class DynamoHazardLoader:
     The use of DynamoDB for storing hazard curves is depricated and will be removed with v2 of toshi-hazard-store.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a DynamoHazardLoader object."""
         self._levels: npt.NDArray | None = None
 
