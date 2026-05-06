@@ -56,3 +56,54 @@ If you are proposing a feature:
 * [Install nzshm-hazlab from source code](docs/installation.md#from-source-code)
 * [Run the tests](docs/testing.md)
 * [Fix bugs or contribute features](https://github.com/GNS-Science/nzshm-hazlab/issues)
+
+### Enable the git hooks
+
+This repo ships a `pre-push` hook in `.githooks/` that blocks pushing a `v*`
+release tag if `CHANGELOG.md` does not yet contain a section for that version.
+It is **not** active by default — git ignores any hooks directory other than
+`.git/hooks/` until you opt in.
+
+After cloning (one time per checkout):
+
+```console
+$ git config core.hooksPath .githooks
+```
+
+This setting lives in `.git/config` and is local to your checkout — it is not
+shared and not committed.
+
+To verify it is active:
+
+```console
+$ git config --get core.hooksPath
+.githooks
+```
+
+You can bypass the hook with `git push --no-verify` if you need to, but the
+same check runs in CI (`verify-changelog` job in
+`.github/workflows/release.yml`) and will fail the release there if the
+CHANGELOG section is missing.
+
+## Releasing
+
+Versioning uses [hatch-vcs](https://github.com/ofek/hatch-vcs) — the package
+version is derived from the latest `v*` git tag at build time, so there is no
+version string to bump in source. To cut a release:
+
+1. Move the relevant entries from `## [Unreleased]` in `CHANGELOG.md` into a
+   new section headed `## [X.Y.Z] - YYYY-MM-DD`. Commit on `main`.
+2. Tag and push:
+
+   ```console
+   $ git tag vX.Y.Z
+   $ git push --tags
+   ```
+
+3. The push triggers `.github/workflows/release.yml`, which runs the
+   `verify-changelog` guard and then builds + publishes via the reusable
+   `python-release-uv.yml` workflow.
+
+If the local `pre-push` hook (or the CI guard) fails because the CHANGELOG
+section is missing, fix the CHANGELOG, delete the tag (`git tag -d vX.Y.Z`),
+and re-tag the new commit.

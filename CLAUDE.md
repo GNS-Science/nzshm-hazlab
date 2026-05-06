@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 # Install (development)
 uv sync --all-extras
+git config core.hooksPath .githooks  # enable pre-push CHANGELOG guard (one-time per checkout)
 
 # Run tests
 uv run pytest tests/

@@ -2,9 +2,7 @@
 
 name: release & publish workflow
 
-# Controls when the action will run.
 on:
-  # Triggers the workflow on push events but only for the master branch
   push:
     tags:
       - 'v*'
@@ -14,15 +12,33 @@ on:
 
 
 jobs:
+  verify-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify ref is a v* tag and CHANGELOG.md has a matching section
+        run: |
+          if [[ "${GITHUB_REF}" != refs/tags/v* ]]; then
+            echo "::error::Release workflow must be run from a v* tag. Got ref ${GITHUB_REF}." >&2
+            exit 1
+          fi
+          VERSION="${GITHUB_REF_NAME#v}"
+          if ! grep -qE "^## \[${VERSION}\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md is missing a '## [${VERSION}]' section for tag ${GITHUB_REF_NAME}. Add one before tagging." >&2
+            exit 1
+          fi
+
   release-and-distribute:
-    uses:  GNS-Science/nshm-github-actions/.github/workflows/python-release-uv.yml@main
+    needs: verify-changelog
+    uses: GNS-Science/nshm-github-actions/.github/workflows/python-release-uv.yml@main
     with:
-      python-version:  '3.12'
+      python-version: '3.12'
     secrets: inherit
 
   deploy-docs:
-    uses:  GNS-Science/nshm-github-actions/.github/workflows/python-deploy-docs-uv.yml@main
+    needs: verify-changelog
+    uses: GNS-Science/nshm-github-actions/.github/workflows/python-deploy-docs-uv.yml@main
     with:
-      python-version:  '3.12'
+      python-version: '3.12'
       optional-dependency-groups: doc
     secrets: inherit
