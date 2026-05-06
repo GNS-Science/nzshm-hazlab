@@ -5,16 +5,16 @@
 To install nzshm-hazlab, run this command in your
 terminal:
 
-### using  pip
+### using pip
 
 ``` console
 $ pip install nzshm-hazlab
 ```
 
-### using  poetry
+### using uv
 
 ``` console
-$ poetry add nzshm-hazlab
+$ uv add nzshm-hazlab
 ```
 
 These are the preferred methods to install nzshm-hazlab, as they will always install the most recent stable release.

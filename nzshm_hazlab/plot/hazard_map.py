@@ -1,7 +1,7 @@
 """This module provides functions for plotting hazard maps."""
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Literal, Optional, get_args
+from typing import TYPE_CHECKING, Literal, get_args
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -41,8 +41,8 @@ def plot_hazard_map(
     poe: 'ProbabilityEnum',
     agg: str,
     cmap: str = 'inferno',
-    clim: Optional[list[float]] = None,
-    ll_lim: Optional[list[float]] = None,
+    clim: list[float] | None = None,
+    ll_lim: list[float] | None = None,
 ) -> tuple['Figure', 'GeoAxes']:
     """Create a hazard map.
 
@@ -89,8 +89,8 @@ def plot_hazard_diff_map(
     aggs: Sequence[str],
     diff_type: Diff,
     cmap: str = 'inferno',
-    clim: Optional[list[float]] = None,
-    ll_lim: Optional[list[float]] = None,
+    clim: list[float] | None = None,
+    ll_lim: list[float] | None = None,
 ) -> tuple['Figure', 'GeoAxes']:
     """Create a hazard difference map.
 
@@ -120,8 +120,8 @@ def plot_hazard_diff_map(
 
     locations = get_location_grid(grid_name)
 
-    imtls: list['npt.NDArray'] = []
-    for hg, hmid, imt, vs30, poe, agg in zip(hazard_grids, hazard_model_ids, imts, vs30s, poes, aggs):
+    imtls: list[npt.NDArray] = []
+    for hg, hmid, imt, vs30, poe, agg in zip(hazard_grids, hazard_model_ids, imts, vs30s, poes, aggs, strict=False):
         imtls.append(hg.get_grid(hmid, imt, grid_name, vs30, poe, agg))
     if len(imtls) != 2:
         raise ValueError("Must specify two hazard grids to plot.")
@@ -167,7 +167,7 @@ def plot_grid_map(
     coastline_resolution = '50m'
 
     fig = plt.figure()
-    ax: 'GeoAxes' = fig.add_subplot(projection=ccrs.TransverseMercator(central_latitude=0.0, central_longitude=173.0))
+    ax: GeoAxes = fig.add_subplot(projection=ccrs.TransverseMercator(central_latitude=0.0, central_longitude=173.0))
     ax.set_extent(ll_lim, crs=ccrs.PlateCarree())
 
     # zorder is used to make the oceans clip the pcolormesh plot

@@ -4,7 +4,8 @@ Classes:
     Disaggregations: a class to retrive disaggregation matrices.
 """
 
-from typing import TYPE_CHECKING, Iterable
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -32,7 +33,7 @@ class Disaggregations:
         """
         self._loader = loader
         self._data = pd.DataFrame(columns=_columns)
-        self._bin_centers: dict[str, 'npt.NDArray'] = {}
+        self._bin_centers: dict[str, npt.NDArray] = {}
 
     def get_disaggregation(
         self,

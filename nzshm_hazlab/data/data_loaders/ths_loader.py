@@ -16,9 +16,9 @@ class THSHazardLoader:
     Specify the location of the dataset with environment variable 'THS_DATASET_AGGR_URI'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a THSHazardLoader object."""
-        self._levels: None | 'npt.NDArray' = None
+        self._levels: None | npt.NDArray = None
 
     def get_probabilities(
         self, hazard_model_id: str, imt: str, location: "CodedLocation", vs30: int, agg: str
@@ -51,7 +51,8 @@ class THSHazardLoader:
             except RuntimeWarning:
                 continue
             except StopIteration:
-                raise KeyError(f"agg dataset does not contain {hazard_model_id=}, {imt=}, {location=}, {vs30=}, {agg=}")
+                msg = f"agg dataset does not contain {hazard_model_id=}, {imt=}, {location=}, {vs30=}, {agg=}"
+                raise KeyError(msg) from None
 
         if self._levels is None:
             self._levels = np.array([v.lvl for v in agg_hazard.values])

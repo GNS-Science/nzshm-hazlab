@@ -1,12 +1,12 @@
 # Testing
 
-If you would like to contribute to the project, [poetry][] is
+If you would like to contribute to the project, [uv][] is
 recommended for creating and managing a local development
 environment. In order to get all of the tests running,
 [install](installation.md) with all extras:
 
 ```
-poetry install --all-extras
+uv sync --all-extras
 ```
 
 Nzshm-Hazlab uses [pytest][] and [tox][] to test its code.
@@ -19,8 +19,7 @@ quality tools.
 
 For code quality, the following tools are used:
 
-* **black** and **flake8** for linting
-* **isort** for file import tidying
+* **ruff** for linting, formatting, and import sorting
 * **mypy** for static type checking
 
 
@@ -28,17 +27,17 @@ For code quality, the following tools are used:
 By default, pytest will search for all tests in the `test/` directory.
 Tests can be run for a single file:
 ```console
-$ poetry run pytest tests/data/test_hazard_curves.py
+$ uv run pytest tests/data/test_hazard_curves.py
 ```
 
 Specific tests can also be specified by their function name:
 ``` console
-$ poetry run pytest tests/data/test_hazard_curves.py::test_uhs
+$ uv run pytest tests/data/test_hazard_curves.py::test_uhs
 ```
 
 Or filtered by keywords (this runs two tests in separate files):
 ``` console
-$ poetry run pytest -k csv
+$ uv run pytest -k csv
 ```
 
 Be aware that there may be a number of warnings from upstream
@@ -63,12 +62,12 @@ installs.
 
 To run all tox environments:
 ```console
-$ poetry run tox
+$ uv run tox
 ```
 
 For one or more specific environments (e.g. formatting and linting):
 ```console
-$ poetry run tox -e format -e lint
+$ uv run tox -e format -e lint
 ```
 
 ### Code coverage
@@ -79,7 +78,7 @@ text editors that support them. Only a single test environment is
 required:
 
 ```console
-$ poetry run tox -e py311
+$ uv run tox -e py311
 
 ...
 
@@ -106,7 +105,7 @@ $ git clean -dfx
 ```
 
 
-[poetry]: https://python-poetry.org/
+[uv]: https://docs.astral.sh/uv/
 [pyenv]: https://github.com/pyenv/pyenv
 [pytest]: https://docs.pytest.org/en/stable/
 [tox]: https://tox.wiki/

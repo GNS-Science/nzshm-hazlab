@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Block pushes of v* tags when CHANGELOG.md has no matching section.
+# Git pre-push contract: stdin is "<local_ref> <local_sha> <remote_ref> <remote_sha>" per ref.
+set -euo pipefail
+
+while read -r local_ref _local_sha _remote_ref _remote_sha; do
+  case "$local_ref" in
+    refs/tags/v*)
+      version="${local_ref#refs/tags/v}"
+      if ! grep -qE "^## \[${version}\]" CHANGELOG.md; then
+        echo "error: CHANGELOG.md is missing a '## [${version}]' section for tag ${local_ref#refs/tags/}." >&2
+        echo "       Update CHANGELOG.md (and re-create the tag if needed) before pushing." >&2
+        exit 1
+      fi
+      ;;
+  esac
+done

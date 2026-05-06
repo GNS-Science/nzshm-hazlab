@@ -4,4 +4,4 @@ This library provides tools for accessing and plotting aggregated hazard curves 
 toshi-hazard-post or OpenQuake), calculated deritivate products such as UHS.
 """
 
-__version__ = '0.1.3'
+from ._version import __version__

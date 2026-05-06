@@ -1,5 +1,16 @@
 # Changelog 
 
+## [0.1.4] 2026-05-06
+
+### Changed
+ - Migrate from Poetry to uv; replace flake8/black/isort with ruff
+ - hatch-vcs for versioning
+ - gate releases requiring update to CHANGELOG
+ - git hook requiring update to CHANGELOG
+
+ ### Removed
+ - bump2version
+
 ## [0.1.3] 2026-03-30
 
 ### Changed

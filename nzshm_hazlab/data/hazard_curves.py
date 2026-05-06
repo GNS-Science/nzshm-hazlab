@@ -31,7 +31,7 @@ class HazardCurves:
         """
         self._loader = loader
         self._data = pd.DataFrame(columns=_columns)
-        self._levels: None | 'npt.NDArray' = None
+        self._levels: None | npt.NDArray = None
 
     def get_hazard_curve(
         self,
