@@ -1,7 +1,6 @@
 import sys
 
 import pytest
-from matplotlib.testing.decorators import image_comparison
 from toshi_hazard_store.model import ProbabilityEnum
 
 from nzshm_hazlab.plot import plot_hazard_diff_map, plot_hazard_map
@@ -24,36 +23,38 @@ if sys.platform.startswith("win"):
     pytest.skip("tests fail on Windows", allow_module_level=True)
 
 
-@image_comparison(baseline_images=['hazard_map'], extensions=['png'], style='mpl20')
+@pytest.mark.mpl_image_compare
 def test_plot_hazard_map(hazard_grids):
     hazard_model_id = "NSHM_v1.0.4"
     poe = ProbabilityEnum._10_PCT_IN_50YRS
-
     fig, ax = plot_hazard_map(hazard_grids, hazard_model_id, grid_name, imt, vs30, poe, agg, clim=[0, 1.5])
+    return fig
 
 
-@image_comparison(baseline_images=['hazard_map_defaultc'], extensions=['png'], style='mpl20')
+@pytest.mark.mpl_image_compare
 def test_plot_hazard_map_defaultc(hazard_grids):
     """Test default color limits."""
     hazard_model_id = "NSHM_v1.0.4"
     poe = ProbabilityEnum._10_PCT_IN_50YRS
     imt = "PGA"
-
     fig, ax = plot_hazard_map(hazard_grids, hazard_model_id, grid_name, imt, vs30, poe, agg)
+    return fig
 
 
-@image_comparison(baseline_images=['hazard_diff_map_sub'], extensions=['png'], style='mpl20')
+@pytest.mark.mpl_image_compare
 def test_plot_hazard_diff_map_sub(hazard_grids):
     hgs = [hazard_grids, hazard_grids]
     diff_type = 'sub'
     fig, ax = plot_hazard_diff_map(hgs, hmids, grid_name, imts, vs30s, poes, aggs, diff_type=diff_type)
+    return fig
 
 
-@image_comparison(baseline_images=['hazard_diff_map_ratio'], extensions=['png'], style='mpl20')
+@pytest.mark.mpl_image_compare
 def test_plot_hazard_diff_map_ratio(hazard_grids):
     hgs = [hazard_grids, hazard_grids]
     diff_type = 'ratio'
     fig, ax = plot_hazard_diff_map(hgs, hmids, grid_name, imts, vs30s, poes, aggs, diff_type=diff_type)
+    return fig
 
 
 def test_plot_hazard_diff_map_err(hazard_grids):
