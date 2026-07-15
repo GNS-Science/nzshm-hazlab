@@ -10,7 +10,7 @@ license = "AGPL-3.0"
 requires-python = ">=3.11,<3.13"
 dependencies = [
   "matplotlib>=3.10.3,<3.11.0",
-  "pandas>=2.2.3,<3.0.0",
+  "pandas>=2.2.3,<4.0.0",
   "numpy>=1.26.4,<3",
   "cartopy>=0.24.1,<0.26.0",
   "toshi-hazard-post>=0.7.1",
