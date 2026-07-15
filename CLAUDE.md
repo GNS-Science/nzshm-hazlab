@@ -10,10 +10,11 @@ uv sync --all-extras
 git config core.hooksPath .githooks  # enable pre-push CHANGELOG guard (one-time per checkout)
 
 # Run tests
-uv run pytest tests/
-uv run pytest tests/data/test_hazard_curves.py          # single file
-uv run pytest tests/data/test_hazard_curves.py::test_uhs  # single test
-uv run pytest -k keyword                                  # filter by keyword
+The `--mpl` flag ensures that pytest-mpl runs to test matplotlib images
+uv run pytest --mpl tests/
+uv run pytest --mpl tests/data/test_hazard_curves.py          # single file
+uv run pytest --mpl tests/data/test_hazard_curves.py::test_uhs  # single test
+uv run pytest --mpl -k keyword                                  # filter by keyword
 
 # Tests with coverage report
 uv run tox -e py311
