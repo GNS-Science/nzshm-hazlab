@@ -2,7 +2,6 @@ import sys
 
 import matplotlib.pyplot as plt
 import pytest
-from matplotlib.testing.decorators import image_comparison
 from nzshm_common import CodedLocation
 from nzshm_common.location import get_locations
 
@@ -46,25 +45,28 @@ def test_center_out(length, expected):
     assert returned == expected
 
 
-@image_comparison(baseline_images=['hazard_curve_mean'], extensions=['png'], style='mpl20')
+@pytest.mark.mpl_image_compare
 def test_plot_hazard_curve_single(hazard_curves):
     aggs = ["mean"]
     fig, ax = plt.subplots(1, 1)
     plot_hazard_curve(ax, hazard_curves, hazard_model, wlg, imt, vs30, aggs)
+    return fig
 
 
-@image_comparison(baseline_images=['hazard_curve_even'], extensions=['png'], style='mpl20')
+@pytest.mark.mpl_image_compare
 def test_plot_hazard_curve_even(hazard_curves):
     aggs = ["0.1", "0.2", "0.8", "0.9"]
     fig, ax = plt.subplots(1, 1)
     plot_hazard_curve(ax, hazard_curves, hazard_model, wlg, imt, vs30, aggs)
+    return fig
 
 
-@image_comparison(baseline_images=['hazard_curve_odd'], extensions=['png'], style='mpl20')
+@pytest.mark.mpl_image_compare
 def test_plot_hazard_curve_odd(hazard_curves):
     aggs = ["0.1", "0.2", "mean", "0.8", "0.9"]
     fig, ax = plt.subplots(1, 1)
     plot_hazard_curve(ax, hazard_curves, hazard_model, wlg, imt, vs30, aggs)
+    return fig
 
 
 imts = ["PGA", "SA(0.5)", "SA(1.5)", "SA(3.0)"]
@@ -72,22 +74,25 @@ poe = 0.1
 inv_time = 50.0
 
 
-@image_comparison(baseline_images=['uhs_curve_mean'], extensions=['png'], style='mpl20')
+@pytest.mark.mpl_image_compare
 def test_plot_uhs_curve_single(hazard_curves):
     aggs = ["mean"]
     fig, ax = plt.subplots(1, 1)
     plot_uhs(ax, hazard_curves, hazard_model, wlg, imts, poe, inv_time, vs30, aggs)
+    return fig
 
 
-@image_comparison(baseline_images=['uhs_curve_even'], extensions=['png'], style='mpl20')
+@pytest.mark.mpl_image_compare
 def test_plot_uhs_curve_even(hazard_curves):
     aggs = ["0.1", "0.2", "0.8", "0.9"]
     fig, ax = plt.subplots(1, 1)
     plot_uhs(ax, hazard_curves, hazard_model, wlg, imts, poe, inv_time, vs30, aggs)
+    return fig
 
 
-@image_comparison(baseline_images=['uhs_curve_odd'], extensions=['png'], style='mpl20')
+@pytest.mark.mpl_image_compare
 def test_plot_uhs_curve_odd(hazard_curves):
     aggs = ["0.1", "0.2", "mean", "0.8", "0.9"]
     fig, ax = plt.subplots(1, 1)
     plot_uhs(ax, hazard_curves, hazard_model, wlg, imts, poe, inv_time, vs30, aggs)
+    return fig

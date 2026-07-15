@@ -9,14 +9,14 @@ authors = [
 license = "AGPL-3.0"
 requires-python = ">=3.11,<3.13"
 dependencies = [
-  "matplotlib>=3.10.3,<4.0.0",
-  "pandas>=2.2.3,<3.0.0",
-  "numpy>=1.26.4,<2",
-  "cartopy>=0.24.1,<0.25.0",
+  "pandas>=2.2.3,<4.0.0",
+  "numpy>=1.26.4,<3",
+  "cartopy>=0.24.1,<0.26.0",
   "toshi-hazard-post>=0.7.1",
   "nzshm-model>=0.14.2",
   "nzshm-common>=0.9.3",
   "toshi-hazard-store>=2.0.0",
+  "matplotlib>=3.11.0",
 ]
 
 [project.optional-dependencies]
@@ -36,6 +36,7 @@ dev = [
   "pytest-mock",
   "safety>=3.6.2,<4.0.0",
   "pip-audit>=2.9.0,<3.0.0",
+  "pytest-mpl>=0.19.0",
 ]
 doc = [
   "mkdocs-material",
