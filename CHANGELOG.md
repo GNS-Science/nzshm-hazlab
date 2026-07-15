@@ -1,6 +1,6 @@
 # Changelog 
 
-## [Unreleased]
+## [0.1.5] 2026-07-16
 
 ### Changed
  - deps: patch (2 pkgs: matplotlib-inline, python-discovery), minor (numpy 2.0→2.4); skipped: safety-schemas (pinned by safety==3.8.1), pydantic-core/typer (pinned by toshi-hazard-post/safety); no major-bucket packages outstanding
