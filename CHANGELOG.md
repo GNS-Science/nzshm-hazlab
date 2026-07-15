@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Changed
+ - deps: patch (2 pkgs: matplotlib-inline, python-discovery), minor (numpy 2.0→2.4); skipped: safety-schemas (pinned by safety==3.8.1), pydantic-core/typer (pinned by toshi-hazard-post/safety); no major-bucket packages outstanding
  - deps: patch upgrades (22 pkgs, incl. security fixes: authlib, pip, soupsieve, tornado, uv)
  - deps: minor upgrades (60 pkgs, incl. security fixes: bleach, idna, joserfc, jupyter-server, jupyterlab, mistune, msgpack, nltk, pillow, urllib3); widened cartopy constraint to `<0.26.0`
  - deps: major upgrades: mypy 1.20→2.2, numpy 1.26→2.0 (widened to `<3`), pandas 2.3→3.0 (widened to `<4`), toshi-hazard-post 0.7.1→0.7.3, numba/llvmlite (unblocked by numpy 2.x), cryptography (security fix GHSA-537c-gmf6-5ccf), lxml, pymdown-extensions (security fix GHSA-62q4-447f-wv8h), rpds-py, smart-open, tzdata
