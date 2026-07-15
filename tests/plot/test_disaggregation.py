@@ -102,7 +102,8 @@ def test_plot_disagg_3d(disaggregations):
 
 
 # def test_plot_disagg_3d_noimage(disaggregations):
-#     """Since we skip the image comparison test (test_plot_disagg_3d), run this test just ensure no exceptions raised."""
+#     """Since we skip the image comparison test (test_plot_disagg_3d),
+#     run this test just ensure no exceptions raised."""
 #     fig = plt.figure()
 #     plot_disagg_3d(fig, disaggregations, hazard_model, location, imt, vs30, poe, agg, dist_lim=[0, 70])
 
