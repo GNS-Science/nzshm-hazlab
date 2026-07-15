@@ -77,7 +77,7 @@ select = ["E", "F", "I", "B", "UP", "G004"]
 quote-style = "preserve"
 
 [tool.pytest.ini_options]
-addopts = "--import-mode=importlib"
+addopts = ["--import-mode=importlib", "--mpl"]
 
 [tool.mypy]
 ignore_missing_imports = true
