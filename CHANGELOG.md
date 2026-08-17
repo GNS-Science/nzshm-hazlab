@@ -1,5 +1,13 @@
 # Changelog 
 
+## [Unreleased]
+### Changed
+ - toshi-hazard-post minimum version 0.7.4 to allow unregistered branches.
+ - updated README.md
+
+### Added
+ - pyside6 to optional interactive dependency
+
 ## [0.1.5] 2026-07-16
 
 ### Changed
