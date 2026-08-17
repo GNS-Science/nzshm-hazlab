@@ -2040,7 +2040,7 @@ requires-dist = [
     { name = "nzshm-common", specifier = ">=0.9.3" },
     { name = "nzshm-model", specifier = ">=0.14.2" },
     { name = "pandas", specifier = ">=2.2.3,<4.0.0" },
-    { name = "toshi-hazard-post", specifier = ">=0.7.1" },
+    { name = "toshi-hazard-post", specifier = ">=0.7.4" },
     { name = "toshi-hazard-store", specifier = ">=2.0.0" },
 ]
 provides-extras = ["interactive"]
@@ -3299,7 +3299,7 @@ wheels = [
 
 [[package]]
 name = "toshi-hazard-post"
-version = "0.7.3"
+version = "0.7.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -3315,9 +3315,9 @@ dependencies = [
     { name = "toshi-hazard-store" },
     { name = "tzdata" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b0/ab/3e9b6946e072251a299b1d1fa96f2ddb17fe62f80dc401242b9bd75d3dfc/toshi_hazard_post-0.7.3.tar.gz", hash = "sha256:9aa282bbfa0088ecdb56a1ca5cd54c85dcc6bcf7d737e0ab14574b6d705399ce", size = 1095803, upload-time = "2026-07-15T21:47:17.344Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/d4/8038ca1c2342f09964a10e090f9223c2db1ef701acba566043f2b194badb/toshi_hazard_post-0.7.4.tar.gz", hash = "sha256:22b77448b371470763b1034d601a641a8210742ecaa82854c13f2ff74378c4e7", size = 1097323, upload-time = "2026-08-16T22:27:30.321Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ba/d9/f3611739e534d627d4e33b24e6680ac07718c29c729680c3d8d76c1306a7/toshi_hazard_post-0.7.3-py3-none-any.whl", hash = "sha256:54e11e6d255cc33e820d8647423c46e81cabdf2e51ead1652de7290fde6fd79d", size = 21896, upload-time = "2026-07-15T21:47:16.231Z" },
+    { url = "https://files.pythonhosted.org/packages/00/71/38f6ef54fd5136d6101aaf20dc3c1ec385b512a9983e2cd936d2a7992cdc/toshi_hazard_post-0.7.4-py3-none-any.whl", hash = "sha256:48d9207586b86962ee0a5a3971e5dfabfa5991e012dbe8970ce3d5051467c7b0", size = 22539, upload-time = "2026-08-16T22:27:29.32Z" },
 ]
 
 [[package]]
