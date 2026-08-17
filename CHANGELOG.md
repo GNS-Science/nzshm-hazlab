@@ -1,5 +1,10 @@
 # Changelog 
 
+## [Unreleased]
+### Changed
+ - toshi-hazard-post minimum version 0.7.4 to allow unregistered branches.
+ - updated README.md
+
 ## [0.1.5] 2026-07-16
 
 ### Changed
