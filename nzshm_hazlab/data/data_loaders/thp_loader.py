@@ -8,7 +8,7 @@ import numpy as np
 import toshi_hazard_post.aggregation_calc as aggregation
 import toshi_hazard_post.calculators as calculators
 import toshi_hazard_post.data as data
-from toshi_hazard_post.logic_tree import HazardLogicTree
+from toshi_hazard_post.logic_tree import HazardLogicTree, build_branch_index_table
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -27,9 +27,15 @@ def _get_batch_table_cached(
     nloc_0: str,
     vs30: int,
     imts: tuple[str],
-) -> 'pa.Table':
+    component_digests: tuple[str],
+) -> tuple['pa.Table', dict[tuple[str, str], 'npt.NDArray'], 'npt.NDArray']:
 
-    return data.get_batch_table(dataset, compatible_calc_id, sources_digests, gmms_digests, vs30, nloc_0, imts)
+    batch_datatable = data.get_batch_table(
+        dataset, compatible_calc_id, list(sources_digests), list(gmms_digests), vs30, nloc_0, list(imts)
+    )
+    job_rows = data.group_batch_rows(batch_datatable)
+    component_ids = data.component_row_ids(batch_datatable, component_digests)
+    return batch_datatable, job_rows, component_ids
 
 
 class THPHazardLoader:
@@ -79,8 +85,9 @@ class THPHazardLoader:
         component_branches = logic_tree.component_branches
         self.gmms_digests = [branch.gmcm_hash_digest for branch in component_branches]
         self.sources_digests = [branch.source_hash_digest for branch in component_branches]
+        self.component_digests = [branch.hash_digest for branch in component_branches]
 
-        self.branch_hash_table = logic_tree.branch_hash_table
+        self.branch_index_table = build_branch_index_table(logic_tree.branch_hash_table, self.component_digests)
         self.weights = logic_tree.weights
 
         self.dataset = data.get_realizations_dataset(rlz_dir=rlz_dir)
@@ -104,7 +111,7 @@ class THPHazardLoader:
         agg_types = [agg]
         imts = [imt]
         nloc_0 = location.downsample(1.0).code
-        batch_datatable = _get_batch_table_cached(
+        batch_datatable, job_rows, component_ids = _get_batch_table_cached(
             self.dataset,
             self.compatible_calc_id,
             tuple(self.sources_digests),
@@ -112,12 +119,13 @@ class THPHazardLoader:
             nloc_0,
             vs30,
             tuple(imts),
+            tuple(self.component_digests),
         )
-        job_datatable = data.get_job_datatable(batch_datatable, location, imt, len(self.sources_digests))
-        component_probs = job_datatable.to_pandas()
-        component_rates = aggregation.convert_probs_to_rates(component_probs)
-        component_rates = aggregation.create_component_dict(component_rates)
-        composite_rates = aggregation.build_branch_rates(self.branch_hash_table, component_rates)
+        component_probs = data.get_job_probs(
+            batch_datatable, job_rows, component_ids, self.component_digests, location, imt
+        )
+        component_rates = calculators.prob_to_rate(component_probs, 1.0)
+        composite_rates = aggregation.build_branch_rates(self.branch_index_table, component_rates)
         hazard = aggregation.calculate_aggs(composite_rates, self.weights, agg_types)
         return calculators.rate_to_prob(hazard, 1.0)[0, :]
 
