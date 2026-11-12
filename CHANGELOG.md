@@ -1,6 +1,6 @@
 # Changelog 
 
-## [Unreleased]
+## [0.1.6] 2026-11-13
 ### Changed
  - deps: major: toshi-hazard-post 0.7.4→0.8.0 (minimum raised to 0.8.0; THPHazardLoader ported to new data API), pyarrow 24→26, argon2-cffi-bindings, backrefs, multidict, pillow, pymdown-extensions, smart-open, watchdog, wcmatch (incl. security fixes: multidict, pillow, soupsieve), filelock 3.29→4.2 (security fixes)
  - deps: minor upgrades (88 pkgs, incl. security fixes: anyio, certifi, graphql-core, jupyter-server, jupyterlab, mistune, mkdocs-material, pip, tornado, urllib3, uv, virtualenv); widened cartopy constraint to `<0.27.0`
