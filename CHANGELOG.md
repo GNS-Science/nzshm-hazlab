@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 ### Changed
+ - deps: major: toshi-hazard-post 0.7.4→0.8.0 (minimum raised to 0.8.0; THPHazardLoader ported to new data API), pyarrow 24→26, argon2-cffi-bindings, backrefs, cryptography, multidict, pillow, pymdown-extensions, smart-open, watchdog, wcmatch (incl. security fixes: cryptography, multidict, pillow, soupsieve); filelock 3.29→3.32 (4.x blocked by safety)
+ - deps: minor upgrades (88 pkgs, incl. security fixes: anyio, authlib, certifi, graphql-core, joserfc, jupyter-server, jupyterlab, mistune, mkdocs-material, pip, tornado, urllib3, uv, virtualenv); widened cartopy constraint to `<0.27.0`
+ - deps: patch upgrades (35 pkgs, incl. security fixes: msgpack, nbconvert, nltk)
+ - age cutoff: exempt nshm-toshi-client
  - toshi-hazard-post minimum version 0.7.4 to allow unregistered branches.
  - updated README.md
 
