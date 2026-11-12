@@ -1,5 +1,7 @@
+import json
 from pathlib import Path
 
+import numpy as np
 import pytest
 from nzshm_common.location import CodedLocation, get_locations
 from nzshm_model.logic_tree import GMCMLogicTree, SourceLogicTree
@@ -37,4 +39,8 @@ location_imt_agg_err = [
 def test_probabilities(location, imt, agg, err, loader):
     with err:
         probs = loader.get_probabilities("dummy_hazard_model_id", imt, location, vs30, agg)
-        assert (probs.size) > 0
+        # expected values generated with toshi-hazard-post v0.7.4 (nzshm-hazlab main @ 7919a00, before the 0.8.0 port)
+        dir = Path(__file__).parent.parent.parent / "fixtures/data/thp_loader/expected"
+        filepath = dir / f"{location.lat}_{location.lon}_{imt}_{agg}.json"
+        expected = json.load(filepath.open())
+        np.testing.assert_allclose(probs, expected)
