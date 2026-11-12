@@ -62,7 +62,7 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 exclude-newer = "1 week"
-exclude-newer-package = { "nzshm-common" = false, "nzshm-model" = false, "toshi-hazard-post" = false, "toshi-hazard-store" = false }
+exclude-newer-package = { "nshm-toshi-client" = false, "nzshm-common" = false, "nzshm-model" = false, "toshi-hazard-post" = false, "toshi-hazard-store" = false }
 
 [tool.ruff]
 line-length = 120
