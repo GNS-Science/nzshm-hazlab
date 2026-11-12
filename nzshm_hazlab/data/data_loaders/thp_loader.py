@@ -29,7 +29,31 @@ def _get_batch_table_cached(
     imts: tuple[str],
     component_digests: tuple[str],
 ) -> tuple['pa.Table', dict[tuple[str, str], 'npt.NDArray'], 'npt.NDArray']:
+    """Load the realizations for a batch of sites and index them by job and component branch (cached).
 
+    A batch is all the realizations needed for every site within one 1.0 degree grid cell (nloc_0), for
+    the given vs30, IMTs, and component branches. The results are cached so that subsequent calls for
+    sites in the same cell, vs30, and IMTs don't re-read the dataset or re-index the table. Arguments
+    are tuples (rather than lists) so that they are hashable for the cache.
+
+    Args:
+        dataset: The realizations dataset.
+        compatible_calc_id: The ID of a compatible calculation for PSHA engines interoperability.
+        sources_digests: The source hash digests of the component branches.
+        gmms_digests: The ground motion model hash digests of the component branches.
+        nloc_0: The location code of the 1.0 degree grid cell containing the site(s).
+        vs30: The vs30 of the site(s).
+        imts: The intensity measure types.
+        component_digests: The hash digests of the component branches (source digest + gmms digest).
+
+    Returns:
+        A tuple of
+            batch_datatable: The realizations table for the batch, one row per (site, IMT, component branch).
+            job_rows: Maps (location code at 0.001 degree resolution, IMT) to the row indices of
+                batch_datatable for that job.
+            component_ids: For each row of batch_datatable, the index into component_digests of the row's
+                component branch, or -1 if the row is not for a component branch.
+    """
     batch_datatable = data.get_batch_table(
         dataset, compatible_calc_id, list(sources_digests), list(gmms_digests), vs30, nloc_0, list(imts)
     )
